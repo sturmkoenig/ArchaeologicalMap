@@ -1,0 +1,61 @@
+{
+  "name": "archaological-map",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "generate": "openapi-generator-cli generate -i ../Common/AM.Api/am.yaml -g typescript-angular -o ./src/generated"
+  },
+  "browser": {
+    "fs": false,
+    "os": false,
+    "path": false
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "^15.0.0",
+    "@angular/cdk": "^15.0.3",
+    "@angular/common": "^15.0.0",
+    "@angular/compiler": "^15.0.0",
+    "@angular/core": "^15.0.0",
+    "@angular/forms": "^15.0.0",
+    "@angular/material": "^15.0.3",
+    "@angular/platform-browser": "^15.0.4",
+    "@angular/platform-browser-dynamic": "^15.0.0",
+    "@angular/router": "^15.0.0",
+    "@asymmetrik/ngx-leaflet": "^15.0.1",
+    "@openapitools/openapi-generator-cli": "^2.5.2",
+    "@types/leaflet": "^1.9.0",
+    "@types/quill": "^1.3.7",
+    "leaflet": "^1.7.1",
+    "leaflet.markercluster": "^1.5.3",
+    "ngx-quill": "^20.0.1",
+    "openapi-generator": "^0.1.39",
+    "quill": "^1.3.7",
+    "quill-delta": "^5.0.0",
+    "quill-image-resize": "^3.0.9",
+    "quill-image-resize-module": "^3.0.0",
+    "rxjs": "~7.5.0",
+    "tslib": "^2.3.0",
+    "zone.js": "~0.12.0"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^15.0.3",
+    "@angular/cli": "~15.0.3",
+    "@angular/compiler-cli": "^15.0.0",
+    "@types/jasmine": "~4.3.0",
+    "@types/node": "^18.11.18",
+    "jasmine-core": "~4.5.0",
+    "karma": "~6.4.0",
+    "karma-chrome-launcher": "~3.1.0",
+    "karma-coverage": "~2.2.0",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.0.0",
+    "openapi-typescript-codegen": "^0.23.0",
+    "tailwindcss": "^3.2.4",
+    "typescript": "~4.8.2"
+  }
+}

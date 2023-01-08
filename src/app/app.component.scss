@@ -1,0 +1,26 @@
+.main-content {
+    height: 100%;
+}
+
+.example-container {
+    height: 100%;
+}
+
+.navigation-container {
+    width: 200px;
+    height: 100%;
+}
+
+.navigation-item {
+    margin-bottom: 1rem;
+}
+
+.navigation-item-content {
+    display: flex;
+    flex-direction: row;
+}
+
+mat-list-item span {
+    margin-right: 1rem;
+}
+
