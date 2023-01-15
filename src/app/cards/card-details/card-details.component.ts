@@ -1,8 +1,9 @@
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { QuillEditorComponent } from 'ngx-quill';
 import Delta from 'quill-delta';
-import { Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { CardService } from 'src/app/services/card.service';
 import { Card, Coordinate } from 'src/generated';
 
@@ -29,11 +30,12 @@ const fs = require('fs');
       </mat-card>
       <div class="grid grid-cols-2">
         <quill-editor
+          (onEditorCreated)="createdEditor($event)"
           (onContentChanged)="changedContent($event.content)"
         ></quill-editor>
         <div>
           <quill-view
-            [content]="content"
+            (onEditorCreated)="onViewerCreated($event)"
             format="object"
             theme="snow"
           ></quill-view>
@@ -47,7 +49,7 @@ export class CardDetailsComponent implements OnInit {
   cardId!: number;
   card$!: Observable<Card>;
   content: Delta = new Delta();
-  existingContent!: Delta;
+  editor?: QuillEditorComponent;
 
   constructor(
     private http: HttpClient,
@@ -60,30 +62,32 @@ export class CardDetailsComponent implements OnInit {
     this.route.queryParams.subscribe((params) => {
       console.log(params);
       this.cardId = +params['id'];
-      this.http
-        .get('http://localhost:3000/api/content/' + this.cardId)
-        .subscribe((next: Object) => {
-          this.existingContent = next as Delta;
-          console.log('worked!');
-          console.log(this.existingContent);
-        });
     });
     this.card$ = this.cardService.cardGet(this.cardId);
   }
 
+  onViewerCreated(editor: QuillEditorComponent) {
+    console.log('viewer is initialized');
+    console.log('local content is equal to: ' + JSON.stringify(this.content));
+    editor.content = this.content;
+  }
   changedContent(newContent: Delta) {
+    console.log(this.content);
     this.content = newContent;
     this.http
-      .post('http://localhost:3000/api/upload', this.content)
+      .post('http://localhost:3000/api/content/' + this.cardId, this.content)
       .subscribe();
-    //console.log(this.content);
-    // fs.readFile('./package.jsons', 'utf8', (err, data) => {
-    //   if (err) throw err;
-    //   console.log(data);
-    // });
-    // fs.writeFile('content.txt', JSON.stringify(this.content), (err) => {
-    //   console.log(err);
-    // });
+  }
+
+  createdEditor(editor: QuillEditorComponent) {
+    this.editor = editor;
+    console.log('editor is now initialized');
+    this.http
+      .get<Delta>('http://localhost:3000/api/content/' + this.cardId)
+      .subscribe((res) => {
+        console.log(res);
+        this.content = res;
+      });
   }
 
   goToCard(coordinates: Coordinate) {
