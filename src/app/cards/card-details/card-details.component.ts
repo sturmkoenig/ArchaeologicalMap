@@ -1,15 +1,47 @@
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { AfterViewInit, Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { QuillEditorComponent } from 'ngx-quill';
-import Delta from 'quill-delta';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { CardService } from 'src/app/services/card.service';
-import { Card, Coordinate } from 'src/generated';
+import { HttpClient, HttpClientModule } from "@angular/common/http";
+import { AfterViewInit, Component, OnInit } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import { ContentChange, QuillEditorComponent } from "ngx-quill";
+import Quill, { DeltaStatic } from "quill";
+import { BehaviorSubject, catchError, Observable, throwError } from "rxjs";
+import { CardService } from "src/app/services/card.service";
+import { Card, Coordinate } from "src/generated";
+import { QuillDeltaToHtmlConverter } from "quill-delta-to-html";
+import { invoke } from "@tauri-apps/api";
 
-const fs = require('fs');
+import ImageResize from "quill-image-resize-module";
+
+Quill.register("modules/imageResize", ImageResize);
+
+var BaseImageFormat = Quill.import("formats/image");
+const ImageFormatAttributesList = ["alt", "height", "width", "style"];
+
+class ImageFormat extends BaseImageFormat {
+  static formats(domNode) {
+    return ImageFormatAttributesList.reduce(function (formats, attribute) {
+      if (domNode.hasAttribute(attribute)) {
+        formats[attribute] = domNode.getAttribute(attribute);
+      }
+      return formats;
+    }, {});
+  }
+  format(name, value) {
+    if (ImageFormatAttributesList.indexOf(name) > -1) {
+      if (value) {
+        this["domNode"].setAttribute(name, value);
+      } else {
+        this["domNode"].removeAttribute(name);
+      }
+    } else {
+      super.format(name, value);
+    }
+  }
+}
+
+Quill.register(ImageFormat, true);
+
 @Component({
-  selector: 'app-card-details',
+  selector: "app-card-details",
   template: `
     <ng-container *ngIf="card$ | async as card">
       <mat-card class="example-card">
@@ -19,7 +51,7 @@ const fs = require('fs');
         </mat-card-header>
         <mat-card-content>
           <p>
-            {{ card.text }}
+            {{ card.description }}
           </p>
         </mat-card-content>
         <mat-card-actions>
@@ -28,74 +60,99 @@ const fs = require('fs');
           </button>
         </mat-card-actions>
       </mat-card>
-      <div class="grid grid-cols-2">
-        <quill-editor
-          (onEditorCreated)="createdEditor($event)"
-          (onContentChanged)="changedContent($event.content)"
-        ></quill-editor>
-        <div>
-          <quill-view
-            (onEditorCreated)="onViewerCreated($event)"
-            format="object"
-            theme="snow"
-          ></quill-view>
-        </div>
-      </div>
     </ng-container>
+
+    <div>
+      <quill-editor
+        [ngModel]="this.initialContent"
+        [modules]="modules"
+        (onContentChanged)="onContentChanged($event)"
+        (onEditorCreated)="createdEditor($event)"
+      ></quill-editor>
+    </div>
+    <button mat-button (click)="onSaveContent()">save content</button>
+    <button mat-button (click)="onInvokeTauri()">invoke tauri</button>
   `,
   styles: [],
 })
 export class CardDetailsComponent implements OnInit {
   cardId!: number;
   card$!: Observable<Card>;
-  content: Delta = new Delta();
+  initialContent!: string;
+  content!: DeltaStatic;
   editor?: QuillEditorComponent;
+  modules = {};
 
   constructor(
     private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router,
     private cardService: CardService
-  ) {}
+  ) {
+    this.modules = {
+      imageResize: {},
+    };
+  }
 
   ngOnInit() {
     this.route.queryParams.subscribe((params) => {
       console.log(params);
-      this.cardId = +params['id'];
+      this.cardId = +params["id"];
     });
-    this.card$ = this.cardService.cardGet(this.cardId);
+    // this.card$ = this.cardService.cardGet(this.cardId);
   }
 
   onViewerCreated(editor: QuillEditorComponent) {
-    console.log('viewer is initialized');
-    console.log('local content is equal to: ' + JSON.stringify(this.content));
-    editor.content = this.content;
+    console.log("viewer is initialized");
+    console.log("local content is equal to: " + JSON.stringify(this.content));
   }
-  changedContent(newContent: Delta) {
-    console.log(this.content);
-    this.content = newContent;
+
+  onSaveContent() {
     this.http
-      .post('http://localhost:3000/api/content/' + this.cardId, this.content)
-      .subscribe();
+      .post("http://localhost:3000/api/content/" + this.cardId, this.content)
+      .subscribe(() =>
+        console.log("sent content: " + JSON.stringify(this.content))
+      );
   }
 
   createdEditor(editor: QuillEditorComponent) {
-    this.editor = editor;
-    console.log('editor is now initialized');
-    this.http
-      .get<Delta>('http://localhost:3000/api/content/' + this.cardId)
-      .subscribe((res) => {
+    invoke("read_card_content", { id: "12"}).then(
+      (res: string) => {
         console.log(res);
-        this.content = res;
-      });
+        let loadedContent: DeltaStatic;
+        try {
+          loadedContent = JSON.parse(res);
+        } catch (error) {
+          console.log("no content");
+          return;
+        }
+        if (loadedContent.ops) {
+          this.initialContent = new QuillDeltaToHtmlConverter(
+            loadedContent.ops
+          ).convert();
+          console.log("content loaded: " + this.initialContent);
+        } else {
+          this.initialContent = "<h1>Hello?</h1>";
+        }
+        editor.content = res;
+        this.editor = editor;
+      }
+    );
   }
 
   goToCard(coordinates: Coordinate) {
-    this.router.navigate(['map'], {
+    this.router.navigate(["map"], {
       queryParams: {
         longitude: coordinates.longitude,
         latitude: coordinates.latitude,
       },
     });
   }
+
+  onContentChanged($event: ContentChange) {
+    console.log($event);
+    this.content = $event.content;
+  }
+
+  onInvokeTauri() {}
 }

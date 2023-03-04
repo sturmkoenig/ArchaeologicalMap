@@ -1,3 +1,3 @@
-export * from './card';
-export * from './cardPostRequest';
-export * from './coordinate';
+export * from "../../app/model/card";
+export * from "./cardPostRequest";
+export * from "./coordinate";

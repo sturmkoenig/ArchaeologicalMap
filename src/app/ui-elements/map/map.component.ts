@@ -6,7 +6,7 @@ import {
   Output,
   SimpleChange,
   SimpleChanges,
-} from '@angular/core';
+} from "@angular/core";
 import {
   Map,
   latLng,
@@ -17,16 +17,17 @@ import {
   Layer,
   LeafletMouseEvent,
   LatLng,
-} from 'leaflet';
-import { Coordinate } from 'src/generated';
+} from "leaflet";
+import { Coordinate } from "src/generated";
 
 @Component({
-  selector: 'app-map',
+  selector: "app-map",
   template: `<div
     class="map-container"
     leaflet
     [leafletOptions]="options"
     [leafletLayers]="layers"
+    [leafletMarkerCluster]="layers"
     (leafletMapReady)="onMapReady($event)"
     (leafletClick)="click$.emit($event)"
   ></div>`,
@@ -48,7 +49,7 @@ export class MapComponent {
   @Input() layers: Layer[] = [];
   @Input() options: MapOptions = {
     layers: [
-      tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         opacity: 0.7,
         maxZoom: 19,
         detectRetina: true,

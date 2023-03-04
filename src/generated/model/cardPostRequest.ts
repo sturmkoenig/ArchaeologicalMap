@@ -13,10 +13,10 @@ import { Coordinate } from './coordinate';
 
 
 export interface CardPostRequest { 
-    name?: string;
-    text?: string;
-    image_url?: string;
-    coordinate?: Coordinate;
+    name: string;
+    description?: string;
+    coordinate: Coordinate;
+    coordinateRadius?: number;
     categories?: Array<string>;
 }
 

@@ -1,26 +1,26 @@
-import { Component, ViewChild } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
+import { Component, ViewChild } from "@angular/core";
+import { Router, RouterModule } from "@angular/router";
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
+  selector: "app-root",
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"],
 })
 export class AppComponent {
-  title = 'archaological-map';
+  title = "archaological-map";
   showFiller = false;
 
   constructor(private router: Router) {}
 
   goMap() {
-    this.router.navigate(['map']);
+    this.router.navigate(["map"]);
   }
 
   goList() {
-    this.router.navigate(['cards']);
+    this.router.navigate(["cards/list"]);
   }
 
   goCreateNew() {
-    this.router.navigate(['cards/new']);
+    this.router.navigate(["cards/new"]);
   }
 }

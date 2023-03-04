@@ -31,14 +31,10 @@ paths:
           content:
               application/json:
                 schema:
-                  type: object
-                  properties:
-                    id:
-                      type: number
-                      description: id of card
-                    name:
-                      type: string
-                      description: descriptiv name of the card
+                  type: array
+                  items: 
+                    $ref: "#/components/schemas/card"
+              
   /card/{cardId}:
     get:
       description: 'get card by id'
@@ -70,9 +66,12 @@ components:
           type: string
         geo-postion:
           $ref: '#components/schemas/geo-postion'
+        postion-radius:
+          type: number
         image-url:
           type: string
           format: path
+        
         categories:
           type: array
           items:
@@ -84,11 +83,10 @@ components:
           type: string
         text:
           type: string
-        image-url:
-          type: string
-          format: path
         geo-postion:
           $ref: '#components/schemas/geo-postion'
+        postion-radius:
+          type: number
         categories:
           type: array
           items:

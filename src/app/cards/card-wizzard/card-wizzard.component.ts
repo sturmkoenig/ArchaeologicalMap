@@ -1,12 +1,12 @@
-import { Component } from '@angular/core';
-import { circle, Circle, LatLng, LeafletMouseEvent } from 'leaflet';
-import { CardService } from 'src/app/services/card.service';
-import { CardPostRequest } from 'src/generated/model/cardPostRequest';
-import { Card } from 'src/generated/model/card';
-import { FormBuilder, Validators } from '@angular/forms';
+import { Component } from "@angular/core";
+import { circle, Circle, LatLng, LeafletMouseEvent } from "leaflet";
+import { CardService } from "src/app/services/card.service";
+import { CardPostRequest } from "src/generated/model/cardPostRequest";
+import { Card, NewCard } from "src/app/model/card";
+import { FormBuilder, Validators } from "@angular/forms";
 
 @Component({
-  selector: 'app-card-wizzard',
+  selector: "app-card-wizzard",
   template: `
     <div class="h-full m-10 !rounded-xl">
       <mat-stepper #stepper class="h-full">
@@ -129,18 +129,18 @@ import { FormBuilder, Validators } from '@angular/forms';
   ],
 })
 export class CardWizzardComponent {
-  text: string = 'example text';
+  text: string = "example text";
   Longitude = 0;
   Lattitude = 0;
   circleRadius = 10;
   clicked: Circle = new Circle(new LatLng(0, 0), { radius: this.circleRadius });
 
   firstFormGroup = this._formBuilder.group({
-    cardTitle: ['', Validators.required],
-    cardText: ['', Validators.required],
+    cardTitle: ["", Validators.required],
+    cardText: ["", Validators.required],
   });
   secondFormGroup = this._formBuilder.group({
-    secondCtrl: ['', Validators.required],
+    secondCtrl: ["", Validators.required],
   });
 
   public map!: L.Map;
@@ -158,15 +158,16 @@ export class CardWizzardComponent {
   }
 
   submitCard() {
-    let newCard: CardPostRequest = {
+    let newCard: NewCard = {
       coordinate: {
         latitude: this.Lattitude,
         longitude: this.Longitude,
       },
-      name: this.firstFormGroup.controls['cardTitle'].value!,
-      text: this.firstFormGroup.controls['cardText'].value!,
+      title: this.firstFormGroup.controls["cardTitle"].value!,
+      description: this.firstFormGroup.controls["cardText"].value!,
+      category: "",
     };
-    this.cardService.cardPost(newCard);
+    this.cardService.cardCreate(newCard);
   }
   changeCircleRadius(newRadius: number) {
     this.clicked.setRadius(newRadius);
