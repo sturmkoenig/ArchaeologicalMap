@@ -33,7 +33,6 @@ import { MapComponent } from "./ui-elements/map/map.component";
 import { LeafletModule } from "@asymmetrik/ngx-leaflet";
 import { CardDetailsComponent } from "./cards/card-details/card-details.component";
 import { QuillModule } from "ngx-quill";
-import { EditorModule, TINYMCE_SCRIPT_SRC } from "@tinymce/tinymce-angular";
 import { LeafletMarkerClusterModule } from "@asymmetrik/ngx-leaflet-markercluster";
 
 @NgModule({
@@ -50,7 +49,6 @@ import { LeafletMarkerClusterModule } from "@asymmetrik/ngx-leaflet-markercluste
   ],
   imports: [
     BrowserModule,
-    EditorModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     MatListModule,
@@ -74,9 +72,7 @@ import { LeafletMarkerClusterModule } from "@asymmetrik/ngx-leaflet-markercluste
     LeafletMarkerClusterModule,
     QuillModule.forRoot(),
   ],
-  providers: [
-    { provide: TINYMCE_SCRIPT_SRC, useValue: "tinymce/tinymce.min.js" },
-  ],
+  providers: [],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
