@@ -24,8 +24,11 @@ pub mod schema;
 
 pub fn establish_connection() -> SqliteConnection {
     dotenv().ok();
+    // TODO: Change this URL to be loaded from a conf file!
+    let database_url =
+        "sqlite:///Users/linuslauer/Documents/Projects/archaological-map/Frontend/test.db";
 
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    //let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     SqliteConnection::establish(&database_url)
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
 }

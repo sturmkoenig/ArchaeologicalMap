@@ -2,6 +2,12 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
+#[macro_use]
+extern crate diesel;
+#[macro_use]
+extern crate diesel_migrations;
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use std::env;
 use std::fs;
@@ -10,7 +16,11 @@ use app::create_card;
 use app::models::NewCard;
 use app::{establish_connection, models::Card, query_all_cards};
 
+// main.rs
 fn main() {
+    let conn = &mut establish_connection();
+    conn.run_pending_migrations(MIGRATIONS);
+
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             greet,
