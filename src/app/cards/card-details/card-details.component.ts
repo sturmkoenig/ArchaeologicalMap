@@ -71,7 +71,6 @@ Quill.register(ImageFormat, true);
       ></quill-editor>
     </div>
     <button mat-button (click)="onSaveContent()">save content</button>
-    <button mat-button (click)="onInvokeTauri()">invoke tauri</button>
   `,
   styles: [],
 })
@@ -98,6 +97,7 @@ export class CardDetailsComponent implements OnInit {
     this.route.queryParams.subscribe((params) => {
       console.log(params);
       this.cardId = +params["id"];
+      console.log("card id was found to be: " + this.cardId);
     });
     // this.card$ = this.cardService.cardGet(this.cardId);
   }
@@ -108,17 +108,18 @@ export class CardDetailsComponent implements OnInit {
   }
 
   onSaveContent() {
-    this.http
-      .post("http://localhost:3000/api/content/" + this.cardId, this.content)
-      .subscribe(() =>
-        console.log("sent content: " + JSON.stringify(this.content))
-      );
+    invoke("write_card_content", {
+      id: this.cardId.toString(),
+      content: JSON.stringify(this.content),
+    }).then((res) => {
+      console.log(res);
+    });
   }
 
   createdEditor(editor: QuillEditorComponent) {
-    invoke("read_card_content", { id: "12"}).then(
+    console.log("trying to query card with id: " + this.cardId);
+    invoke("read_card_content", { id: this.cardId.toString() }).then(
       (res: string) => {
-        console.log(res);
         let loadedContent: DeltaStatic;
         try {
           loadedContent = JSON.parse(res);
@@ -130,7 +131,6 @@ export class CardDetailsComponent implements OnInit {
           this.initialContent = new QuillDeltaToHtmlConverter(
             loadedContent.ops
           ).convert();
-          console.log("content loaded: " + this.initialContent);
         } else {
           this.initialContent = "<h1>Hello?</h1>";
         }
@@ -150,9 +150,6 @@ export class CardDetailsComponent implements OnInit {
   }
 
   onContentChanged($event: ContentChange) {
-    console.log($event);
     this.content = $event.content;
   }
-
-  onInvokeTauri() {}
 }

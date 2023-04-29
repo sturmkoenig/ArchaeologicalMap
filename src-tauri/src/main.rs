@@ -23,18 +23,13 @@ fn main() {
 
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
-            greet,
             read_cards,
             read_card_content,
-            write_card
+            write_card,
+            write_card_content
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}!", name)
 }
 
 #[tauri::command]
@@ -56,9 +51,25 @@ fn write_card(card: NewCard) {
 
 #[tauri::command]
 fn read_card_content(id: String) -> String {
-    fs::read_to_string(format!(
+    let content = fs::read_to_string(format!(
         "/Users/linuslauer/Documents/Projects/archaological-map/Middleware/content/{}.json",
         id
-    ))
-    .expect("was not able to read the file")
+    ));
+    match content {
+        Ok(content) => return content,
+        Err(e) => return String::from("no content"),
+    }
+}
+
+#[tauri::command]
+fn write_card_content(id: String, content: String) {
+    println!("received content: {}", content);
+    fs::write(
+        format!(
+            "/Users/linuslauer/Documents/Projects/archaological-map/Middleware/content/{}.json",
+            id
+        ),
+        content,
+    )
+    .expect("error opening file");
 }
