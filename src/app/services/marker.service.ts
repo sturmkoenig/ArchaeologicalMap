@@ -1,6 +1,5 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { PopupService } from "./popup.service";
 import { DefaultService } from "src/generated/api/default.service";
 import { Circle, circleMarker, LatLng, Layer, marker, Marker } from "leaflet";
 import { catchError, Observable, of, switchMap } from "rxjs";
@@ -17,8 +16,7 @@ export class MarkerService {
   constructor(
     private amService: DefaultService,
     private cardService: CardService,
-    private http: HttpClient,
-    private popupService: PopupService
+    private http: HttpClient
   ) {}
 
   static scaledRadius(val: number, maxVal: number): number {
