@@ -16,9 +16,9 @@ import {
   Marker,
 } from "leaflet";
 import { Observable } from "rxjs";
-import { Coordinate } from "src/generated";
 import { MarkerService } from "../services/marker.service";
 import { MapComponent } from "../layout/map/map.component";
+import { Coordinate } from "../model/card";
 
 @Component({
   selector: "app-overview-map",

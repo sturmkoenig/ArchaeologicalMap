@@ -5,11 +5,11 @@ import { ContentChange, QuillEditorComponent } from "ngx-quill";
 import Quill, { DeltaStatic } from "quill";
 import { BehaviorSubject, catchError, Observable, throwError } from "rxjs";
 import { CardService } from "src/app/services/card.service";
-import { Card, Coordinate } from "src/generated";
 import { QuillDeltaToHtmlConverter } from "quill-delta-to-html";
 import { invoke } from "@tauri-apps/api";
 
 import ImageResize from "quill-image-resize-module";
+import { Card, Coordinate } from "src/app/model/card";
 
 Quill.register("modules/imageResize", ImageResize);
 

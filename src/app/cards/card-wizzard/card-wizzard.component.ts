@@ -1,7 +1,6 @@
 import { Component } from "@angular/core";
 import { circle, Circle, LatLng, LeafletMouseEvent } from "leaflet";
 import { CardService } from "src/app/services/card.service";
-import { CardPostRequest } from "src/generated/model/cardPostRequest";
 import { Card, NewCard } from "src/app/model/card";
 import { FormBuilder, Validators } from "@angular/forms";
 

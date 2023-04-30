@@ -18,7 +18,7 @@ import {
   LeafletMouseEvent,
   LatLng,
 } from "leaflet";
-import { Coordinate } from "src/generated";
+import { Coordinate } from "src/app/model/card";
 
 @Component({
   selector: "app-map",

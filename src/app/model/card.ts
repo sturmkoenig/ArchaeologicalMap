@@ -9,7 +9,11 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { Coordinate } from "../../generated/model/coordinate";
+
+export interface Coordinate {
+  latitude: number;
+  longitude: number;
+}
 
 export interface NewCard {
   title: string;

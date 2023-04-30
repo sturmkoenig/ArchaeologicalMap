@@ -1,6 +1,5 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { DefaultService } from "src/generated/api/default.service";
 import { Circle, circleMarker, LatLng, Layer, marker, Marker } from "leaflet";
 import { catchError, Observable, of, switchMap } from "rxjs";
 import { Map } from "leaflet";
@@ -13,11 +12,7 @@ import { CardService } from "./card.service";
 export class MarkerService {
   capitals: string = "/assets/data/usa-capitals.geojson";
 
-  constructor(
-    private amService: DefaultService,
-    private cardService: CardService,
-    private http: HttpClient
-  ) {}
+  constructor(private cardService: CardService, private http: HttpClient) {}
 
   static scaledRadius(val: number, maxVal: number): number {
     return 20 * (val / maxVal);
@@ -27,8 +22,6 @@ export class MarkerService {
     return this.cardService.readCards().then((cards: CardDB[]) => {
       let markers: Layer[] = [];
       cards.forEach((card) => {
-        console.log(card);
-
         let circle = new Circle([card.latitude, card.longitude], {
           radius: 200,
         });

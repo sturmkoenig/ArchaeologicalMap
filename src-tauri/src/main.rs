@@ -14,7 +14,7 @@ use std::fs;
 
 use app::create_card;
 use app::models::NewCard;
-use app::{establish_connection, models::Card, query_all_cards};
+use app::{establish_connection, models::Card, query_all_cards, query_card_by_id};
 
 // main.rs
 fn main() {
@@ -24,6 +24,8 @@ fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             read_cards,
+            read_cards_paginated,
+            read_card,
             read_card_content,
             write_card,
             write_card_content
@@ -40,11 +42,20 @@ fn read_cards() -> Vec<Card> {
 }
 
 #[tauri::command]
+fn read_cards_paginated(page: i64) -> Vec<Card> {
+    let conn = &mut establish_connection();
+    let results = query_all_cards(conn);
+    return results;
+}
+
+#[tauri::command]
+fn read_card(card_id: i32) -> Card {
+    let conn = &mut establish_connection();
+    query_card_by_id(conn, card_id)
+}
+
+#[tauri::command]
 fn write_card(card: NewCard) {
-    println!(
-        "received Card with title: {} and descr: {}",
-        card.title, card.description
-    );
     let conn = &mut establish_connection();
     create_card(card, conn);
 }
