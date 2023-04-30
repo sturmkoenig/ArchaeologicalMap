@@ -18,7 +18,7 @@ import {
 import { Observable } from "rxjs";
 import { Coordinate } from "src/generated";
 import { MarkerService } from "../services/marker.service";
-import { MapComponent } from "../ui-elements/map/map.component";
+import { MapComponent } from "../layout/map/map.component";
 
 @Component({
   selector: "app-overview-map",

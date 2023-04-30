@@ -12,7 +12,6 @@ import { MatSidenavModule } from "@angular/material/sidenav";
 import { SidebarComponent } from "./layout/sidebar/sidebar.component";
 import { HttpClientModule } from "@angular/common/http";
 import { MatButtonModule } from "@angular/material/button";
-import { CardComponent } from "./layout/card/card.component";
 import { MatCardModule } from "@angular/material/card";
 import { MatListModule } from "@angular/material/list";
 import { MatSelectModule } from "@angular/material/select";
@@ -29,11 +28,12 @@ import { MatStepperModule } from "@angular/material/stepper";
 import { MatDividerModule } from "@angular/material/divider";
 import { CardWizzardComponent } from "./cards/card-wizzard/card-wizzard.component";
 import { CardListComponent } from "./cards/card-list/card-list.component";
-import { MapComponent } from "./ui-elements/map/map.component";
+import { MapComponent } from "./layout/map/map.component";
 import { LeafletModule } from "@asymmetrik/ngx-leaflet";
 import { CardDetailsComponent } from "./cards/card-details/card-details.component";
 import { QuillModule } from "ngx-quill";
 import { LeafletMarkerClusterModule } from "@asymmetrik/ngx-leaflet-markercluster";
+import { CardListItemComponent } from './layout/list/card-list-item/card-list-item.component';
 
 @NgModule({
   declarations: [
@@ -42,10 +42,10 @@ import { LeafletMarkerClusterModule } from "@asymmetrik/ngx-leaflet-markercluste
     MapComponent,
     ToolbarComponent,
     SidebarComponent,
-    CardComponent,
     CardWizzardComponent,
     CardListComponent,
     CardDetailsComponent,
+    CardListItemComponent,
   ],
   imports: [
     BrowserModule,
