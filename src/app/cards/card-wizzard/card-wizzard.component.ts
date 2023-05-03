@@ -115,6 +115,7 @@ import { FormBuilder, Validators } from "@angular/forms";
       .overview-map {
         height: 300px;
         width: 300px;
+        flex-shrink: 0;
         overflow: hidden;
       }
       .example-full-width {
@@ -150,7 +151,6 @@ export class CardWizzardComponent {
   ) {}
 
   onClick(event: LeafletMouseEvent) {
-    console.log(event);
     this.Lattitude = event.latlng.lat;
     this.Longitude = event.latlng.lng;
     this.clicked = new Circle(event.latlng, { radius: this.circleRadius });

@@ -50,9 +50,8 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     private markerService: MarkerService,
     private route: ActivatedRoute
   ) {
-    this.markerService.queryMarkers().then((position: Layer[]) => {
-      console.log(position);
-      position.forEach((marker) => {
+    this.markerService.queryMarkers().then((cardMarkers) => {
+      cardMarkers.forEach((marker) => {
         this.mapLayers.push(marker);
       });
     });
@@ -67,7 +66,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
         longitude: this.route.snapshot.queryParams["longitude"],
         latitude: this.route.snapshot.queryParams["latitude"],
       };
-      console.log(this.mapComponent);
       this.mapComponent.setPosition(this.position);
     }
   }
