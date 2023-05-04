@@ -2,25 +2,25 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
-#[macro_use]
 extern crate diesel;
-#[macro_use]
 extern crate diesel_migrations;
+
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use tauri::api::path::app_local_data_dir;
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use std::env;
 use std::fs;
+use std::path::PathBuf;
 
 use app::create_card;
 use app::models::NewCard;
-use app::{establish_connection, models::Card, query_all_cards, query_card_by_id};
+use app::{
+    establish_connection, get_path_local_dir, models::Card, query_all_cards, query_card_by_id,
+};
 
 // main.rs
 fn main() {
-    let conn = &mut establish_connection();
-    conn.run_pending_migrations(MIGRATIONS);
-
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             read_cards,
@@ -30,6 +30,22 @@ fn main() {
             write_card,
             write_card_content
         ])
+        .setup(|app| {
+            let config = app.config();
+
+            let mut database_path = app_local_data_dir(&config).unwrap();
+            database_path.push(PathBuf::from("am.db"));
+
+            let conn = &mut establish_connection();
+            // TODO handle error
+            conn.run_pending_migrations(MIGRATIONS);
+
+            // TODO create necessary dirs
+            let content_dir_path = get_path_local_dir(String::from("content"));
+            fs::create_dir(content_dir_path);
+
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -43,6 +59,7 @@ fn read_cards() -> Vec<Card> {
 
 #[tauri::command]
 fn read_cards_paginated(page: i64) -> Vec<Card> {
+    // TODO pagination
     let conn = &mut establish_connection();
     let results = query_all_cards(conn);
     return results;
@@ -60,27 +77,21 @@ fn write_card(card: NewCard) {
     create_card(card, conn);
 }
 
+// TODO may be moved to frontend
 #[tauri::command]
 fn read_card_content(id: String) -> String {
-    let content = fs::read_to_string(format!(
-        "/Users/linuslauer/Documents/Projects/archaological-map/Middleware/content/{}.json",
-        id
+    let content = fs::read_to_string(get_path_local_dir(
+        format!("content/{}.json", id).to_string(),
     ));
     match content {
         Ok(content) => return content,
-        Err(e) => return String::from("no content"),
+        Err(_e) => return String::from("no content"),
     }
 }
 
 #[tauri::command]
 fn write_card_content(id: String, content: String) {
     println!("received content: {}", content);
-    fs::write(
-        format!(
-            "/Users/linuslauer/Documents/Projects/archaological-map/Middleware/content/{}.json",
-            id
-        ),
-        content,
-    )
-    .expect("error opening file");
+    fs::write(get_path_local_dir(format!("content/{}.json", id)), content)
+        .expect("error opening file");
 }

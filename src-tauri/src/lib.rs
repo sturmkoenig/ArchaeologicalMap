@@ -2,8 +2,9 @@ use self::models::{Card, NewCard};
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 use dotenvy::dotenv;
-use schema::cards::{self, id};
-use std::env;
+use schema::cards::{self};
+use std::{env, path::PathBuf};
+use tauri::api::path::data_dir;
 
 pub fn create_card(new_card: NewCard, conn: &mut SqliteConnection) -> usize {
     diesel::insert_into(cards::table)
@@ -34,16 +35,26 @@ pub fn query_card_by_id(conn: &mut SqliteConnection, card_id: i32) -> Card {
         .expect("Error loading posts")
 }
 
+pub fn get_local_dir() -> PathBuf {
+    let mut local_dir = data_dir().unwrap().clone();
+    local_dir.push(PathBuf::from("archaological-map"));
+    local_dir
+}
+
+pub fn get_path_local_dir(path_name: String) -> PathBuf {
+    let mut file_path = get_local_dir().clone();
+    file_path.push(PathBuf::from(path_name));
+    file_path
+}
+
 pub mod models;
 pub mod schema;
 
 pub fn establish_connection() -> SqliteConnection {
     dotenv().ok();
-    // TODO: Change this URL to be loaded from a conf file!
-    let database_url =
-        "sqlite:///Users/linuslauer/Documents/Projects/archaological-map/Frontend/test.db";
+    let connection_path = get_path_local_dir(String::from("am.db"));
+    let database_url = connection_path.to_str().unwrap();
 
-    //let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    SqliteConnection::establish(&database_url)
+    SqliteConnection::establish(database_url)
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
 }
