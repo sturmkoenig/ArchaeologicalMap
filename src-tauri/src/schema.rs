@@ -9,5 +9,6 @@ diesel::table! {
         longitude -> Float,
         latitude -> Float,
         coordinate_radius -> Float,
+        icon_name -> Text,
     }
 }

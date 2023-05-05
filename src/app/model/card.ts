@@ -21,6 +21,7 @@ export interface NewCard {
   coordinate: Coordinate;
   coordinateRadius?: number;
   category: string;
+  iconName: string;
 }
 
 export interface Card {
@@ -30,6 +31,7 @@ export interface Card {
   coordinate: Coordinate;
   coordinateRadius?: number;
   categories?: Array<string>;
+  iconName: string;
 }
 
 export interface CardDB {
@@ -39,4 +41,5 @@ export interface CardDB {
   longitude: number;
   latitude: number;
   coordinate_radius: number;
+  icon_name: string;
 }

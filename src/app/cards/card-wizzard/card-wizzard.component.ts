@@ -3,11 +3,12 @@ import { circle, Circle, LatLng, LeafletMouseEvent } from "leaflet";
 import { CardService } from "src/app/services/card.service";
 import { Card, NewCard } from "src/app/model/card";
 import { FormBuilder, Validators } from "@angular/forms";
+import { ICONS } from "src/app/services/icon.service";
 
 @Component({
   selector: "app-card-wizzard",
   template: `
-    <div class="h-full m-10 !rounded-xl">
+    <div class="wizzard-container">
       <mat-stepper #stepper class="h-full">
         <mat-step
           [stepControl]="firstFormGroup"
@@ -46,14 +47,8 @@ import { FormBuilder, Validators } from "@angular/forms";
         >
           <div class="flex flex-col items-center items-justify">
             <form [formGroup]="secondFormGroup">
-              <ng-template matStepLabel>Waehle die Kategoriern</ng-template>
-              <div class="w-60">
-                <mat-selection-list #shoes>
-                  <mat-list-option> Kirche </mat-list-option>
-                  <mat-list-option> Denkmahl </mat-list-option>
-                  <mat-list-option> Grabung </mat-list-option>
-                </mat-selection-list>
-              </div>
+              <ng-template matStepLabel>Icon Auswählen</ng-template>
+              <app-icon-picker></app-icon-picker>
               <div class="m-t-5">
                 <button mat-button matStepperPrevious>Back</button>
                 <button mat-button matStepperNext>Next</button>
@@ -64,7 +59,7 @@ import { FormBuilder, Validators } from "@angular/forms";
         <mat-step>
           <div class="flex flex-col  items-center">
             <div class="flex flex-row items-center justify-center">
-              <ng-template matStepLabel>Position Auswaehlen</ng-template>
+              <ng-template matStepLabel>Position Auswählen</ng-template>
               <div
                 class="overview-map rounded-xl shadow-xl hover:shadow-2xl ease-in duration-300"
               >
@@ -91,7 +86,7 @@ import { FormBuilder, Validators } from "@angular/forms";
                   />
                 </mat-form-field>
                 <mat-checkbox>Exakt</mat-checkbox>
-                <mat-slider [max]="100" [min]="0">
+                <mat-slider [max]="1000" [min]="0">
                   <input
                     matSliderThumb
                     [ngModel]="circleRadius"
@@ -125,6 +120,9 @@ import { FormBuilder, Validators } from "@angular/forms";
       .input {
         width: 100%;
       }
+      .wizzard-container {
+        padding: 20px;
+      }
     `,
   ],
 })
@@ -134,6 +132,7 @@ export class CardWizzardComponent {
   Lattitude = 0;
   circleRadius = 10;
   clicked: Circle = new Circle(new LatLng(0, 0), { radius: this.circleRadius });
+  iconName: keyof typeof ICONS;
 
   firstFormGroup = this._formBuilder.group({
     cardTitle: ["", Validators.required],
@@ -165,10 +164,13 @@ export class CardWizzardComponent {
       title: this.firstFormGroup.controls["cardTitle"].value!,
       description: this.firstFormGroup.controls["cardText"].value!,
       category: "",
+      coordinateRadius: this.circleRadius,
+      iconName: this.iconName,
     };
     this.cardService.cardCreate(newCard);
   }
   changeCircleRadius(newRadius: number) {
+    this.circleRadius = newRadius;
     this.clicked.setRadius(newRadius);
   }
 }
