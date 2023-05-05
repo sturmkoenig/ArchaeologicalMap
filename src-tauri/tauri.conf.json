@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
-    "beforeBuildCommand": "npm run web:prod",
+    "beforeBuildCommand": "ng build",
     "beforeDevCommand": "ng serve",
     "devPath": "http://localhost:4200",
     "distDir": "../dist/archaological-map"
