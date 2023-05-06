@@ -76,6 +76,7 @@ export class MapComponent {
   }
 
   onMapReady(map: Map) {
+    console.log(map);
     this.map = map;
     this.map$.emit(map);
     this.zoom = map.getZoom();

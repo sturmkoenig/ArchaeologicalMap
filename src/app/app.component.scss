@@ -19,6 +19,15 @@
     display: flex;
     flex-direction: row;
 }
+.app-toolbar {
+    flex: 0 0 0 0;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
 
 mat-list-item span {
     margin-right: 1rem;

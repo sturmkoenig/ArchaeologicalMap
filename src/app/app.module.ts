@@ -8,6 +8,7 @@ import { OverviewMapComponent } from "./overview-map/overview-map.component";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import { ToolbarComponent } from "./layout/toolbar/toolbar.component";
 import { MatIconModule } from "@angular/material/icon";
+import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatSidenavModule } from "@angular/material/sidenav";
 import { SidebarComponent } from "./layout/sidebar/sidebar.component";
 import { HttpClientModule } from "@angular/common/http";
@@ -33,7 +34,9 @@ import { LeafletModule } from "@asymmetrik/ngx-leaflet";
 import { CardDetailsComponent } from "./cards/card-details/card-details.component";
 import { QuillModule } from "ngx-quill";
 import { LeafletMarkerClusterModule } from "@asymmetrik/ngx-leaflet-markercluster";
-import { CardListItemComponent } from './layout/list/card-list-item/card-list-item.component';
+import { CardListItemComponent } from "./layout/list/card-list-item/card-list-item.component";
+import { IconPickerComponent } from "./cards/card-wizzard/icon-picker/icon-picker.component";
+import { PositionPickerComponent } from './cards/card-wizzard/position-picker/position-picker.component';
 
 @NgModule({
   declarations: [
@@ -46,6 +49,8 @@ import { CardListItemComponent } from './layout/list/card-list-item/card-list-it
     CardListComponent,
     CardDetailsComponent,
     CardListItemComponent,
+    IconPickerComponent,
+    PositionPickerComponent,
   ],
   imports: [
     BrowserModule,
@@ -56,6 +61,7 @@ import { CardListItemComponent } from './layout/list/card-list-item/card-list-it
     ReactiveFormsModule,
     FormsModule,
     MatIconModule,
+    MatSnackBarModule,
     MatSidenavModule,
     MatDividerModule,
     HttpClientModule,

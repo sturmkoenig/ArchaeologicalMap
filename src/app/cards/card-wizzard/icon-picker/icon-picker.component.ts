@@ -1,12 +1,18 @@
-import { Component } from "@angular/core";
+import { KeyValue } from "@angular/common";
+import { Component, Input, Output, EventEmitter } from "@angular/core";
+import { MatListOption, MatSelectionListChange } from "@angular/material/list";
 import { ICONS, IconService } from "src/app/services/icon.service";
 
 @Component({
   selector: "app-icon-picker",
   template: `<div class="h-auto">
-    <mat-selection-list [multiple]="false">
+    <mat-selection-list
+      [multiple]="false"
+      [ngModel]="selectedOption"
+      (ngModelChange)="onIconChange($event)"
+    >
       <ng-container *ngFor="let icon of icons | keyvalue">
-        <mat-list-option class="list-option">
+        <mat-list-option class="list-option" [value]="icon.key">
           <img
             class="option-icon"
             src="{{ icon.value }}"
@@ -31,6 +37,13 @@ import { ICONS, IconService } from "src/app/services/icon.service";
 })
 export class IconPickerComponent {
   constructor() {}
-
   icons = ICONS;
+
+  selectedOption;
+  @Output()
+  icon: EventEmitter<keyof typeof ICONS> = new EventEmitter();
+
+  onIconChange(newIcon: string) {
+    this.icon.emit(newIcon.toString() as keyof typeof ICONS);
+  }
 }

@@ -15,7 +15,8 @@ export class CardService {
         category: newCard.category,
         longitude: newCard.coordinate.longitude,
         latitude: newCard.coordinate.latitude,
-        coordinate_radius: 0.0,
+        coordinate_radius: newCard.coordinateRadius,
+        icon_name: newCard.iconName,
       },
     });
   }

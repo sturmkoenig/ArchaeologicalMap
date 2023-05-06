@@ -10,6 +10,7 @@ import { invoke } from "@tauri-apps/api";
 
 import ImageResize from "quill-image-resize-module";
 import { Card, Coordinate } from "src/app/model/card";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 Quill.register("modules/imageResize", ImageResize);
 
@@ -86,7 +87,8 @@ export class CardDetailsComponent implements OnInit {
     private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router,
-    private cardService: CardService
+    private cardService: CardService,
+    private _snackBar: MatSnackBar
   ) {
     this.modules = {
       imageResize: {},
@@ -113,6 +115,7 @@ export class CardDetailsComponent implements OnInit {
       content: JSON.stringify(this.content),
     }).then((res) => {
       console.log(res);
+      this._snackBar.open("Gespeichert!", "X");
     });
   }
 

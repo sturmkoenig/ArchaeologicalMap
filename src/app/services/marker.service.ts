@@ -1,11 +1,20 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Circle, circleMarker, LatLng, Layer, marker, Marker } from "leaflet";
+import {
+  Circle,
+  circleMarker,
+  Icon,
+  LatLng,
+  Layer,
+  marker,
+  Marker,
+} from "leaflet";
 import { catchError, Observable, of, switchMap } from "rxjs";
 import { Map } from "leaflet";
 import { Card, CardDB } from "src/app/model/card";
 import { CardService } from "./card.service";
 import { WebviewWindow } from "@tauri-apps/api/window";
+import { IconService } from "./icon.service";
 
 @Injectable({
   providedIn: "root",
@@ -13,22 +22,37 @@ import { WebviewWindow } from "@tauri-apps/api/window";
 export class MarkerService {
   capitals: string = "/assets/data/usa-capitals.geojson";
 
-  constructor(private cardService: CardService, private http: HttpClient) {}
+  constructor(
+    private cardService: CardService,
+    private http: HttpClient,
+    private iconService: IconService
+  ) {}
 
-  static scaledRadius(val: number, maxVal: number): number {
-    return 20 * (val / maxVal);
-  }
-
-  queryMarkers(): Promise<Layer[]> {
+  queryMarkers(): Promise<[Marker, Layer | null][]> {
     return this.cardService.readCards().then((cards: CardDB[]) => {
-      let markers: Layer[] = [];
+      let markers: [Marker, Layer][] = [];
       cards.forEach((card) => {
-        let circle = new Circle([card.latitude, card.longitude], {
-          radius: 200,
+        let icon = new Icon({
+          iconUrl: this.iconService.getIconPath(card.icon_name).toString(),
+          iconSize: [20, 20],
+          popupAnchor: [0, 0],
+        });
+        let iconMarker = new Marker([card.latitude, card.longitude], {
+          icon,
+          interactive: true,
         });
         const div: HTMLDivElement = createPopupHTML(card);
-        circle.bindPopup(div);
-        markers.push(circle);
+
+        iconMarker.bindPopup(div);
+        if (card.coordinate_radius !== 0.0) {
+          let circle = new Circle([card.latitude, card.longitude], {
+            className: "fade-in",
+            radius: card.coordinate_radius,
+          });
+          markers.push([iconMarker, circle]);
+        } else {
+          markers.push([iconMarker, null]);
+        }
       });
       return markers;
     });

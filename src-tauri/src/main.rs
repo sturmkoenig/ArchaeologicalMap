@@ -73,6 +73,7 @@ fn read_card(card_id: i32) -> Card {
 
 #[tauri::command]
 fn write_card(card: NewCard) {
+    println!("received card: {}", card);
     let conn = &mut establish_connection();
     create_card(card, conn);
 }

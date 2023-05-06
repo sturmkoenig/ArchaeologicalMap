@@ -39,4 +39,5 @@ pub struct Card {
     pub longitude: f32,
     pub latitude: f32,
     pub coordinate_radius: f32,
+    pub icon_name: String,
 }

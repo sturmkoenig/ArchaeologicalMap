@@ -1,5 +1,5 @@
 import { Component } from "@angular/core";
-import { circle, Circle, LatLng, LeafletMouseEvent } from "leaflet";
+import { circle, Circle, LatLng, LeafletMouseEvent, Marker } from "leaflet";
 import { CardService } from "src/app/services/card.service";
 import { Card, NewCard } from "src/app/model/card";
 import { FormBuilder, Validators } from "@angular/forms";
@@ -48,7 +48,7 @@ import { ICONS } from "src/app/services/icon.service";
           <div class="flex flex-col items-center items-justify">
             <form [formGroup]="secondFormGroup">
               <ng-template matStepLabel>Icon Auswählen</ng-template>
-              <app-icon-picker></app-icon-picker>
+              <app-icon-picker (icon)="changeIcon($event)"></app-icon-picker>
               <div class="m-t-5">
                 <button mat-button matStepperPrevious>Back</button>
                 <button mat-button matStepperNext>Next</button>
@@ -57,49 +57,17 @@ import { ICONS } from "src/app/services/icon.service";
           </div>
         </mat-step>
         <mat-step>
-          <div class="flex flex-col  items-center">
-            <div class="flex flex-row items-center justify-center">
-              <ng-template matStepLabel>Position Auswählen</ng-template>
-              <div
-                class="overview-map rounded-xl shadow-xl hover:shadow-2xl ease-in duration-300"
-              >
-                <app-map
-                  [layers]="[clicked]"
-                  (click$)="onClick($event)"
-                ></app-map>
-              </div>
-              <div class="m-10">
-                <mat-form-field appearance="fill" class="input">
-                  <mat-label>Lattitude</mat-label>
-                  <input
-                    matInput
-                    placeholder="Lattitude"
-                    [(ngModel)]="Lattitude"
-                  />
-                </mat-form-field>
-                <mat-form-field appearance="fill" class="input">
-                  <mat-label>Longitude</mat-label>
-                  <input
-                    matInput
-                    placeholder="Longitude"
-                    [(ngModel)]="Longitude"
-                  />
-                </mat-form-field>
-                <mat-checkbox>Exakt</mat-checkbox>
-                <mat-slider [max]="1000" [min]="0">
-                  <input
-                    matSliderThumb
-                    [ngModel]="circleRadius"
-                    (ngModelChange)="changeCircleRadius($event)"
-                  />
-                </mat-slider>
-              </div>
-            </div>
-            <div class="m-t-5">
-              <button mat-button matStepperPrevious>Back</button>
-              <button mat-button (click)="stepper.reset()">Reset</button>
-              <button mat-button (click)="submitCard()">Speichern</button>
-            </div>
+          <ng-template matStepLabel>Position Auswählen</ng-template>
+          <app-position-picker
+            (radiusChange)="changeRadius($event)"
+            (coordinateChange)="changeCoordinate($event)"
+            [icon]="iconName"
+          >
+          </app-position-picker>
+          <div class="m-t-5">
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-button (click)="stepper.reset()">Reset</button>
+            <button mat-button (click)="submitCard()">Speichern</button>
           </div>
         </mat-step>
       </mat-stepper>
@@ -107,12 +75,6 @@ import { ICONS } from "src/app/services/icon.service";
   `,
   styles: [
     `
-      .overview-map {
-        height: 300px;
-        width: 300px;
-        flex-shrink: 0;
-        overflow: hidden;
-      }
       .example-full-width {
         width: 100%;
         height: 200px;
@@ -130,8 +92,7 @@ export class CardWizzardComponent {
   text: string = "example text";
   Longitude = 0;
   Lattitude = 0;
-  circleRadius = 10;
-  clicked: Circle = new Circle(new LatLng(0, 0), { radius: this.circleRadius });
+  circleRadius = 100;
   iconName: keyof typeof ICONS;
 
   firstFormGroup = this._formBuilder.group({
@@ -149,13 +110,8 @@ export class CardWizzardComponent {
     private cardService: CardService
   ) {}
 
-  onClick(event: LeafletMouseEvent) {
-    this.Lattitude = event.latlng.lat;
-    this.Longitude = event.latlng.lng;
-    this.clicked = new Circle(event.latlng, { radius: this.circleRadius });
-  }
-
   submitCard() {
+    console.log(this.iconName);
     let newCard: NewCard = {
       coordinate: {
         latitude: this.Lattitude,
@@ -169,8 +125,15 @@ export class CardWizzardComponent {
     };
     this.cardService.cardCreate(newCard);
   }
-  changeCircleRadius(newRadius: number) {
+
+  changeIcon(newIcon: keyof typeof ICONS) {
+    this.iconName = newIcon;
+  }
+  changeRadius(newRadius: number) {
     this.circleRadius = newRadius;
-    this.clicked.setRadius(newRadius);
+  }
+  changeCoordinate(newCoordinate: LatLng) {
+    this.Lattitude = newCoordinate.lat;
+    this.Longitude = newCoordinate.lng;
   }
 }

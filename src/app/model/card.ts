@@ -10,6 +10,8 @@
  * Do not edit the class manually.
  */
 
+import { ICONS } from "../services/icon.service";
+
 export interface Coordinate {
   latitude: number;
   longitude: number;
@@ -41,5 +43,5 @@ export interface CardDB {
   longitude: number;
   latitude: number;
   coordinate_radius: number;
-  icon_name: string;
+  icon_name: keyof typeof ICONS;
 }

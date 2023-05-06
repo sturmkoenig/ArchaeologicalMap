@@ -1,44 +1,49 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-import { AppComponent } from './app.component';
-import { CardDetailsComponent } from './cards/card-details/card-details.component';
-import { CardListComponent } from './cards/card-list/card-list.component';
-import { CardWizzardComponent } from './cards/card-wizzard/card-wizzard.component';
-import { OverviewMapComponent } from './overview-map/overview-map.component';
+import { NgModule } from "@angular/core";
+import { RouterModule, Routes } from "@angular/router";
+import { AppComponent } from "./app.component";
+import { CardDetailsComponent } from "./cards/card-details/card-details.component";
+import { CardListComponent } from "./cards/card-list/card-list.component";
+import { CardWizzardComponent } from "./cards/card-wizzard/card-wizzard.component";
+import { OverviewMapComponent } from "./overview-map/overview-map.component";
 
 const routes: Routes = [
   {
-    path: 'map',
+    path: "",
+    redirectTo: "map",
+    pathMatch: "full",
+  },
+  {
+    path: "map",
     children: [
       {
-        path: '',
+        path: "",
         component: OverviewMapComponent,
       },
     ],
   },
   {
-    path: 'cards',
+    path: "cards",
     children: [
       {
-        path: 'new',
+        path: "new",
         children: [
           {
-            path: '',
+            path: "",
             component: CardWizzardComponent,
           },
         ],
       },
       {
-        path: 'list',
+        path: "list",
         children: [
           {
-            path: '',
+            path: "",
             component: CardListComponent,
           },
         ],
       },
       {
-        path: 'details',
+        path: "details",
         component: CardDetailsComponent,
       },
     ],
