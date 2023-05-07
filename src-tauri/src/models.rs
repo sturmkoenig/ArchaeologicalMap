@@ -30,7 +30,7 @@ impl std::fmt::Display for NewCard<'_> {
     }
 }
 
-#[derive(Queryable, Serialize, Clone)]
+#[derive(Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]
 pub struct Card {
     pub id: i32,
     pub title: String,

@@ -5,6 +5,9 @@
 extern crate diesel;
 extern crate diesel_migrations;
 
+use app::query_cards_paginated;
+use app::query_count_cards;
+use app::query_update_card;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use tauri::api::path::app_local_data_dir;
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
@@ -13,8 +16,8 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 
-use app::create_card;
 use app::models::NewCard;
+use app::query_create_card;
 use app::{
     establish_connection, get_path_local_dir, models::Card, query_all_cards, query_card_by_id,
 };
@@ -23,12 +26,14 @@ use app::{
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
+            create_card,
+            read_card,
             read_cards,
             read_cards_paginated,
-            read_card,
+            update_card,
+            count_cards,
+            write_card_content,
             read_card_content,
-            write_card,
-            write_card_content
         ])
         .setup(|app| {
             let config = app.config();
@@ -59,9 +64,8 @@ fn read_cards() -> Vec<Card> {
 
 #[tauri::command]
 fn read_cards_paginated(page: i64) -> Vec<Card> {
-    // TODO pagination
     let conn = &mut establish_connection();
-    let results = query_all_cards(conn);
+    let results = query_cards_paginated(conn, page);
     return results;
 }
 
@@ -72,10 +76,10 @@ fn read_card(card_id: i32) -> Card {
 }
 
 #[tauri::command]
-fn write_card(card: NewCard) {
+fn create_card(card: NewCard) {
     println!("received card: {}", card);
     let conn = &mut establish_connection();
-    create_card(card, conn);
+    query_create_card(card, conn);
 }
 
 // TODO may be moved to frontend
@@ -92,7 +96,20 @@ fn read_card_content(id: String) -> String {
 
 #[tauri::command]
 fn write_card_content(id: String, content: String) {
-    println!("received content: {}", content);
     fs::write(get_path_local_dir(format!("content/{}.json", id)), content)
         .expect("error opening file");
 }
+
+#[tauri::command]
+fn update_card(card: Card) {
+    let conn = &mut establish_connection();
+    query_update_card(conn, card);
+}
+
+#[tauri::command]
+fn count_cards() -> i64 {
+    let conn = &mut establish_connection();
+    query_count_cards(conn)
+}
+
+// TODO Add mehtod that sends number of entries!

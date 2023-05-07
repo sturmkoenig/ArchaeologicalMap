@@ -11,11 +11,15 @@ import { ICONS, IconService } from "src/app/services/icon.service";
       [ngModel]="selectedOption"
       (ngModelChange)="onIconChange($event)"
     >
-      <ng-container *ngFor="let icon of icons | keyvalue">
-        <mat-list-option class="list-option" [value]="icon.key">
+      <ng-container *ngFor="let iconOption of icons | keyvalue">
+        <mat-list-option
+          class="list-option"
+          [value]="iconOption.key"
+          [selected]="icon === iconOption.key"
+        >
           <img
             class="option-icon"
-            src="{{ icon.value }}"
+            src="{{ iconOption.value }}"
             alt="Photo of a Shiba Inu"
           />
         </mat-list-option>
@@ -38,12 +42,14 @@ import { ICONS, IconService } from "src/app/services/icon.service";
 export class IconPickerComponent {
   constructor() {}
   icons = ICONS;
-
   selectedOption;
+
+  @Input()
+  icon: keyof typeof ICONS;
   @Output()
-  icon: EventEmitter<keyof typeof ICONS> = new EventEmitter();
+  iconChange: EventEmitter<keyof typeof ICONS> = new EventEmitter();
 
   onIconChange(newIcon: string) {
-    this.icon.emit(newIcon.toString() as keyof typeof ICONS);
+    this.iconChange.emit(newIcon.toString() as keyof typeof ICONS);
   }
 }

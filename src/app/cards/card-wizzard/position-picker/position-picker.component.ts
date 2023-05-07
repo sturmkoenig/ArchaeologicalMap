@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, Input } from "@angular/core";
+import { Component, Output, EventEmitter, Input, OnInit } from "@angular/core";
 import { MatCheckboxChange } from "@angular/material/checkbox";
 import { Circle, Icon, LatLng, LeafletMouseEvent, Map, Marker } from "leaflet";
 import { ICONS, IconService } from "src/app/services/icon.service";
@@ -49,7 +49,6 @@ import { ICONS, IconService } from "src/app/services/icon.service";
         </div>
       </div>
     </div>
-    <p>position-picker works!</p>
   `,
   styles: [
     `
@@ -62,22 +61,33 @@ import { ICONS, IconService } from "src/app/services/icon.service";
     `,
   ],
 })
-export class PositionPickerComponent {
+export class PositionPickerComponent implements OnInit {
+  @Input()
   coordinate: LatLng = new LatLng(0, 0);
   @Output()
   coordinateChange: EventEmitter<LatLng> = new EventEmitter();
+  @Input()
   coordinateRadius: number = 100;
   @Output()
-  radiusChange: EventEmitter<number> = new EventEmitter();
-  circle: Circle = new Circle(new LatLng(0, 0), {
-    radius: this.coordinateRadius,
-  });
+  coordinateRadiusChange: EventEmitter<number> = new EventEmitter();
+  circle: Circle;
   @Input()
   icon: keyof typeof ICONS;
-  marker: Marker = new Marker(new LatLng(0, 0), {});
+  marker: Marker;
   map: Map;
 
   constructor(private iconService: IconService) {}
+
+  ngOnInit(): void {
+    let icon = new Icon({
+      iconUrl: this.iconService.getIconPath(this.icon).toString(),
+      iconSize: [20, 20],
+    });
+    this.marker = new Marker(this.coordinate, { icon });
+    this.circle = new Circle(this.coordinate, {
+      radius: this.coordinateRadius,
+    });
+  }
 
   onExact(checked: MatCheckboxChange): void {
     console.log("exact triggered");
@@ -116,10 +126,12 @@ export class PositionPickerComponent {
   changeCircleRadius(newRadius: number) {
     this.coordinateRadius = newRadius;
     this.circle.setRadius(newRadius);
-    this.radiusChange.emit(newRadius);
+    this.coordinateRadiusChange.emit(newRadius);
   }
 
   onMapChanged(map$: Map) {
     this.map = map$;
+    this.map.addLayer(this.marker);
+    this.map.addLayer(this.circle);
   }
 }

@@ -48,7 +48,7 @@ import { ICONS } from "src/app/services/icon.service";
           <div class="flex flex-col items-center items-justify">
             <form [formGroup]="secondFormGroup">
               <ng-template matStepLabel>Icon Auswählen</ng-template>
-              <app-icon-picker (icon)="changeIcon($event)"></app-icon-picker>
+              <app-icon-picker [(icon)]="iconName"></app-icon-picker>
               <div class="m-t-5">
                 <button mat-button matStepperPrevious>Back</button>
                 <button mat-button matStepperNext>Next</button>
@@ -59,7 +59,7 @@ import { ICONS } from "src/app/services/icon.service";
         <mat-step>
           <ng-template matStepLabel>Position Auswählen</ng-template>
           <app-position-picker
-            (radiusChange)="changeRadius($event)"
+            (coordinateRadiusChange)="changeRadius($event)"
             (coordinateChange)="changeCoordinate($event)"
             [icon]="iconName"
           >
@@ -93,7 +93,7 @@ export class CardWizzardComponent {
   Longitude = 0;
   Lattitude = 0;
   circleRadius = 100;
-  iconName: keyof typeof ICONS;
+  iconName: keyof typeof ICONS = "iconDefault";
 
   firstFormGroup = this._formBuilder.group({
     cardTitle: ["", Validators.required],

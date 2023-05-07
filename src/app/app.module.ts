@@ -19,6 +19,7 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatSliderModule } from "@angular/material/slider";
+import { MatPaginatorModule } from "@angular/material/paginator";
 
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 
@@ -26,6 +27,7 @@ import { MatInputModule } from "@angular/material/input";
 import { RouterModule } from "@angular/router";
 
 import { MatStepperModule } from "@angular/material/stepper";
+import { MatDialogModule } from "@angular/material/dialog";
 import { MatDividerModule } from "@angular/material/divider";
 import { CardWizzardComponent } from "./cards/card-wizzard/card-wizzard.component";
 import { CardListComponent } from "./cards/card-list/card-list.component";
@@ -36,7 +38,8 @@ import { QuillModule } from "ngx-quill";
 import { LeafletMarkerClusterModule } from "@asymmetrik/ngx-leaflet-markercluster";
 import { CardListItemComponent } from "./layout/list/card-list-item/card-list-item.component";
 import { IconPickerComponent } from "./cards/card-wizzard/icon-picker/icon-picker.component";
-import { PositionPickerComponent } from './cards/card-wizzard/position-picker/position-picker.component';
+import { PositionPickerComponent } from "./cards/card-wizzard/position-picker/position-picker.component";
+import { CardUpdateModalComponent } from './cards/card-update-modal/card-update-modal.component';
 
 @NgModule({
   declarations: [
@@ -51,6 +54,7 @@ import { PositionPickerComponent } from './cards/card-wizzard/position-picker/po
     CardListItemComponent,
     IconPickerComponent,
     PositionPickerComponent,
+    CardUpdateModalComponent,
   ],
   imports: [
     BrowserModule,
@@ -71,9 +75,11 @@ import { PositionPickerComponent } from './cards/card-wizzard/position-picker/po
     MatInputModule,
     RouterModule,
     MatStepperModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatCheckboxModule,
     MatSliderModule,
+    MatPaginatorModule,
     LeafletModule,
     LeafletMarkerClusterModule,
     QuillModule.forRoot(),

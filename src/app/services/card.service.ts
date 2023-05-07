@@ -24,4 +24,26 @@ export class CardService {
   readCards(): Promise<CardDB[]> {
     return invoke("read_cards", {});
   }
+  readCardsPaginated(pageIndex: number): Promise<CardDB[]> {
+    return invoke("read_cards_paginated", { page: pageIndex });
+  }
+
+  updateCard(newCard: CardDB) {
+    invoke("update_card", {
+      card: {
+        id: newCard.id,
+        title: newCard.title,
+        description: newCard.description,
+        longitude: newCard.longitude,
+        latitude: newCard.latitude,
+        category: "",
+        coordinate_radius: newCard.coordinate_radius,
+        icon_name: newCard.icon_name,
+      },
+    });
+  }
+
+  async getNumberOfCards(): Promise<number> {
+    return invoke("count_cards", {});
+  }
 }

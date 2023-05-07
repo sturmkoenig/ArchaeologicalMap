@@ -6,7 +6,7 @@ use schema::cards::{self};
 use std::{env, path::PathBuf};
 use tauri::api::path::data_dir;
 
-pub fn create_card(new_card: NewCard, conn: &mut SqliteConnection) -> usize {
+pub fn query_create_card(new_card: NewCard, conn: &mut SqliteConnection) -> usize {
     diesel::insert_into(cards::table)
         .values(&new_card)
         .execute(conn)
@@ -20,7 +20,8 @@ pub fn query_all_cards(conn: &mut SqliteConnection) -> Vec<Card> {
         .expect("Error loading posts")
 }
 pub fn query_cards_paginated(conn: &mut SqliteConnection, page_number: i64) -> Vec<Card> {
-    let page_size = 20;
+    // TODO sensible page size
+    let page_size = 5;
     cards::table
         .limit(page_size)
         .offset(page_number * page_size)
@@ -45,6 +46,20 @@ pub fn get_path_local_dir(path_name: String) -> PathBuf {
     let mut file_path = get_local_dir().clone();
     file_path.push(PathBuf::from(path_name));
     file_path
+}
+
+pub fn query_count_cards(conn: &mut SqliteConnection) -> i64 {
+    cards::table
+        .count()
+        .get_result(conn)
+        .expect("Error counting cards")
+}
+
+pub fn query_update_card(conn: &mut SqliteConnection, update_card: Card) {
+    diesel::update(cards::table)
+        .set(update_card)
+        .execute(conn)
+        .expect("Error while doing update");
 }
 
 pub mod models;

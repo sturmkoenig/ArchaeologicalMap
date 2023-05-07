@@ -87,7 +87,6 @@ export class CardDetailsComponent implements OnInit {
     private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router,
-    private cardService: CardService,
     private _snackBar: MatSnackBar
   ) {
     this.modules = {
