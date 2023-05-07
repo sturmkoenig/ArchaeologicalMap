@@ -131,7 +131,13 @@ export class PositionPickerComponent implements OnInit {
 
   onMapChanged(map$: Map) {
     this.map = map$;
-    this.map.addLayer(this.marker);
-    this.map.addLayer(this.circle);
+    if (
+      this.marker.getLatLng().lat !== 0.0 &&
+      this.marker.getLatLng().lng !== 0.0
+    ) {
+      this.map.addLayer(this.marker);
+      this.map.addLayer(this.circle);
+      this.map.flyTo(this.marker.getLatLng());
+    }
   }
 }

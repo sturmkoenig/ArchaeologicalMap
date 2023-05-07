@@ -5,6 +5,7 @@
 extern crate diesel;
 extern crate diesel_migrations;
 
+use app::query_card_by_title;
 use app::query_cards_paginated;
 use app::query_count_cards;
 use app::query_update_card;
@@ -32,6 +33,7 @@ fn main() {
             read_cards_paginated,
             update_card,
             count_cards,
+            write_card,
             write_card_content,
             read_card_content,
         ])
@@ -76,6 +78,12 @@ fn read_card(card_id: i32) -> Card {
 }
 
 #[tauri::command]
+fn read_cards_by_title(title: String) -> Vec<Card> {
+    let conn = &mut establish_connection();
+    query_card_by_title(conn, title)
+}
+
+#[tauri::command]
 fn create_card(card: NewCard) {
     println!("received card: {}", card);
     let conn = &mut establish_connection();
@@ -110,6 +118,12 @@ fn update_card(card: Card) {
 fn count_cards() -> i64 {
     let conn = &mut establish_connection();
     query_count_cards(conn)
+}
+
+#[tauri::command]
+fn write_card(card: NewCard) {
+    let conn = &mut establish_connection();
+    query_create_card(card, conn);
 }
 
 // TODO Add mehtod that sends number of entries!
