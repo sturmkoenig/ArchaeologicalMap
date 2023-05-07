@@ -3,6 +3,7 @@ import {
   EventEmitter,
   Input,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChange,
   SimpleChanges,
@@ -68,15 +69,7 @@ export class MapComponent {
     this.map.panTo(newLatLng);
   }
 
-  ngOnInit() {}
-
-  ngOnDestroy() {
-    this.map.clearAllEventListeners;
-    this.map.remove();
-  }
-
   onMapReady(map: Map) {
-    console.log(map);
     this.map = map;
     this.map$.emit(map);
     this.zoom = map.getZoom();
