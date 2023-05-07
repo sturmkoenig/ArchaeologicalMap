@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, Output, EventEmitter } from "@angular/core";
 import { WebviewWindow } from "@tauri-apps/api/window";
 import { invoke, tauri } from "@tauri-apps/api";
 import { Observable, from, throwError } from "rxjs";
@@ -7,6 +7,7 @@ import { CardService } from "src/app/services/card.service";
 import { PageEvent } from "@angular/material/paginator";
 import { MatDialog } from "@angular/material/dialog";
 import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal.component";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: "app-card-list",
@@ -56,7 +57,11 @@ export class CardListComponent implements OnInit {
   pageIndex: number = 0;
   numCards: number = 0;
 
-  constructor(private cardService: CardService, public dialog: MatDialog) {}
+  constructor(
+    private cardService: CardService,
+    public dialog: MatDialog,
+    private _snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     this.cardService
@@ -79,12 +84,19 @@ export class CardListComponent implements OnInit {
   }
 
   openUpdateDialog(currentCard: CardDB) {
-    this.dialog.open(CardUpdateModalComponent, {
+    const dialogRef = this.dialog.open(CardUpdateModalComponent, {
       data: {
         currentCard,
       },
       enterAnimationDuration: "200ms",
       exitAnimationDuration: "150ms",
     });
+    const subscribeDialog = dialogRef.componentInstance.updated.subscribe(
+      (data: boolean) => {
+        if (data === true) {
+          this._snackBar.open("Änderungen gespeichert!", "X");
+        }
+      }
+    );
   }
 }

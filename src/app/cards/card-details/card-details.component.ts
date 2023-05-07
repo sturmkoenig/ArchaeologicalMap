@@ -96,37 +96,29 @@ export class CardDetailsComponent implements OnInit {
 
   ngOnInit() {
     this.route.queryParams.subscribe((params) => {
-      console.log(params);
       this.cardId = +params["id"];
-      console.log("card id was found to be: " + this.cardId);
     });
     // this.card$ = this.cardService.cardGet(this.cardId);
   }
 
-  onViewerCreated(editor: QuillEditorComponent) {
-    console.log("viewer is initialized");
-    console.log("local content is equal to: " + JSON.stringify(this.content));
-  }
+  onViewerCreated(editor: QuillEditorComponent) {}
 
   onSaveContent() {
     invoke("write_card_content", {
       id: this.cardId.toString(),
       content: JSON.stringify(this.content),
     }).then((res) => {
-      console.log(res);
       this._snackBar.open("Gespeichert!", "X");
     });
   }
 
   createdEditor(editor: QuillEditorComponent) {
-    console.log("trying to query card with id: " + this.cardId);
     invoke("read_card_content", { id: this.cardId.toString() }).then(
       (res: string) => {
         let loadedContent: DeltaStatic;
         try {
           loadedContent = JSON.parse(res);
         } catch (error) {
-          console.log("no content");
           return;
         }
         if (loadedContent.ops) {
