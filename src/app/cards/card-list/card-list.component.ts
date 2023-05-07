@@ -8,6 +8,7 @@ import { PageEvent } from "@angular/material/paginator";
 import { MatDialog } from "@angular/material/dialog";
 import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal.component";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { IconService } from "src/app/services/icon.service";
 
 @Component({
   selector: "app-card-list",
@@ -16,6 +17,9 @@ import { MatSnackBar } from "@angular/material/snack-bar";
       <ng-container *ngFor="let card of allCards | async">
         <mat-card>
           <mat-card-header>
+            <div mat-card-avatar class="card-avatar">
+              <img src="{{ iconService.getIconPath(card.icon_name) }}" />
+            </div>
             <mat-card-title>{{ card.title }}</mat-card-title>
             <mat-card-subtitle>{{ card.description }}</mat-card-subtitle>
           </mat-card-header>
@@ -60,6 +64,7 @@ export class CardListComponent implements OnInit {
   constructor(
     private cardService: CardService,
     public dialog: MatDialog,
+    public iconService: IconService,
     private _snackBar: MatSnackBar
   ) {}
 
