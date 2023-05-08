@@ -7,7 +7,7 @@ import { ICONS, IconService } from "src/app/services/icon.service";
   selector: "app-position-picker",
   template: `
     <div class="flex flex-col  items-center">
-      <div class="flex flex-row items-center justify-center">
+      <div class="flex flex-row items-center ">
         <div
           class="overview-map rounded-xl shadow-xl hover:shadow-2xl ease-in duration-300"
         >
@@ -26,26 +26,28 @@ import { ICONS, IconService } from "src/app/services/icon.service";
               [(ngModel)]="coordinate.lat"
             />
           </mat-form-field>
-          <mat-form-field appearance="fill" class="input">
-            <mat-label>Longitude</mat-label>
-            <input
-              matInput
-              placeholder="Longitude"
-              [(ngModel)]="coordinate.lng"
-            />
-          </mat-form-field>
-          <mat-checkbox (change)="onExact($event)">Exakt</mat-checkbox>
-          <mat-slider
-            [disabled]="coordinateRadius === 0.0"
-            [max]="1000"
-            [min]="100"
-          >
-            <input
-              matSliderThumb
-              [ngModel]="coordinateRadius"
-              (ngModelChange)="changeCircleRadius($event)"
-            />
-          </mat-slider>
+          <div class="form-container">
+            <mat-form-field appearance="fill" class="input">
+              <mat-label>Longitude</mat-label>
+              <input
+                matInput
+                placeholder="Longitude"
+                [(ngModel)]="coordinate.lng"
+              />
+            </mat-form-field>
+            <mat-checkbox (change)="onExact($event)">Exakt</mat-checkbox>
+            <mat-slider
+              [disabled]="coordinateRadius === 0.0"
+              [max]="1000"
+              [min]="100"
+            >
+              <input
+                matSliderThumb
+                [ngModel]="coordinateRadius"
+                (ngModelChange)="changeCircleRadius($event)"
+              />
+            </mat-slider>
+          </div>
         </div>
       </div>
     </div>
@@ -53,10 +55,15 @@ import { ICONS, IconService } from "src/app/services/icon.service";
   styles: [
     `
       .overview-map {
-        height: 300px;
-        width: 300px;
+        height: 400px;
+        width: 400px;
         flex-shrink: 0;
+        flex-grow: 1;
         overflow: hidden;
+      }
+      .form-container {
+        display: flex;
+        flex-direction: column;
       }
     `,
   ],
