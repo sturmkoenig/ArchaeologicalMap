@@ -49,13 +49,16 @@ export class MapComponent {
   @Input() layers: Layer[] = [];
   @Input() options: MapOptions = {
     layers: [
-      tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        opacity: 0.7,
-        maxZoom: 19,
-        detectRetina: true,
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }),
+      tileLayer(
+        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+        {
+          opacity: 0.7,
+          maxZoom: 19,
+          detectRetina: true,
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }
+      ),
     ],
     zoom: 16,
     center: latLng(53.009325188114076, 13.160270365480752),
