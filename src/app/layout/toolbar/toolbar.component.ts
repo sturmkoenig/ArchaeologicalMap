@@ -33,7 +33,6 @@ export class ToolbarComponent {
   checked: boolean = false;
 
   onMenuClicked(event: MouseEvent) {
-    console.log("clicked");
     this.onMenu.emit(event);
   }
 }

@@ -21,6 +21,7 @@ import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatSliderModule } from "@angular/material/slider";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatPaginatorModule } from "@angular/material/paginator";
+import { MatQuillModule } from "./layout/editor/mat-quill/mat-quill-module";
 
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 
@@ -81,6 +82,7 @@ import { CardUpdateModalComponent } from "./cards/card-update-modal/card-update-
     MatCheckboxModule,
     MatSliderModule,
     MatPaginatorModule,
+    MatQuillModule,
     LeafletModule,
     LeafletMarkerClusterModule,
     QuillModule.forRoot(),
