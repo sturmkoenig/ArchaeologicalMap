@@ -9,6 +9,7 @@
     "src/main.ts"
   ],
   "include": [
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "types/quill-image-resize-module/index.d.ts"
   ]
 }

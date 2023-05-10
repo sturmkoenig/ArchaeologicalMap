@@ -54,7 +54,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   clickedPosition = new EventEmitter<number[]>();
   @ViewChild("childmap")
   mapComponent!: MapComponent;
-  map?: Map;
+  map!: Map;
   position?: Coordinate;
   mapLayers: Layer[] = [];
 
@@ -73,7 +73,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
           if (marker[1] != null) {
             console.log("hover mouse!");
             if (marker[1] != null) {
-              console.log(this.map);
               this.map.addLayer(marker[1]);
             }
           }

@@ -30,7 +30,7 @@ export class MarkerService {
 
   queryMarkers(): Promise<[Marker, Layer | null][]> {
     return this.cardService.readCards().then((cards: CardDB[]) => {
-      let markers: [Marker, Layer][] = [];
+      let markers: [Marker, Layer | null][] = [];
       cards.forEach((card) => {
         let icon = new Icon({
           iconUrl: this.iconService.getIconPath(card.icon_name).toString(),

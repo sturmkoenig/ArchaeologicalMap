@@ -42,10 +42,10 @@ import { ICONS, IconService } from "src/app/services/icon.service";
 export class IconPickerComponent {
   constructor() {}
   icons = ICONS;
-  selectedOption;
+  selectedOption: any;
 
   @Input()
-  icon: keyof typeof ICONS;
+  icon: keyof typeof ICONS = "iconDefault";
   @Output()
   iconChange: EventEmitter<keyof typeof ICONS> = new EventEmitter();
 

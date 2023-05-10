@@ -19,6 +19,7 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatSliderModule } from "@angular/material/slider";
+import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatPaginatorModule } from "@angular/material/paginator";
 
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
@@ -39,7 +40,7 @@ import { LeafletMarkerClusterModule } from "@asymmetrik/ngx-leaflet-markercluste
 import { CardListItemComponent } from "./layout/list/card-list-item/card-list-item.component";
 import { IconPickerComponent } from "./cards/card-wizzard/icon-picker/icon-picker.component";
 import { PositionPickerComponent } from "./cards/card-wizzard/position-picker/position-picker.component";
-import { CardUpdateModalComponent } from './cards/card-update-modal/card-update-modal.component';
+import { CardUpdateModalComponent } from "./cards/card-update-modal/card-update-modal.component";
 
 @NgModule({
   declarations: [

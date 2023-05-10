@@ -1,7 +1,7 @@
 import { HttpClient, HttpClientModule } from "@angular/common/http";
 import { AfterViewInit, Component, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { ContentChange, QuillEditorComponent } from "ngx-quill";
+import { ContentChange, QuillConfig, QuillEditorComponent } from "ngx-quill";
 import Quill, { DeltaStatic } from "quill";
 import { BehaviorSubject, catchError, Observable, throwError } from "rxjs";
 import { CardService } from "src/app/services/card.service";
@@ -18,15 +18,15 @@ var BaseImageFormat = Quill.import("formats/image");
 const ImageFormatAttributesList = ["alt", "height", "width", "style"];
 
 class ImageFormat extends BaseImageFormat {
-  static formats(domNode) {
-    return ImageFormatAttributesList.reduce(function (formats, attribute) {
+  static formats(domNode: any) {
+    return ImageFormatAttributesList.reduce(function (formats: any, attribute) {
       if (domNode.hasAttribute(attribute)) {
         formats[attribute] = domNode.getAttribute(attribute);
       }
       return formats;
     }, {});
   }
-  format(name, value) {
+  format(name: any, value: any) {
     if (ImageFormatAttributesList.indexOf(name) > -1) {
       if (value) {
         this["domNode"].setAttribute(name, value);
@@ -63,22 +63,30 @@ Quill.register(ImageFormat, true);
       </mat-card>
     </ng-container>
 
-    <div>
+    <div class="editor-div">
       <quill-editor
-        [ngModel]="this.initialContent"
-        [modules]="modules"
+        class="quill-editor"
+        [(ngModel)]="this.initialContent"
+        [format]="'object'"
+        [modules]="this.modules"
         (onContentChanged)="onContentChanged($event)"
         (onEditorCreated)="createdEditor($event)"
       ></quill-editor>
     </div>
     <button mat-button (click)="onSaveContent()">save content</button>
   `,
-  styles: [],
+  styles: [
+    `
+      .editor-div {
+        width: 100%;
+      }
+    `,
+  ],
 })
 export class CardDetailsComponent implements OnInit {
   cardId!: number;
   card$!: Observable<Card>;
-  initialContent!: string;
+  initialContent!: DeltaStatic;
   content!: DeltaStatic;
   editor?: QuillEditorComponent;
   modules = {};
@@ -114,19 +122,17 @@ export class CardDetailsComponent implements OnInit {
 
   createdEditor(editor: QuillEditorComponent) {
     invoke("read_card_content", { id: this.cardId.toString() }).then(
-      (res: string) => {
+      (res: any) => {
         let loadedContent: DeltaStatic;
         try {
+          console.log("response from rust");
+          console.log(res);
           loadedContent = JSON.parse(res);
+          this.initialContent = loadedContent;
+          console.log("loaded content");
+          console.log(loadedContent);
         } catch (error) {
           return;
-        }
-        if (loadedContent.ops) {
-          this.initialContent = new QuillDeltaToHtmlConverter(
-            loadedContent.ops
-          ).convert();
-        } else {
-          this.initialContent = "<h1>Hello?</h1>";
         }
         editor.content = res;
         this.editor = editor;
@@ -144,6 +150,7 @@ export class CardDetailsComponent implements OnInit {
   }
 
   onContentChanged($event: ContentChange) {
+    console.log($event.html);
     this.content = $event.content;
   }
 }

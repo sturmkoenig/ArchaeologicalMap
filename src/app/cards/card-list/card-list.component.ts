@@ -66,14 +66,14 @@ export class CardListComponent implements OnInit {
     public dialog: MatDialog,
     public iconService: IconService,
     private _snackBar: MatSnackBar
-  ) {}
-
-  ngOnInit(): void {
+  ) {
     this.cardService
       .getNumberOfCards()
       .then((count) => (this.numCards = count));
     this.allCards = from(this.cardService.readCardsPaginated(0));
   }
+
+  ngOnInit(): void {}
 
   goToDetailsPage(cardId: number, cardTitle: string) {
     const webview = new WebviewWindow(cardId.toString(), {

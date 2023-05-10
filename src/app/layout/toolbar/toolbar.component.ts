@@ -7,12 +7,11 @@ import { Component, EventEmitter, Output } from "@angular/core";
       <button
         mat-icon-button
         class="example-icon"
-        aria-label="Example icon-button with menu icon"
-        (click)="emitMenuClicked($event)"
+        (click)="onMenuClicked($event)"
       >
         <mat-icon>menu</mat-icon>
       </button>
-      <span>Archaelogical Maps</span>
+      <span>Archäologie und Karten</span>
       <span class="example-spacer"></span>
     </mat-toolbar>
   `,
@@ -31,8 +30,10 @@ import { Component, EventEmitter, Output } from "@angular/core";
 export class ToolbarComponent {
   @Output()
   onMenu = new EventEmitter<MouseEvent>();
+  checked: boolean = false;
 
-  emitMenuClicked(event: MouseEvent) {
+  onMenuClicked(event: MouseEvent) {
+    console.log("clicked");
     this.onMenu.emit(event);
   }
 }

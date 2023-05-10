@@ -77,11 +77,11 @@ export class PositionPickerComponent implements OnInit {
   coordinateRadius: number = 100;
   @Output()
   coordinateRadiusChange: EventEmitter<number> = new EventEmitter();
-  circle: Circle;
+  circle!: Circle;
   @Input()
-  icon: keyof typeof ICONS;
-  marker: Marker;
-  map: Map;
+  icon: keyof typeof ICONS = "iconDefault";
+  marker!: Marker;
+  map!: Map;
 
   constructor(private iconService: IconService) {}
 
