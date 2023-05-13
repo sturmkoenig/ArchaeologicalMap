@@ -24,6 +24,7 @@ import { MarkerService } from "../services/marker.service";
 import { MapComponent } from "../layout/map/map.component";
 import { Coordinate } from "../model/card";
 import { resolveResource } from "@tauri-apps/api/path";
+import { appWindow } from "@tauri-apps/api/window";
 
 @Component({
   selector: "app-overview-map",
@@ -71,14 +72,12 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
       cardMarkers.forEach((marker) => {
         marker[0].on("mouseover", (e) => {
           if (marker[1] != null) {
-            console.log("hover mouse!");
             if (marker[1] != null) {
               this.map.addLayer(marker[1]);
             }
           }
         });
         marker[0].on("mouseout", (e) => {
-          console.log("mouse out");
           if (marker[1] !== null) {
             this.map.removeLayer(marker[1]);
           }
@@ -101,5 +100,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     }
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    appWindow.setTitle("map");
+  }
 }
