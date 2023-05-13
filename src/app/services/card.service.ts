@@ -28,6 +28,10 @@ export class CardService {
     return invoke("read_cards_paginated", { page: pageIndex });
   }
 
+  readCard(cardId: number): Promise<CardDB> {
+    return invoke("read_card", { id: cardId });
+  }
+
   updateCard(newCard: CardDB) {
     invoke("update_card", {
       card: {

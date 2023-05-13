@@ -72,9 +72,9 @@ fn read_cards_paginated(page: i64) -> Vec<Card> {
 }
 
 #[tauri::command]
-fn read_card(card_id: i32) -> Card {
+fn read_card(id: i32) -> Card {
     let conn = &mut establish_connection();
-    query_card_by_id(conn, card_id)
+    query_card_by_id(conn, id)
 }
 
 #[tauri::command]

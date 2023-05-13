@@ -15,6 +15,7 @@ import { Card, CardDB } from "src/app/model/card";
 import { CardService } from "./card.service";
 import { WebviewWindow } from "@tauri-apps/api/window";
 import { IconService } from "./icon.service";
+import { Router } from "@angular/router";
 
 @Injectable({
   providedIn: "root",
