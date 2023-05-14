@@ -15,12 +15,14 @@ import { HttpClientModule } from "@angular/common/http";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatListModule } from "@angular/material/list";
+
 import { MatSelectModule } from "@angular/material/select";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatSliderModule } from "@angular/material/slider";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatPaginatorModule } from "@angular/material/paginator";
+import { MatMenuModule } from "@angular/material/menu";
 
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 
@@ -35,12 +37,13 @@ import { CardListComponent } from "./cards/card-list/card-list.component";
 import { MapComponent } from "./layout/map/map.component";
 import { LeafletModule } from "@asymmetrik/ngx-leaflet";
 import { CardDetailsComponent } from "./cards/card-details/card-details.component";
-import { QuillModule } from "ngx-quill";
 import { LeafletMarkerClusterModule } from "@asymmetrik/ngx-leaflet-markercluster";
 import { CardListItemComponent } from "./layout/list/card-list-item/card-list-item.component";
 import { IconPickerComponent } from "./cards/card-wizzard/icon-picker/icon-picker.component";
 import { PositionPickerComponent } from "./cards/card-wizzard/position-picker/position-picker.component";
 import { CardUpdateModalComponent } from "./cards/card-update-modal/card-update-modal.component";
+import { EditorComponent } from "./layout/editor/editor.component";
+import { FilterPipe } from './layout/editor/filter.pipe';
 
 @NgModule({
   declarations: [
@@ -56,6 +59,8 @@ import { CardUpdateModalComponent } from "./cards/card-update-modal/card-update-
     IconPickerComponent,
     PositionPickerComponent,
     CardUpdateModalComponent,
+    EditorComponent,
+    FilterPipe,
   ],
   imports: [
     BrowserModule,
@@ -81,9 +86,9 @@ import { CardUpdateModalComponent } from "./cards/card-update-modal/card-update-
     MatCheckboxModule,
     MatSliderModule,
     MatPaginatorModule,
+    MatMenuModule,
     LeafletModule,
     LeafletMarkerClusterModule,
-    QuillModule.forRoot(),
   ],
   providers: [],
   bootstrap: [AppComponent],

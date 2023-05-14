@@ -41,3 +41,9 @@ pub struct Card {
     pub coordinate_radius: f32,
     pub icon_name: String,
 }
+
+#[derive(Serialize)]
+pub struct CardTitleMapping {
+    pub id: i32,
+    pub title: String,
+}

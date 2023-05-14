@@ -2,6 +2,7 @@ use self::models::{Card, NewCard};
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 use dotenvy::dotenv;
+use models::CardTitleMapping;
 use schema::cards::{self, id, title};
 use std::{env, path::PathBuf};
 use tauri::api::path::data_dir;
@@ -54,12 +55,6 @@ pub fn query_count_cards(conn: &mut SqliteConnection) -> i64 {
         .get_result(conn)
         .expect("Error counting cards")
 }
-pub fn query_card_by_title(conn: &mut SqliteConnection, query_title: String) -> Vec<Card> {
-    cards::table
-        .filter(title.eq(query_title))
-        .load(conn)
-        .expect("Error counting cards")
-}
 
 pub fn query_update_card(conn: &mut SqliteConnection, update_card: Card) {
     diesel::update(cards::table)
@@ -67,6 +62,21 @@ pub fn query_update_card(conn: &mut SqliteConnection, update_card: Card) {
         .set(update_card)
         .execute(conn)
         .expect("Error while doing update");
+}
+
+pub fn query_card_names(conn: &mut SqliteConnection) -> Vec<CardTitleMapping> {
+    let mut card_mapping: Vec<CardTitleMapping> = Vec::new();
+    let query_result: Vec<(i32, String)> = cards::table
+        .select((id, title))
+        .load(conn)
+        .expect("Error creating cache");
+    for res in query_result {
+        card_mapping.push(CardTitleMapping {
+            id: (res.0),
+            title: (res.1),
+        });
+    }
+    return card_mapping;
 }
 
 pub mod models;

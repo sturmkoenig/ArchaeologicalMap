@@ -5,12 +5,17 @@
 extern crate diesel;
 extern crate diesel_migrations;
 
-use app::query_card_by_title;
+use app::models::CardTitleMapping;
+use app::query_card_names;
 use app::query_cards_paginated;
 use app::query_count_cards;
 use app::query_update_card;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use tauri::api::path::app_cache_dir;
+use tauri::api::path::app_config_dir;
+use tauri::api::path::app_data_dir;
 use tauri::api::path::app_local_data_dir;
+use tauri::AppHandle;
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use std::env;
@@ -22,6 +27,9 @@ use app::query_create_card;
 use app::{
     establish_connection, get_path_local_dir, models::Card, query_all_cards, query_card_by_id,
 };
+
+const CONTENTDIR: &str = "content";
+const CACHEDIR: &str = "cache";
 
 // main.rs
 fn main() {
@@ -36,6 +44,7 @@ fn main() {
             write_card,
             write_card_content,
             read_card_content,
+            cache_card_names
         ])
         .setup(|app| {
             let config = app.config();
@@ -47,9 +56,12 @@ fn main() {
             // TODO handle error
             conn.run_pending_migrations(MIGRATIONS);
 
-            // TODO create necessary dirs
-            let content_dir_path = get_path_local_dir(String::from("content"));
-            fs::create_dir(content_dir_path);
+            let mut app_dir = app_data_dir(&config).expect("a");
+            fs::create_dir(&app_dir);
+            app_dir.push("content");
+            fs::create_dir(app_dir);
+            let cache_dir = app_cache_dir(&config).expect("couold not resolve cache dir");
+            fs::create_dir(cache_dir);
 
             Ok(())
         })
@@ -78,24 +90,21 @@ fn read_card(id: i32) -> Card {
 }
 
 #[tauri::command]
-fn read_cards_by_title(title: String) -> Vec<Card> {
-    let conn = &mut establish_connection();
-    query_card_by_title(conn, title)
-}
-
-#[tauri::command]
 fn create_card(card: NewCard) {
-    println!("received card: {}", card);
     let conn = &mut establish_connection();
     query_create_card(card, conn);
 }
 
 // TODO may be moved to frontend
 #[tauri::command]
-fn read_card_content(id: String) -> String {
-    let content = fs::read_to_string(get_path_local_dir(
-        format!("content/{}.json", id).to_string(),
-    ));
+fn read_card_content(app_handle: tauri::AppHandle, id: String) -> String {
+    let mut app_dir = app_handle
+        .path_resolver()
+        .app_data_dir()
+        .expect("error getting app dir");
+    app_dir.push(format!("content/{}.json", id));
+    println!("{}", app_dir.to_str().expect("msg"));
+    let content = fs::read_to_string(app_dir);
     match content {
         Ok(content) => return content,
         Err(_e) => return String::from("no content"),
@@ -103,9 +112,13 @@ fn read_card_content(id: String) -> String {
 }
 
 #[tauri::command]
-fn write_card_content(id: String, content: String) {
-    fs::write(get_path_local_dir(format!("content/{}.json", id)), content)
-        .expect("error opening file");
+fn write_card_content(app_handle: tauri::AppHandle, id: String, content: String) {
+    let mut content_dir = app_handle
+        .path_resolver()
+        .app_data_dir()
+        .expect("error getting data dir");
+    content_dir.push(format!("content/{}.json", id));
+    fs::write(content_dir, content).expect("error opening file");
 }
 
 #[tauri::command]
@@ -124,6 +137,19 @@ fn count_cards() -> i64 {
 fn write_card(card: NewCard) {
     let conn = &mut establish_connection();
     query_create_card(card, conn);
+}
+
+#[tauri::command]
+fn cache_card_names(app_handle: tauri::AppHandle) {
+    let conn = &mut establish_connection();
+    let card_names: Vec<CardTitleMapping> = query_card_names(conn);
+    let json_card_names = serde_json::to_string(&card_names).expect("error");
+    let mut card_name_cache_path = app_handle
+        .path_resolver()
+        .app_cache_dir()
+        .expect("error resolving cache dir");
+    card_name_cache_path.push("card_names.json");
+    fs::write(card_name_cache_path, json_card_names).expect("couldn't write to file system");
 }
 
 // TODO Add mehtod that sends number of entries!

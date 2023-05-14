@@ -1,7 +1,8 @@
 import { Injectable } from "@angular/core";
 import { Observable, tap } from "rxjs";
 import { Card, CardDB, NewCard } from "src/app/model/card";
-import { invoke } from "@tauri-apps/api";
+import { fs, invoke } from "@tauri-apps/api";
+import { appCacheDir, appConfigDir } from "@tauri-apps/api/path";
 
 @Injectable({
   providedIn: "root",
@@ -30,6 +31,14 @@ export class CardService {
 
   readCard(cardId: number): Promise<CardDB> {
     return invoke("read_card", { id: cardId });
+  }
+
+  readCardTitleMapping(): Promise<[{ id: number; title: string }]> {
+    let cacheDir = appCacheDir();
+    invoke("cache_card_names", {});
+    return appCacheDir()
+      .then((cacheDir) => fs.readTextFile(cacheDir + "card_names.json"))
+      .then((res) => JSON.parse(res));
   }
 
   updateCard(newCard: CardDB) {

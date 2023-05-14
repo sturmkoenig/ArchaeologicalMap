@@ -16,6 +16,7 @@ import { CardService } from "./card.service";
 import { WebviewWindow } from "@tauri-apps/api/window";
 import { IconService } from "./icon.service";
 import { Router } from "@angular/router";
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable({
   providedIn: "root",
@@ -66,7 +67,7 @@ function createPopupHTML(card: CardDB): HTMLDivElement {
   const button = document.createElement("button");
   button.innerHTML = "Bearbeiten";
   button.onclick = () => {
-    const webview = new WebviewWindow(card.id.toString(), {
+    const webview = new WebviewWindow(uuidv4(), {
       url: "cards/details?id=" + card.id,
     });
     webview.once("tauri://error", function (e) {

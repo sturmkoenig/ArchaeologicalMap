@@ -1,45 +1,16 @@
 import { HttpClient, HttpClientModule } from "@angular/common/http";
-import { AfterViewInit, Component, OnInit } from "@angular/core";
+import { AfterViewInit, Component, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { ContentChange, QuillConfig, QuillEditorComponent } from "ngx-quill";
-import Quill, { DeltaStatic } from "quill";
+import { MatCard } from "@angular/material/card";
 import { BehaviorSubject, catchError, Observable, throwError } from "rxjs";
 import { CardService } from "src/app/services/card.service";
-import { QuillDeltaToHtmlConverter } from "quill-delta-to-html";
 import { invoke } from "@tauri-apps/api";
 
-import ImageResize from "quill-image-resize-module";
 import { Card, Coordinate } from "src/app/model/card";
 import { MatSnackBar } from "@angular/material/snack-bar";
-
-Quill.register("modules/imageResize", ImageResize);
-
-var BaseImageFormat = Quill.import("formats/image");
-const ImageFormatAttributesList = ["alt", "height", "width", "style"];
-
-class ImageFormat extends BaseImageFormat {
-  static formats(domNode: any) {
-    return ImageFormatAttributesList.reduce(function (formats: any, attribute) {
-      if (domNode.hasAttribute(attribute)) {
-        formats[attribute] = domNode.getAttribute(attribute);
-      }
-      return formats;
-    }, {});
-  }
-  format(name: any, value: any) {
-    if (ImageFormatAttributesList.indexOf(name) > -1) {
-      if (value) {
-        this["domNode"].setAttribute(name, value);
-      } else {
-        this["domNode"].removeAttribute(name);
-      }
-    } else {
-      super.format(name, value);
-    }
-  }
-}
-
-Quill.register(ImageFormat, true);
+import Quill from "quill";
+import { RangeStatic } from "quill";
+import { EditorComponent } from "src/app/layout/editor/editor.component";
 
 @Component({
   selector: "app-card-details",
@@ -63,22 +34,18 @@ Quill.register(ImageFormat, true);
       </mat-card>
     </ng-container>
 
-    <div class="editor-div">
-      <quill-editor
-        class="quill-editor"
-        [(ngModel)]="this.initialContent"
-        [format]="'object'"
-        [modules]="this.modules"
-        (onContentChanged)="onContentChanged($event)"
-        (onEditorCreated)="createdEditor($event)"
-      ></quill-editor>
+    <div class="container">
+      <app-editor [cardTitleMapping]="cardTitleMapping"></app-editor>
+      <span class="button-row">
+        <button mat-button (click)="onSaveContent()">save content</button>
+      </span>
     </div>
-    <button mat-button (click)="onSaveContent()">save content</button>
   `,
   styles: [
     `
-      .editor-div {
-        width: 100%;
+      .container {
+        display: flex;
+        flex-direction: column;
       }
     `,
   ],
@@ -86,59 +53,50 @@ Quill.register(ImageFormat, true);
 export class CardDetailsComponent implements OnInit {
   cardId!: number;
   card$!: Observable<Card>;
-  initialContent!: DeltaStatic;
-  content!: DeltaStatic;
-  editor?: QuillEditorComponent;
-  modules = {};
+
+  @ViewChild(EditorComponent)
+  editor!: EditorComponent;
+  cardTitleMapping!: [{ id: number; title: string }];
 
   constructor(
     private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router,
-    private _snackBar: MatSnackBar
-  ) {
-    this.modules = {
-      imageResize: {},
-    };
-  }
+    private _snackBar: MatSnackBar,
+    private cardService: CardService
+  ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     this.route.queryParams.subscribe((params) => {
       this.cardId = +params["id"];
     });
     // this.card$ = this.cardService.cardGet(this.cardId);
+    invoke("read_card_content", { id: this.cardId.toString() }).then(
+      (res: any) => {
+        let loadedContent: any;
+        try {
+          this.editor.setContents(JSON.parse(res));
+        } catch (error) {
+          return;
+        }
+      }
+    );
+    this.cardService.readCardTitleMapping().then((ctm) => {
+      this.cardTitleMapping = ctm;
+    });
   }
 
-  onViewerCreated(editor: QuillEditorComponent) {}
-
   onSaveContent() {
+    console.log("write content!");
     invoke("write_card_content", {
       id: this.cardId.toString(),
-      content: JSON.stringify(this.content),
+      content: JSON.stringify(this.editor.getContents()),
     }).then((res) => {
       this._snackBar.open("Gespeichert!", "X");
     });
   }
 
-  createdEditor(editor: QuillEditorComponent) {
-    invoke("read_card_content", { id: this.cardId.toString() }).then(
-      (res: any) => {
-        let loadedContent: DeltaStatic;
-        try {
-          console.log("response from rust");
-          console.log(res);
-          loadedContent = JSON.parse(res);
-          this.initialContent = loadedContent;
-          console.log("loaded content");
-          console.log(loadedContent);
-        } catch (error) {
-          return;
-        }
-        editor.content = res;
-        this.editor = editor;
-      }
-    );
-  }
+  createdEditor(editor: any) {}
 
   goToCard(coordinates: Coordinate) {
     this.router.navigate(["map"], {
@@ -147,10 +105,5 @@ export class CardDetailsComponent implements OnInit {
         latitude: coordinates.latitude,
       },
     });
-  }
-
-  onContentChanged($event: ContentChange) {
-    console.log($event.html);
-    this.content = $event.content;
   }
 }
