@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnInit, EventEmitter, Output } from "@angular/core";
 import Quill, { RangeStatic } from "quill";
 import ImageResize from "quill-image-resize-module";
 
@@ -94,13 +94,6 @@ Quill.register({ "formats/internal_link": LinkBlot });
           fontIcon="link"
         ></mat-icon>
       </button>
-      <button (click)="onSave()">
-        <mat-icon
-          aria-hidden="false"
-          aria-label="Example home icon"
-          fontIcon="save-outlined"
-        ></mat-icon>
-      </button>
     </div>
     <mat-menu #menu="matMenu">
       <div class="menu-item-container">
@@ -169,9 +162,6 @@ export class EditorComponent implements OnInit {
     return this.quill.getContents();
   }
 
-  onSave() {
-    throw new Error("Method not implemented.");
-  }
   onLink(id: number, title: string) {
     let selection: RangeStatic | undefined;
     if (this.carrotPosition) {

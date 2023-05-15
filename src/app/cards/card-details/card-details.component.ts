@@ -92,7 +92,7 @@ export class CardDetailsComponent implements OnInit {
       id: this.cardId.toString(),
       content: JSON.stringify(this.editor.getContents()),
     }).then((res) => {
-      this._snackBar.open("Gespeichert!", "X");
+      this._snackBar.open("Gespeichert!", "💾");
     });
   }
 

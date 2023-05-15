@@ -25,8 +25,8 @@ export class CardService {
   readCards(): Promise<CardDB[]> {
     return invoke("read_cards", {});
   }
-  readCardsPaginated(pageIndex: number): Promise<CardDB[]> {
-    return invoke("read_cards_paginated", { page: pageIndex });
+  readCardsPaginated(pageIndex: number, filter: string): Promise<CardDB[]> {
+    return invoke("read_cards_paginated", { page: pageIndex, filter: filter });
   }
 
   readCard(cardId: number): Promise<CardDB> {
@@ -58,5 +58,11 @@ export class CardService {
 
   async getNumberOfCards(): Promise<number> {
     return invoke("count_cards", {});
+  }
+
+  deleteCard(id: number) {
+    invoke("delete_card", {
+      id: id,
+    }).then(() => console.log("card deleted"));
   }
 }

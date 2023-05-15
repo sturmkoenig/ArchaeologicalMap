@@ -19,12 +19,17 @@ pub fn query_all_cards(conn: &mut SqliteConnection) -> Vec<Card> {
         .load::<Card>(conn)
         .expect("Error loading posts")
 }
-pub fn query_cards_paginated(conn: &mut SqliteConnection, page_number: i64) -> Vec<Card> {
+pub fn query_cards_paginated(
+    conn: &mut SqliteConnection,
+    page_number: i64,
+    filter: String,
+) -> Vec<Card> {
     // TODO sensible page size
-    let page_size = 5;
+    let page_size = 20;
     cards::table
         .order_by(title)
         .limit(page_size)
+        .filter(title.like(format!("{}{}", filter, "%")))
         .offset(page_number * page_size)
         .load::<Card>(conn)
         .expect("Error loading")
@@ -77,6 +82,11 @@ pub fn query_card_names(conn: &mut SqliteConnection) -> Vec<CardTitleMapping> {
         });
     }
     return card_mapping;
+}
+
+pub fn query_delete_card(conn: &mut SqliteConnection, card_id: i32) {
+    println!("delting card!");
+    diesel::delete(cards::table.filter(id.eq(card_id))).execute(conn);
 }
 
 pub mod models;

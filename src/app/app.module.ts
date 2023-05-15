@@ -44,6 +44,7 @@ import { PositionPickerComponent } from "./cards/card-wizzard/position-picker/po
 import { CardUpdateModalComponent } from "./cards/card-update-modal/card-update-modal.component";
 import { EditorComponent } from "./layout/editor/editor.component";
 import { FilterPipe } from './layout/editor/filter.pipe';
+import { CardDeleteDialogComponent } from './cards/card-update-modal/card-delete-dialog/card-delete-dialog.component';
 
 @NgModule({
   declarations: [
@@ -61,6 +62,7 @@ import { FilterPipe } from './layout/editor/filter.pipe';
     CardUpdateModalComponent,
     EditorComponent,
     FilterPipe,
+    CardDeleteDialogComponent,
   ],
   imports: [
     BrowserModule,

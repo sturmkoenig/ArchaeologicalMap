@@ -1,7 +1,14 @@
 import { Component, OnInit, Output, EventEmitter } from "@angular/core";
 import { WebviewWindow } from "@tauri-apps/api/window";
 import { invoke, tauri } from "@tauri-apps/api";
-import { Observable, from, throwError } from "rxjs";
+import {
+  Observable,
+  Subject,
+  Subscription,
+  debounceTime,
+  from,
+  throwError,
+} from "rxjs";
 import { Card, CardDB } from "src/app/model/card";
 import { CardService } from "src/app/services/card.service";
 import { PageEvent } from "@angular/material/paginator";
@@ -14,6 +21,24 @@ import { IconService } from "src/app/services/icon.service";
   selector: "app-card-list",
   template: `
     <div class="list-container">
+      <mat-form-field class="example-form-field">
+        <mat-label>Suche...</mat-label>
+        <input
+          matInput
+          type="text"
+          [(ngModel)]="filter"
+          (keydown)="inputChanged()"
+        />
+        <button
+          *ngIf="filter"
+          matSuffix
+          mat-icon-button
+          aria-label="Clear"
+          (click)="filter = ''"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
       <ng-container *ngFor="let card of allCards | async">
         <mat-card>
           <mat-card-header>
@@ -24,10 +49,14 @@ import { IconService } from "src/app/services/icon.service";
             <mat-card-subtitle>{{ card.description }}</mat-card-subtitle>
           </mat-card-header>
           <mat-card-actions>
-            <button mat-button (click)="openUpdateDialog(card)">
+            <button mat-button color="primary" (click)="openUpdateDialog(card)">
               Bearbeiten
             </button>
-            <button mat-button (click)="goToDetailsPage(card.id, card.title)">
+            <button
+              mat-raised-button
+              color="accent"
+              (click)="goToDetailsPage(card.id, card.title)"
+            >
               Info-Seite öffnen
             </button>
           </mat-card-actions>
@@ -36,7 +65,7 @@ import { IconService } from "src/app/services/icon.service";
       </ng-container>
       <mat-paginator
         [length]="numCards"
-        [pageSizeOptions]="[5]"
+        [pageSizeOptions]="[20]"
         [pageIndex]="pageIndex"
         (page)="changePage($event)"
         aria-label="Select page"
@@ -46,8 +75,13 @@ import { IconService } from "src/app/services/icon.service";
   `,
   styles: [
     `
+      button {
+        margin: 0.2rem;
+      }
       .list-container {
-        padding: 1rem;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
       }
       .example-card {
         max-width: 400px;
@@ -60,6 +94,10 @@ export class CardListComponent implements OnInit {
   public allCards: Observable<CardDB[]>;
   pageIndex: number = 0;
   numCards: number = 0;
+  filter: string = "";
+  modelChanged: Subject<string> = new Subject<string>();
+  subscription!: Subscription;
+  debounceTime = 500;
 
   constructor(
     private cardService: CardService,
@@ -70,10 +108,22 @@ export class CardListComponent implements OnInit {
     this.cardService
       .getNumberOfCards()
       .then((count) => (this.numCards = count));
-    this.allCards = from(this.cardService.readCardsPaginated(0));
+    this.allCards = from(this.cardService.readCardsPaginated(0, ""));
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.subscription = this.modelChanged
+      .pipe(debounceTime(this.debounceTime))
+      .subscribe((filter) => {
+        this.allCards = from(
+          this.cardService.readCardsPaginated(this.pageIndex, filter)
+        );
+      });
+  }
+
+  inputChanged() {
+    this.modelChanged.next(this.filter);
+  }
 
   goToDetailsPage(cardId: number, cardTitle: string) {
     const webview = new WebviewWindow(cardId.toString(), {
@@ -85,7 +135,9 @@ export class CardListComponent implements OnInit {
   }
 
   changePage($event: PageEvent) {
-    this.allCards = from(this.cardService.readCardsPaginated($event.pageIndex));
+    this.allCards = from(
+      this.cardService.readCardsPaginated($event.pageIndex, "")
+    );
   }
 
   openUpdateDialog(currentCard: CardDB) {
@@ -96,12 +148,20 @@ export class CardListComponent implements OnInit {
       enterAnimationDuration: "200ms",
       exitAnimationDuration: "150ms",
     });
-    const subscribeDialog = dialogRef.componentInstance.updated.subscribe(
-      (data: boolean) => {
+    const subscribeDialogDeleted =
+      dialogRef.componentInstance.deleted.subscribe((data: boolean) => {
         if (data === true) {
-          this._snackBar.open("Änderungen gespeichert!", "X");
+          console.log("Geloescht");
+          this._snackBar.open("Seite gelöscht", "⌫");
+          dialogRef.close();
+          this.inputChanged();
         }
-      }
-    );
+      });
+    const subscribeDialogUpdated =
+      dialogRef.componentInstance.updated.subscribe((data: boolean) => {
+        if (data === true) {
+          this._snackBar.open("Änderungen gespeichert!", "💾");
+        }
+      });
   }
 }

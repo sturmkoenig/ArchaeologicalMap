@@ -9,6 +9,7 @@ use app::models::CardTitleMapping;
 use app::query_card_names;
 use app::query_cards_paginated;
 use app::query_count_cards;
+use app::query_delete_card;
 use app::query_update_card;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use tauri::api::path::app_cache_dir;
@@ -44,7 +45,8 @@ fn main() {
             write_card,
             write_card_content,
             read_card_content,
-            cache_card_names
+            cache_card_names,
+            delete_card
         ])
         .setup(|app| {
             let config = app.config();
@@ -72,15 +74,13 @@ fn main() {
 #[tauri::command]
 fn read_cards() -> Vec<Card> {
     let conn = &mut establish_connection();
-    let results = query_all_cards(conn);
-    return results;
+    query_all_cards(conn)
 }
 
 #[tauri::command]
-fn read_cards_paginated(page: i64) -> Vec<Card> {
+fn read_cards_paginated(page: i64, filter: String) -> Vec<Card> {
     let conn = &mut establish_connection();
-    let results = query_cards_paginated(conn, page);
-    return results;
+    query_cards_paginated(conn, page, filter)
 }
 
 #[tauri::command]
@@ -137,6 +137,12 @@ fn count_cards() -> i64 {
 fn write_card(card: NewCard) {
     let conn = &mut establish_connection();
     query_create_card(card, conn);
+}
+
+#[tauri::command]
+fn delete_card(id: i32) {
+    let conn = &mut establish_connection();
+    query_delete_card(conn, id);
 }
 
 #[tauri::command]
