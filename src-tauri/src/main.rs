@@ -7,6 +7,7 @@ extern crate diesel_migrations;
 
 use app::models::CardTitleMapping;
 use app::query_card_names;
+use app::query_cards_in_geological_area;
 use app::query_cards_paginated;
 use app::query_count_cards;
 use app::query_delete_card;
@@ -40,6 +41,7 @@ fn main() {
             read_card,
             read_cards,
             read_cards_paginated,
+            read_cards_in_area,
             update_card,
             count_cards,
             write_card,
@@ -156,6 +158,12 @@ fn cache_card_names(app_handle: tauri::AppHandle) {
         .expect("error resolving cache dir");
     card_name_cache_path.push("card_names.json");
     fs::write(card_name_cache_path, json_card_names).expect("couldn't write to file system");
+}
+
+#[tauri::command]
+fn read_cards_in_area(north: f32, east: f32, south: f32, west: f32) -> Vec<Card> {
+    let conn = &mut establish_connection();
+    query_cards_in_geological_area(conn, north, east, south, west)
 }
 
 // TODO Add mehtod that sends number of entries!

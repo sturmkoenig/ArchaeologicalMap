@@ -30,6 +30,7 @@ import { Coordinate } from "src/app/model/card";
     [leafletLayers]="layers"
     [leafletMarkerCluster]="layers"
     (leafletMapReady)="onMapReady($event)"
+    (leafletMapMoveEnd)="onMapMoveEnd()"
     (leafletClick)="click$.emit($event)"
   ></div>`,
   styles: [
@@ -45,20 +46,18 @@ export class MapComponent {
   @Output() map$: EventEmitter<Map> = new EventEmitter();
   @Output() zoom$: EventEmitter<number> = new EventEmitter();
   @Output() click$: EventEmitter<LeafletMouseEvent> = new EventEmitter();
+  @Output() moveEnd$: EventEmitter<any> = new EventEmitter();
   @Input() centerCoordinate?: Coordinate;
   @Input() layers: Layer[] = [];
   @Input() options: MapOptions = {
     layers: [
-      tileLayer(
-        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-        {
-          opacity: 0.7,
-          maxZoom: 19,
-          detectRetina: true,
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        }
-      ),
+      tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        opacity: 0.7,
+        maxZoom: 19,
+        detectRetina: true,
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }),
     ],
     zoom: 16,
     center: latLng(53.009325188114076, 13.160270365480752),
@@ -77,5 +76,9 @@ export class MapComponent {
     this.map$.emit(map);
     this.zoom = map.getZoom();
     this.zoom$.emit(this.zoom);
+  }
+
+  onMapMoveEnd() {
+    this.moveEnd$.emit(null);
   }
 }

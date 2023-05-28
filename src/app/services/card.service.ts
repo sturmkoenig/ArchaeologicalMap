@@ -3,6 +3,7 @@ import { Observable, tap } from "rxjs";
 import { Card, CardDB, NewCard } from "src/app/model/card";
 import { fs, invoke } from "@tauri-apps/api";
 import { appCacheDir, appConfigDir } from "@tauri-apps/api/path";
+import { E } from "@tauri-apps/api/path-c062430b";
 
 @Injectable({
   providedIn: "root",
@@ -25,6 +26,21 @@ export class CardService {
   readCards(): Promise<CardDB[]> {
     return invoke("read_cards", {});
   }
+
+  readCardsInArea(
+    north: number,
+    east: number,
+    south: number,
+    west: number
+  ): Promise<CardDB[]> {
+    return invoke("read_cards_in_area", {
+      north: north,
+      east: east,
+      south: south,
+      west: west,
+    });
+  }
+
   readCardsPaginated(pageIndex: number, filter: string): Promise<CardDB[]> {
     return invoke("read_cards_paginated", { page: pageIndex, filter: filter });
   }

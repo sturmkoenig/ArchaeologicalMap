@@ -22,42 +22,47 @@ import { v4 as uuidv4 } from "uuid";
   providedIn: "root",
 })
 export class MarkerService {
-  capitals: string = "/assets/data/usa-capitals.geojson";
-
   constructor(
     private cardService: CardService,
     private http: HttpClient,
     private iconService: IconService
   ) {}
 
-  queryMarkers(): Promise<[Marker, Layer | null][]> {
-    return this.cardService.readCards().then((cards: CardDB[]) => {
-      let markers: [Marker, Layer | null][] = [];
-      cards.forEach((card) => {
-        let icon = new Icon({
-          iconUrl: this.iconService.getIconPath(card.icon_name).toString(),
-          iconSize: [20, 20],
-          popupAnchor: [0, 0],
-        });
-        let iconMarker = new Marker([card.latitude, card.longitude], {
-          icon,
-          interactive: true,
-        });
-        const div: HTMLDivElement = createPopupHTML(card);
-
-        iconMarker.bindPopup(div);
-        if (card.coordinate_radius !== 0.0) {
-          let circle = new Circle([card.latitude, card.longitude], {
-            className: "fade-in",
-            radius: card.coordinate_radius,
+  queryMarkersInArea(
+    north: number,
+    east: number,
+    south: number,
+    west: number
+  ): Promise<[Marker, Layer | null][]> {
+    return this.cardService
+      .readCardsInArea(north, east, south, west)
+      .then((cards: CardDB[]) => {
+        let markers: [Marker, Layer | null][] = [];
+        cards.forEach((card) => {
+          let icon = new Icon({
+            iconUrl: this.iconService.getIconPath(card.icon_name).toString(),
+            iconSize: [20, 20],
+            popupAnchor: [0, 0],
           });
-          markers.push([iconMarker, circle]);
-        } else {
-          markers.push([iconMarker, null]);
-        }
+          let iconMarker = new Marker([card.latitude, card.longitude], {
+            icon,
+            interactive: true,
+          });
+          const div: HTMLDivElement = createPopupHTML(card);
+
+          iconMarker.bindPopup(div);
+          if (card.coordinate_radius !== 0.0) {
+            let circle = new Circle([card.latitude, card.longitude], {
+              className: "fade-in",
+              radius: card.coordinate_radius,
+            });
+            markers.push([iconMarker, circle]);
+          } else {
+            markers.push([iconMarker, null]);
+          }
+        });
+        return markers;
       });
-      return markers;
-    });
   }
 }
 function createPopupHTML(card: CardDB): HTMLDivElement {

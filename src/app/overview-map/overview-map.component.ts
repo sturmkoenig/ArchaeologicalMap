@@ -1,3 +1,4 @@
+import { listen } from "@tauri-apps/api/event";
 import {
   AfterViewInit,
   Component,
@@ -14,6 +15,7 @@ import {
   Icon,
   latLng,
   Layer,
+  LayerGroup,
   LeafletMouseEvent,
   Map,
   marker,
@@ -25,7 +27,15 @@ import { MapComponent } from "../layout/map/map.component";
 import { Coordinate } from "../model/card";
 import { resolveResource } from "@tauri-apps/api/path";
 import { appWindow } from "@tauri-apps/api/window";
+import { s } from "@tauri-apps/api/app-5190a154";
+import { P } from "@tauri-apps/api/event-30ea0228";
 
+export interface Compas {
+  north: number;
+  south: number;
+  west: number;
+  east: number;
+}
 @Component({
   selector: "app-overview-map",
   template: `
@@ -33,7 +43,7 @@ import { appWindow } from "@tauri-apps/api/window";
       <app-map
         #childmap
         (map$)="mapChanged($event)"
-        [layers]="mapLayers"
+        (moveEnd$)="mapMoveEnded($event)"
       ></app-map>
     </div>
   `,
@@ -57,10 +67,9 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   mapComponent!: MapComponent;
   map!: Map;
   position?: Coordinate;
-  mapLayers: Layer[] = [];
+  layerGroup: LayerGroup = new LayerGroup();
 
   mapChanged(emittedMap: Map) {
-    console.log(emittedMap);
     this.map = emittedMap;
   }
 
@@ -68,25 +77,45 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     private markerService: MarkerService,
     private route: ActivatedRoute
   ) {
-    this.markerService.queryMarkers().then((cardMarkers) => {
-      cardMarkers.forEach((marker) => {
-        marker[0].on("mouseover", (e) => {
-          if (marker[1] != null) {
-            if (marker[1] != null) {
-              this.map.addLayer(marker[1]);
-            }
-          }
-        });
-        marker[0].on("mouseout", (e) => {
-          if (marker[1] !== null) {
-            this.map.removeLayer(marker[1]);
-          }
-        });
-        this.map.addLayer(marker[0]);
-      });
+    listen("panTo", (event: any) => {
+      this.panToLatLng(event.payload.lat, event.payload.lng);
     });
   }
 
+  createHoverCoordinateRadius(marker: Marker, radius: Layer | null) {
+    marker.on("mouseover", (e) => {
+      if (radius != null) {
+        this.layerGroup.addLayer(radius);
+      }
+    });
+    marker.on("mouseout", (e) => {
+      if (radius !== null) {
+        this.layerGroup.removeLayer(radius);
+      }
+    });
+  }
+
+  mapMoveEnded($event: any) {
+    let bounds = this.map.getBounds();
+
+    this.markerService
+      .queryMarkersInArea(
+        bounds.getNorth(),
+        bounds.getEast(),
+        bounds.getSouth(),
+        bounds.getWest()
+      )
+      .then((cardMarkers) => {
+        this.map.removeLayer(this.layerGroup);
+        this.layerGroup = new LayerGroup();
+        cardMarkers.forEach((marker) => {
+          this.layerGroup.addLayer(marker[0]);
+          this.createHoverCoordinateRadius(marker[0], marker[1]);
+        });
+        this.map.addLayer(this.layerGroup);
+      });
+    // this.markerService.queryMarkers().then(())
+  }
   ngAfterViewInit(): void {
     if (
       this.route.snapshot.queryParams["longitude"] &&
@@ -102,5 +131,8 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     appWindow.setTitle("map");
+  }
+  panToLatLng(lat: number, lng: number) {
+    this.map.flyTo({ lat: lat, lng: lng });
   }
 }

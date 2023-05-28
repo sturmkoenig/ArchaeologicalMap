@@ -1,25 +1,28 @@
-import { HttpClient, HttpClientModule } from "@angular/common/http";
 import { AfterViewInit, Component, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { MatCard } from "@angular/material/card";
 import { BehaviorSubject, catchError, Observable, throwError } from "rxjs";
 import { CardService } from "src/app/services/card.service";
 import { invoke } from "@tauri-apps/api";
+import { emit, listen } from "@tauri-apps/api/event";
 
-import { Card, Coordinate } from "src/app/model/card";
+import { Card, CardDB, Coordinate } from "src/app/model/card";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import Quill from "quill";
 import { RangeStatic } from "quill";
 import { EditorComponent } from "src/app/layout/editor/editor.component";
+import { IconService } from "src/app/services/icon.service";
 
 @Component({
   selector: "app-card-details",
   template: `
     <ng-container *ngIf="card$ | async as card">
-      <mat-card class="example-card">
+      <mat-card class="card">
         <mat-card-header>
-          <div mat-card-avatar class="example-header-image"></div>
-          <mat-card-title>{{ card.name }}</mat-card-title>
+          <div mat-card-avatar class="card-avatar">
+            <img src="{{ iconService.getIconPath(card.icon_name) }}" />
+          </div>
+          <mat-card-title>{{ card.title }}</mat-card-title>
         </mat-card-header>
         <mat-card-content>
           <p>
@@ -27,7 +30,11 @@ import { EditorComponent } from "src/app/layout/editor/editor.component";
           </p>
         </mat-card-content>
         <mat-card-actions>
-          <button mat-button (click)="goToCard(card.coordinate)">
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="panToLatLng(card.latitude, card.longitude)"
+          >
             auf karte zeigen
           </button>
         </mat-card-actions>
@@ -43,6 +50,10 @@ import { EditorComponent } from "src/app/layout/editor/editor.component";
   `,
   styles: [
     `
+      .card {
+        margin: 2rem;
+      }
+
       .container {
         display: flex;
         flex-direction: column;
@@ -52,25 +63,25 @@ import { EditorComponent } from "src/app/layout/editor/editor.component";
 })
 export class CardDetailsComponent implements OnInit {
   cardId!: number;
-  card$!: Observable<Card>;
+  card$!: Promise<CardDB>;
 
   @ViewChild(EditorComponent)
   editor!: EditorComponent;
   cardTitleMapping!: [{ id: number; title: string }];
 
   constructor(
-    private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router,
     private _snackBar: MatSnackBar,
-    private cardService: CardService
+    private cardService: CardService,
+    public iconService: IconService
   ) {}
 
   async ngOnInit() {
     this.route.queryParams.subscribe((params) => {
       this.cardId = +params["id"];
+      this.card$ = this.cardService.readCard(this.cardId);
     });
-    // this.card$ = this.cardService.cardGet(this.cardId);
     invoke("read_card_content", { id: this.cardId.toString() }).then(
       (res: any) => {
         let loadedContent: any;
@@ -87,7 +98,6 @@ export class CardDetailsComponent implements OnInit {
   }
 
   onSaveContent() {
-    console.log("write content!");
     invoke("write_card_content", {
       id: this.cardId.toString(),
       content: JSON.stringify(this.editor.getContents()),
@@ -98,12 +108,7 @@ export class CardDetailsComponent implements OnInit {
 
   createdEditor(editor: any) {}
 
-  goToCard(coordinates: Coordinate) {
-    this.router.navigate(["map"], {
-      queryParams: {
-        longitude: coordinates.longitude,
-        latitude: coordinates.latitude,
-      },
-    });
+  panToLatLng(latitude: number, longitude: number) {
+    emit("panTo", { lat: latitude, lng: longitude });
   }
 }

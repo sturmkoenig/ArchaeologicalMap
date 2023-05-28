@@ -1,9 +1,9 @@
 use self::models::{Card, NewCard};
-use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
+use diesel::{prelude::*, sql_types::Float};
 use dotenvy::dotenv;
 use models::CardTitleMapping;
-use schema::cards::{self, id, title};
+use schema::cards::{self, id, latitude, longitude, title};
 use std::{env, path::PathBuf};
 use tauri::api::path::data_dir;
 
@@ -87,6 +87,22 @@ pub fn query_card_names(conn: &mut SqliteConnection) -> Vec<CardTitleMapping> {
 pub fn query_delete_card(conn: &mut SqliteConnection, card_id: i32) {
     println!("delting card!");
     diesel::delete(cards::table.filter(id.eq(card_id))).execute(conn);
+}
+
+pub fn query_cards_in_geological_area(
+    conn: &mut SqliteConnection,
+    north: f32,
+    east: f32,
+    south: f32,
+    west: f32,
+) -> Vec<Card> {
+    cards::table
+        .filter(latitude.le(north))
+        .filter(longitude.le(east))
+        .filter(latitude.ge(south))
+        .filter(longitude.ge(west))
+        .load::<Card>(conn)
+        .expect("Error loading")
 }
 
 pub mod models;

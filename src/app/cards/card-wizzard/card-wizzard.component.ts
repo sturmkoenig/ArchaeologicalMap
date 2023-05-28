@@ -4,6 +4,7 @@ import { CardService } from "src/app/services/card.service";
 import { Card, NewCard } from "src/app/model/card";
 import { FormBuilder, Validators } from "@angular/forms";
 import { ICONS } from "src/app/services/icon.service";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: "app-card-wizzard",
@@ -107,7 +108,8 @@ export class CardWizzardComponent {
 
   constructor(
     private _formBuilder: FormBuilder,
-    private cardService: CardService
+    private cardService: CardService,
+    private _snackBar: MatSnackBar
   ) {}
 
   submitCard() {
@@ -124,6 +126,7 @@ export class CardWizzardComponent {
       iconName: this.iconName,
     };
     this.cardService.cardCreate(newCard);
+    this._snackBar.open("Karte Gespeichert", "💾");
   }
 
   changeIcon(newIcon: keyof typeof ICONS) {
