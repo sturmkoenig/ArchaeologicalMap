@@ -1,37 +1,18 @@
 import { listen } from "@tauri-apps/api/event";
-import {
-  AfterViewInit,
-  Component,
-  EventEmitter,
-  OnInit,
-  Output,
-  ViewChild,
-} from "@angular/core";
+import { AfterViewInit, Component, OnInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import {
-  circle,
-  Circle,
-  icon,
-  Icon,
   LatLng,
   latLng,
   Layer,
   LayerGroup,
-  LeafletMouseEvent,
   Map,
   MapOptions,
-  marker,
   Marker,
   tileLayer,
 } from "leaflet";
-import { Observable } from "rxjs";
 import { MarkerService } from "../services/marker.service";
-import { MapComponent } from "../layout/map/map.component";
-import { Coordinate } from "../model/card";
-import { resolveResource } from "@tauri-apps/api/path";
 import { appWindow } from "@tauri-apps/api/window";
-import { s } from "@tauri-apps/api/app-5190a154";
-import { P } from "@tauri-apps/api/event-30ea0228";
 
 export interface Compas {
   north: number;
@@ -51,7 +32,6 @@ export interface Compas {
         [leafletMarkerCluster]="layers"
         (leafletMapReady)="onMapReady($event)"
         (leafletMapMoveEnd)="mapMoveEnded($event)"
-        (leafletClick)="click$.emit($event)"
       ></div>
     </div>
   `,
@@ -73,13 +53,8 @@ export interface Compas {
   ],
 })
 export class OverviewMapComponent implements OnInit, AfterViewInit {
-  zoom$: EventEmitter<number> = new EventEmitter();
-  click$: EventEmitter<LeafletMouseEvent> = new EventEmitter();
-  moveEnd$: EventEmitter<any> = new EventEmitter();
-  centerCoordinate?: Coordinate;
   layers: Layer[] = [];
-  @Output()
-  clickedPosition = new EventEmitter<number[]>();
+  displayedMarkers = [];
   position?: LatLng;
   layerGroup: LayerGroup = new LayerGroup();
   options: MapOptions = {
@@ -107,15 +82,9 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     });
   }
 
-  setPosition(coordinate: Coordinate) {
-    let newLatLng = new LatLng(coordinate.latitude, coordinate.longitude);
-    this.map.panTo(newLatLng);
-  }
-
   onMapReady(map: Map) {
     this.map = map;
     this.zoom = map.getZoom();
-    this.zoom$.emit(this.zoom);
   }
 
   mapChanged(emittedMap: Map) {
@@ -143,22 +112,28 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
       return;
     }
     this.markerService
-      .queryMarkersInArea(
-        bounds.getNorth(),
-        bounds.getEast(),
-        bounds.getSouth(),
-        bounds.getWest()
-      )
+      .updateMarkersInArea({
+        north: bounds.getNorth(),
+        east: bounds.getEast(),
+        south: bounds.getSouth(),
+        west: bounds.getWest(),
+      })
       .then((cardMarkers) => {
         this.map.removeLayer(this.layerGroup);
-        this.layerGroup = new LayerGroup();
+        let tempLayerGroup = new LayerGroup();
+
         cardMarkers.forEach((marker) => {
+          console.log(marker[0]);
+          console.log(this.layerGroup.getLayers());
+          console.log(this.layerGroup.hasLayer(marker[0]));
           this.layerGroup.addLayer(marker[0]);
           this.createHoverCoordinateRadius(marker[0], marker[1]);
+          // this.layerGroup.addLayer(marker[0]);
+          // this.createHoverCoordinateRadius(marker[0], marker[1]);
         });
+        console.log("markers: " + cardMarkers);
         this.map.addLayer(this.layerGroup);
       });
-    // this.markerService.queryMarkers().then(())
   }
   ngAfterViewInit(): void {
     if (

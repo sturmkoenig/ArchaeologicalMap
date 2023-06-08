@@ -1,6 +1,11 @@
 import { Injectable } from "@angular/core";
 import { Observable, tap } from "rxjs";
-import { Card, CardDB, NewCard } from "src/app/model/card";
+import {
+  CardDB,
+  CardinalDirection,
+  MarkerDB,
+  NewCard,
+} from "src/app/model/card";
 import { fs, invoke } from "@tauri-apps/api";
 import { appCacheDir, appConfigDir } from "@tauri-apps/api/path";
 import { E } from "@tauri-apps/api/path-c062430b";
@@ -10,15 +15,11 @@ import { E } from "@tauri-apps/api/path-c062430b";
 })
 export class CardService {
   cardCreate(newCard: NewCard): void {
-    invoke("write_card", {
+    invoke("create_card", {
       card: {
         title: newCard.title,
         description: newCard.description,
-        category: newCard.category,
-        longitude: newCard.coordinate.longitude,
-        latitude: newCard.coordinate.latitude,
-        coordinate_radius: newCard.coordinateRadius,
-        icon_name: newCard.iconName,
+        markers: newCard.markers,
       },
     });
   }
@@ -26,18 +27,21 @@ export class CardService {
   readCards(): Promise<CardDB[]> {
     return invoke("read_cards", {});
   }
+  readMarkersInArea(directions: CardinalDirection): Promise<MarkerDB[]> {
+    return invoke("read_markers_in_area", {
+      north: directions.north,
+      east: directions.east,
+      south: directions.south,
+      west: directions.west,
+    });
+  }
 
-  readCardsInArea(
-    north: number,
-    east: number,
-    south: number,
-    west: number
-  ): Promise<CardDB[]> {
+  readCardsInArea(directions: CardinalDirection): Promise<CardDB[]> {
     return invoke("read_cards_in_area", {
-      north: north,
-      east: east,
-      south: south,
-      west: west,
+      north: directions.north,
+      east: directions.east,
+      south: directions.south,
+      west: directions.west,
     });
   }
 
@@ -58,16 +62,14 @@ export class CardService {
   }
 
   updateCard(newCard: CardDB) {
+    // TODO update position
     invoke("update_card", {
       card: {
         id: newCard.id,
         title: newCard.title,
         description: newCard.description,
-        longitude: newCard.longitude,
-        latitude: newCard.latitude,
+        markers: newCard.markers,
         category: "",
-        coordinate_radius: newCard.coordinate_radius,
-        icon_name: newCard.icon_name,
       },
     });
   }

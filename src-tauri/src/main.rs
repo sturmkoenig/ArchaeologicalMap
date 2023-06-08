@@ -5,12 +5,15 @@
 extern crate diesel;
 extern crate diesel_migrations;
 
+use app::models::CardDTO;
 use app::models::CardTitleMapping;
+use app::models::Marker;
 use app::query_card_names;
-use app::query_cards_in_geological_area;
 use app::query_cards_paginated;
 use app::query_count_cards;
+use app::query_create_marker;
 use app::query_delete_card;
+use app::query_markers_in_geological_area;
 use app::query_update_card;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use tauri::api::path::app_cache_dir;
@@ -41,10 +44,9 @@ fn main() {
             read_card,
             read_cards,
             read_cards_paginated,
-            read_cards_in_area,
+            read_markers_in_area,
             update_card,
             count_cards,
-            write_card,
             write_card_content,
             read_card_content,
             cache_card_names,
@@ -92,9 +94,13 @@ fn read_card(id: i32) -> Card {
 }
 
 #[tauri::command]
-fn create_card(card: NewCard) {
+fn create_card(card: CardDTO) {
     let conn = &mut establish_connection();
-    query_create_card(card, conn);
+    let card_id = query_create_card(&card, conn);
+
+    for marker in card.markers.iter() {
+        query_create_marker(conn, card_id, marker)
+    }
 }
 
 // TODO may be moved to frontend
@@ -136,12 +142,6 @@ fn count_cards() -> i64 {
 }
 
 #[tauri::command]
-fn write_card(card: NewCard) {
-    let conn = &mut establish_connection();
-    query_create_card(card, conn);
-}
-
-#[tauri::command]
 fn delete_card(id: i32) {
     let conn = &mut establish_connection();
     query_delete_card(conn, id);
@@ -161,9 +161,10 @@ fn cache_card_names(app_handle: tauri::AppHandle) {
 }
 
 #[tauri::command]
-fn read_cards_in_area(north: f32, east: f32, south: f32, west: f32) -> Vec<Card> {
+fn read_markers_in_area(north: f32, east: f32, south: f32, west: f32) -> Vec<Marker> {
     let conn = &mut establish_connection();
-    query_cards_in_geological_area(conn, north, east, south, west)
+    let results = query_markers_in_geological_area(conn, north, east, south, west);
+    println!("{:?}", results);
+    results
 }
-
 // TODO Add mehtod that sends number of entries!

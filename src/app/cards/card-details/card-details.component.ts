@@ -6,7 +6,7 @@ import { CardService } from "src/app/services/card.service";
 import { invoke } from "@tauri-apps/api";
 import { emit, listen } from "@tauri-apps/api/event";
 
-import { Card, CardDB, Coordinate } from "src/app/model/card";
+import { CardDB, MarkerDB, MarkerLatLng } from "src/app/model/card";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import Quill from "quill";
 import { RangeStatic } from "quill";
@@ -19,9 +19,12 @@ import { IconService } from "src/app/services/icon.service";
     <ng-container *ngIf="card$ | async as card">
       <mat-card class="card">
         <mat-card-header>
-          <div mat-card-avatar class="card-avatar">
-            <img src="{{ iconService.getIconPath(card.icon_name) }}" />
-          </div>
+          <!--TODO adjust card avatar to land or something-->
+          <!-- <div mat-card-avatar class="card-avatar">
+            <img
+              src="{{ iconService.getIconPath(card.markers[0].icon_name) }}"
+            />
+          </div> -->
           <mat-card-title>{{ card.title }}</mat-card-title>
         </mat-card-header>
         <mat-card-content>
@@ -30,13 +33,16 @@ import { IconService } from "src/app/services/icon.service";
           </p>
         </mat-card-content>
         <mat-card-actions>
-          <button
-            mat-raised-button
-            color="primary"
-            (click)="panToLatLng(card.latitude, card.longitude)"
-          >
-            auf karte zeigen
-          </button>
+          <!-- TODO what marker to pan to? -->
+          <ng-container *ngIf="card.markers && card.markers[0]">
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="panToLatLng(card.markers)"
+            >
+              auf karte zeigen
+            </button>
+          </ng-container>
         </mat-card-actions>
       </mat-card>
     </ng-container>
@@ -108,7 +114,8 @@ export class CardDetailsComponent implements OnInit {
 
   createdEditor(editor: any) {}
 
-  panToLatLng(latitude: number, longitude: number) {
-    emit("panTo", { lat: latitude, lng: longitude });
+  panToLatLng(marker: MarkerLatLng[]) {
+    if (marker != null && marker[0])
+      emit("panTo", { lat: marker[0].latitude, lng: marker[0].longitude });
   }
 }

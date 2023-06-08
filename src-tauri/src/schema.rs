@@ -4,11 +4,24 @@ diesel::table! {
     cards (id) {
         id -> Integer,
         title -> Text,
-        category -> Text,
         description -> Text,
-        longitude -> Float,
+    }
+}
+
+diesel::table! {
+    marker (id) {
+        id -> Integer,
+        card_id -> Integer,
         latitude -> Float,
-        coordinate_radius -> Float,
+        longitude -> Float,
+        radius -> Float,
         icon_name -> Text,
     }
 }
+
+diesel::joinable!(marker -> cards (card_id));
+
+diesel::allow_tables_to_appear_in_same_query!(
+    cards,
+    marker,
+);

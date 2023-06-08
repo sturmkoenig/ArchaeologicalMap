@@ -1,25 +1,12 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnDestroy,
-  Output,
-  SimpleChange,
-  SimpleChanges,
-} from "@angular/core";
+import { Component, EventEmitter, Input, Output } from "@angular/core";
 import {
   Map,
   latLng,
   MapOptions,
   tileLayer,
-  ZoomAnimEvent,
-  marker,
   Layer,
   LeafletMouseEvent,
-  LatLng,
 } from "leaflet";
-import { Coordinate } from "src/app/model/card";
 
 @Component({
   selector: "app-map",
@@ -47,7 +34,6 @@ export class MapComponent {
   @Output() zoom$: EventEmitter<number> = new EventEmitter();
   @Output() click$: EventEmitter<LeafletMouseEvent> = new EventEmitter();
   @Output() moveEnd$: EventEmitter<any> = new EventEmitter();
-  @Input() centerCoordinate?: Coordinate;
   @Input() layers: Layer[] = [];
   @Input() options: MapOptions = {
     layers: [
@@ -65,11 +51,6 @@ export class MapComponent {
   public map!: Map;
   public zoom!: number;
   constructor() {}
-
-  setPosition(coordinate: Coordinate) {
-    let newLatLng = new LatLng(coordinate.latitude, coordinate.longitude);
-    this.map.panTo(newLatLng);
-  }
 
   onMapReady(map: Map) {
     this.map = map;

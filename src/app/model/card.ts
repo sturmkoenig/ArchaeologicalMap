@@ -10,38 +10,41 @@
  * Do not edit the class manually.
  */
 
+import { LatLng } from "leaflet";
 import { ICONS } from "../services/icon.service";
 
-export interface Coordinate {
+export interface CardinalDirection {
+  north: number;
+  east: number;
+  south: number;
+  west: number;
+}
+
+export interface MarkerLatLng {
   latitude: number;
   longitude: number;
+  radius: number;
+  icon_name: keyof typeof ICONS;
 }
 
 export interface NewCard {
   title: string;
   description: string;
-  coordinate: Coordinate;
-  coordinateRadius?: number;
-  category: string;
-  iconName: string;
-}
-
-export interface Card {
-  id: number;
-  name: string;
-  description?: string;
-  coordinate: Coordinate;
-  coordinateRadius?: number;
-  categories?: Array<string>;
-  iconName: string;
+  markers: MarkerLatLng[];
 }
 
 export interface CardDB {
   id: number;
   title: string;
   description: string;
+  markers: MarkerLatLng[];
+}
+
+export interface MarkerDB {
+  id: number;
+  card_id: number;
   longitude: number;
   latitude: number;
-  coordinate_radius: number;
+  radius: number;
   icon_name: keyof typeof ICONS;
 }

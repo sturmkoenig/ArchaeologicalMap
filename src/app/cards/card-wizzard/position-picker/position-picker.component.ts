@@ -23,7 +23,7 @@ import { ICONS, IconService } from "src/app/services/icon.service";
             <input
               matInput
               placeholder="Lattitude"
-              [(ngModel)]="coordinate.lat"
+              [(ngModel)]="selectedCoordinate.lat"
             />
           </mat-form-field>
           <div class="form-container">
@@ -32,7 +32,7 @@ import { ICONS, IconService } from "src/app/services/icon.service";
               <input
                 matInput
                 placeholder="Longitude"
-                [(ngModel)]="coordinate.lng"
+                [(ngModel)]="selectedCoordinate.lng"
               />
             </mat-form-field>
             <mat-checkbox (change)="onExact($event)">Exakt</mat-checkbox>
@@ -70,9 +70,10 @@ import { ICONS, IconService } from "src/app/services/icon.service";
 })
 export class PositionPickerComponent implements OnInit {
   @Input()
-  coordinate: LatLng = new LatLng(0, 0);
+  coordinates: LatLng[] = [];
+  selectedCoordinate: LatLng = new LatLng(0, 0);
   @Output()
-  coordinateChange: EventEmitter<LatLng> = new EventEmitter();
+  coordinatesChange: EventEmitter<LatLng[]> = new EventEmitter();
   @Input()
   coordinateRadius: number = 100;
   @Output()
@@ -90,10 +91,12 @@ export class PositionPickerComponent implements OnInit {
       iconUrl: this.iconService.getIconPath(this.icon).toString(),
       iconSize: [20, 20],
     });
-    this.marker = new Marker(this.coordinate, { icon });
-    this.circle = new Circle(this.coordinate, {
-      radius: this.coordinateRadius,
-    });
+    for (let coordinate of this.coordinates) {
+      this.marker = new Marker(coordinate, { icon });
+      this.circle = new Circle(coordinate, {
+        radius: this.coordinateRadius,
+      });
+    }
   }
 
   onExact(checked: MatCheckboxChange): void {
@@ -107,10 +110,10 @@ export class PositionPickerComponent implements OnInit {
     }
   }
   setCoordinate(latlng: LatLng) {
-    this.coordinate = latlng;
-    this.marker.setLatLng(this.coordinate);
-    this.circle.setLatLng(this.coordinate);
-    this.coordinateChange.emit(this.coordinate);
+    this.selectedCoordinate = latlng;
+    this.marker.setLatLng(this.selectedCoordinate);
+    this.circle.setLatLng(this.selectedCoordinate);
+    this.coordinatesChange.emit(this.coordinates);
   }
 
   onClick(event: LeafletMouseEvent) {

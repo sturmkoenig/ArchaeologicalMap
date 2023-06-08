@@ -1,7 +1,7 @@
 import { Component } from "@angular/core";
 import { circle, Circle, LatLng, LeafletMouseEvent, Marker } from "leaflet";
 import { CardService } from "src/app/services/card.service";
-import { Card, NewCard } from "src/app/model/card";
+import { NewCard } from "src/app/model/card";
 import { FormBuilder, Validators } from "@angular/forms";
 import { ICONS } from "src/app/services/icon.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -61,7 +61,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
           <ng-template matStepLabel>Position Auswählen</ng-template>
           <app-position-picker
             (coordinateRadiusChange)="changeRadius($event)"
-            (coordinateChange)="changeCoordinate($event)"
+            (coordinatesChange)="changeCoordinate($event[0])"
             [icon]="iconName"
           >
           </app-position-picker>
@@ -115,15 +115,16 @@ export class CardWizzardComponent {
   submitCard() {
     console.log(this.iconName);
     let newCard: NewCard = {
-      coordinate: {
-        latitude: this.Lattitude,
-        longitude: this.Longitude,
-      },
+      markers: [
+        {
+          latitude: this.Lattitude,
+          radius: this.circleRadius,
+          longitude: this.Longitude,
+          icon_name: this.iconName,
+        },
+      ],
       title: this.firstFormGroup.controls["cardTitle"].value!,
       description: this.firstFormGroup.controls["cardText"].value!,
-      category: "",
-      coordinateRadius: this.circleRadius,
-      iconName: this.iconName,
     };
     this.cardService.cardCreate(newCard);
     this._snackBar.open("Karte Gespeichert", "💾");

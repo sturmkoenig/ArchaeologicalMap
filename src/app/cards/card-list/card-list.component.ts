@@ -9,13 +9,14 @@ import {
   from,
   throwError,
 } from "rxjs";
-import { Card, CardDB } from "src/app/model/card";
+import { CardDB, NewCard } from "src/app/model/card";
 import { CardService } from "src/app/services/card.service";
 import { PageEvent } from "@angular/material/paginator";
 import { MatDialog } from "@angular/material/dialog";
 import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal.component";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { IconService } from "src/app/services/icon.service";
+import { ICONS, IconService } from "src/app/services/icon.service";
+import { RandomCardsService } from "src/app/services/random-cards.service";
 
 @Component({
   selector: "app-card-list",
@@ -43,7 +44,8 @@ import { IconService } from "src/app/services/icon.service";
         <mat-card>
           <mat-card-header>
             <div mat-card-avatar class="card-avatar">
-              <img src="{{ iconService.getIconPath(card.icon_name) }}" />
+              <!-- TODO land flag or something as icon -->
+              <img src="{{ iconService.getIconPath('iconDefault') }}" />
             </div>
             <mat-card-title>{{ card.title }}</mat-card-title>
             <mat-card-subtitle>{{ card.description }}</mat-card-subtitle>
@@ -71,6 +73,13 @@ import { IconService } from "src/app/services/icon.service";
         aria-label="Select page"
       >
       </mat-paginator>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="addThousandRandomEntities()"
+      >
+        Add 1000 entities
+      </button>
     </div>
   `,
   styles: [
@@ -91,24 +100,34 @@ import { IconService } from "src/app/services/icon.service";
   ],
 })
 export class CardListComponent implements OnInit {
-  public allCards: Observable<CardDB[]>;
-  pageIndex: number = 0;
+  allCards: Observable<CardDB[]>;
   numCards: number = 0;
   filter: string = "";
   modelChanged: Subject<string> = new Subject<string>();
   subscription!: Subscription;
   debounceTime = 500;
+  pageIndex: number = 0;
 
   constructor(
     private cardService: CardService,
     public dialog: MatDialog,
     public iconService: IconService,
-    private _snackBar: MatSnackBar
+    private _snackBar: MatSnackBar,
+    private randomCardService: RandomCardsService
   ) {
     this.cardService
       .getNumberOfCards()
       .then((count) => (this.numCards = count));
     this.allCards = from(this.cardService.readCardsPaginated(0, ""));
+  }
+
+  addThousandRandomEntities() {
+    for (let i = 0; i < 1000; i++) {
+      let newRandomCard: NewCard =
+        this.randomCardService.generateRandomEntity();
+      console.log(newRandomCard);
+      this.cardService.cardCreate(newRandomCard);
+    }
   }
 
   ngOnInit(): void {

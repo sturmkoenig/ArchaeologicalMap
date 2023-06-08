@@ -11,50 +11,62 @@ import {
 } from "leaflet";
 import { catchError, Observable, of, switchMap } from "rxjs";
 import { Map } from "leaflet";
-import { Card, CardDB } from "src/app/model/card";
+import { CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
 import { CardService } from "./card.service";
 import { WebviewWindow } from "@tauri-apps/api/window";
 import { IconService } from "./icon.service";
 import { Router } from "@angular/router";
 import { v4 as uuidv4 } from "uuid";
 
+interface CardTitleMapping {
+  id: number;
+  title: string;
+}
+
 @Injectable({
   providedIn: "root",
 })
 export class MarkerService {
+  cardTitleMapping!: CardTitleMapping[];
   constructor(
     private cardService: CardService,
     private http: HttpClient,
     private iconService: IconService
-  ) {}
+  ) {
+    this.cardService.readCardTitleMapping().then((ctm) => {
+      this.cardTitleMapping = ctm;
+    });
+  }
 
-  queryMarkersInArea(
-    north: number,
-    east: number,
-    south: number,
-    west: number
+  updateMarkersInArea(
+    directions: CardinalDirection
   ): Promise<[Marker, Layer | null][]> {
     return this.cardService
-      .readCardsInArea(north, east, south, west)
-      .then((cards: CardDB[]) => {
+      .readMarkersInArea(directions)
+      .then((markersDB: MarkerDB[]) => {
         let markers: [Marker, Layer | null][] = [];
-        cards.forEach((card) => {
+        markersDB.forEach((markerDB) => {
           let icon = new Icon({
-            iconUrl: this.iconService.getIconPath(card.icon_name).toString(),
+            iconUrl: this.iconService
+              .getIconPath(markerDB.icon_name)
+              .toString(),
             iconSize: [20, 20],
             popupAnchor: [0, 0],
           });
-          let iconMarker = new Marker([card.latitude, card.longitude], {
+          let iconMarker = new Marker([markerDB.latitude, markerDB.longitude], {
             icon,
             interactive: true,
           });
-          const div: HTMLDivElement = createPopupHTML(card);
-
+          // TODO get card title from cache
+          let title: string =
+            this.cardTitleMapping.find((obj) => obj.id === markerDB.card_id)
+              ?.title ?? "Kein Titel Vorhanden";
+          const div: HTMLDivElement = createPopupHTML(markerDB, title);
           iconMarker.bindPopup(div);
-          if (card.coordinate_radius !== 0.0) {
-            let circle = new Circle([card.latitude, card.longitude], {
+          if (markerDB.radius !== 0.0) {
+            let circle = new Circle([markerDB.latitude, markerDB.longitude], {
               className: "fade-in",
-              radius: card.coordinate_radius,
+              radius: markerDB.radius,
             });
             markers.push([iconMarker, circle]);
           } else {
@@ -65,15 +77,14 @@ export class MarkerService {
       });
   }
 }
-function createPopupHTML(card: CardDB): HTMLDivElement {
+function createPopupHTML(marker: MarkerDB, title: string): HTMLDivElement {
   const div: HTMLDivElement = document.createElement("div");
-  div.innerHTML =
-    `<h3>` + card.title + `</h3>` + "<p>" + card.description + "</p>";
+  div.innerHTML = `<h3>` + title + `</h3>`;
   const button = document.createElement("button");
   button.innerHTML = "Bearbeiten";
   button.onclick = () => {
     const webview = new WebviewWindow(uuidv4(), {
-      url: "cards/details?id=" + card.id,
+      url: "cards/details?id=" + marker.card_id,
     });
     webview.once("tauri://error", function (e) {
       console.log("window creation error: " + JSON.stringify(e));
