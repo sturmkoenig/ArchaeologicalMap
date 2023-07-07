@@ -8,13 +8,18 @@ extern crate diesel_migrations;
 use app::models::CardDTO;
 use app::models::CardTitleMapping;
 use app::models::Marker;
+use app::models::MarkerDTO;
 use app::query_card_names;
 use app::query_cards_paginated;
 use app::query_count_cards;
 use app::query_create_marker;
+use app::query_delet_marker;
 use app::query_delete_card;
+use app::query_join_markers;
 use app::query_markers_in_geological_area;
 use app::query_update_card;
+use app::query_update_marker;
+use app::schema::marker;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use tauri::api::path::app_cache_dir;
 use tauri::api::path::app_config_dir;
@@ -50,7 +55,8 @@ fn main() {
             write_card_content,
             read_card_content,
             cache_card_names,
-            delete_card
+            delete_card,
+            delete_marker
         ])
         .setup(|app| {
             let config = app.config();
@@ -82,13 +88,36 @@ fn read_cards() -> Vec<Card> {
 }
 
 #[tauri::command]
-fn read_cards_paginated(page: i64, filter: String) -> Vec<Card> {
+fn read_cards_paginated(page: i64, filter: String) -> Vec<CardDTO> {
     let conn = &mut establish_connection();
-    query_cards_paginated(conn, page, filter)
+    let cards = query_cards_paginated(conn, page, filter);
+    let mut card_dtos: Vec<CardDTO> = Vec::new();
+
+    for card in cards.iter() {
+        let markers_for_card = query_join_markers(conn, card.id);
+        let mut markers: Vec<MarkerDTO> = Vec::new();
+        for marker in markers_for_card.iter() {
+            markers.push(MarkerDTO {
+                id: Some(marker.id),
+                card_id: Some(card.id),
+                longitude: marker.longitude,
+                radius: marker.radius,
+                latitude: marker.latitude,
+                icon_name: marker.icon_name.clone(),
+            });
+        }
+        card_dtos.push(CardDTO {
+            id: Some(card.id),
+            title: card.title.clone(),
+            description: card.description.clone(),
+            markers: markers,
+        })
+    }
+    return card_dtos;
 }
 
 #[tauri::command]
-fn read_card(id: i32) -> Card {
+fn read_card(id: i32) -> CardDTO {
     let conn = &mut establish_connection();
     query_card_by_id(conn, id)
 }
@@ -111,7 +140,6 @@ fn read_card_content(app_handle: tauri::AppHandle, id: String) -> String {
         .app_data_dir()
         .expect("error getting app dir");
     app_dir.push(format!("content/{}.json", id));
-    println!("{}", app_dir.to_str().expect("msg"));
     let content = fs::read_to_string(app_dir);
     match content {
         Ok(content) => return content,
@@ -130,9 +158,36 @@ fn write_card_content(app_handle: tauri::AppHandle, id: String, content: String)
 }
 
 #[tauri::command]
-fn update_card(card: Card) {
+fn update_card(card: CardDTO) -> bool {
     let conn = &mut establish_connection();
-    query_update_card(conn, card);
+    if card.id.is_none() {
+        return false;
+    }
+    query_update_card(
+        conn,
+        Card {
+            id: card.id.unwrap(),
+            title: card.title,
+            description: card.description,
+        },
+    );
+    for marker in card.markers.iter() {
+        match marker.id {
+            Some(id) => query_update_marker(
+                conn,
+                Marker {
+                    id: id,
+                    card_id: card.id.unwrap(),
+                    latitude: marker.latitude,
+                    longitude: marker.longitude,
+                    radius: marker.radius,
+                    icon_name: marker.icon_name.clone(),
+                },
+            ),
+            None => query_create_marker(conn, card.id.unwrap(), marker),
+        }
+    }
+    return true;
 }
 
 #[tauri::command]
@@ -145,6 +200,12 @@ fn count_cards() -> i64 {
 fn delete_card(id: i32) {
     let conn = &mut establish_connection();
     query_delete_card(conn, id);
+}
+
+#[tauri::command]
+fn delete_marker(marker_id: i32) {
+    let conn = &mut establish_connection();
+    query_delet_marker(conn, marker_id);
 }
 
 #[tauri::command]
@@ -164,7 +225,6 @@ fn cache_card_names(app_handle: tauri::AppHandle) {
 fn read_markers_in_area(north: f32, east: f32, south: f32, west: f32) -> Vec<Marker> {
     let conn = &mut establish_connection();
     let results = query_markers_in_geological_area(conn, north, east, south, west);
-    println!("{:?}", results);
     results
 }
 // TODO Add mehtod that sends number of entries!

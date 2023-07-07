@@ -37,12 +37,12 @@ export interface CardDB {
   id: number;
   title: string;
   description: string;
-  markers: MarkerLatLng[];
+  markers: MarkerDB[];
 }
 
 export interface MarkerDB {
-  id: number;
-  card_id: number;
+  id?: number;
+  card_id?: number;
   longitude: number;
   latitude: number;
   radius: number;

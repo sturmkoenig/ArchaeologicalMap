@@ -18,7 +18,7 @@ import { IconService } from "./icon.service";
 import { Router } from "@angular/router";
 import { v4 as uuidv4 } from "uuid";
 
-interface CardMarkerLayer {
+export interface CardMarkerLayer {
   markerId: number;
   marker: Marker;
   radius: Layer | null;
@@ -76,9 +76,9 @@ export class MarkerService {
         className: "fade-in",
         radius: markerDB.radius,
       });
-      return { markerId: markerDB.id, marker: iconMarker, radius: circle };
+      return { markerId: markerDB.id ?? 0, marker: iconMarker, radius: circle };
     } else {
-      return { markerId: markerDB.id, marker: iconMarker, radius: null };
+      return { markerId: markerDB.id ?? 0, marker: iconMarker, radius: null };
     }
   }
 }

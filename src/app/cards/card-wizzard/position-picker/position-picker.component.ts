@@ -1,153 +1,319 @@
-import { Component, Output, EventEmitter, Input, OnInit } from "@angular/core";
+import {
+  Component,
+  Output,
+  EventEmitter,
+  Input,
+  OnInit,
+  SimpleChange,
+  SimpleChanges,
+  OnChanges,
+} from "@angular/core";
 import { MatCheckboxChange } from "@angular/material/checkbox";
-import { Circle, Icon, LatLng, LeafletMouseEvent, Map, Marker } from "leaflet";
+import { MatSelectChange } from "@angular/material/select";
+import {
+  Circle,
+  Icon,
+  LatLng,
+  LayerGroup,
+  LeafletMouseEvent,
+  Map as LeafletMap,
+  Marker,
+  Layer,
+  marker,
+  LatLngBounds,
+} from "leaflet";
+import { Leaf } from "parchment/dist/typings/blot/abstract/blot";
+import { MarkerDB, MarkerLatLng } from "src/app/model/card";
 import { ICONS, IconService } from "src/app/services/icon.service";
+import { CardMarkerLayer } from "src/app/services/marker.service";
 
+interface MarkerLayer {
+  marker: Marker;
+  radius: Layer | undefined;
+}
 @Component({
   selector: "app-position-picker",
   template: `
-    <div class="flex flex-col  items-center">
-      <div class="flex flex-row items-center ">
-        <div
-          class="overview-map rounded-xl shadow-xl hover:shadow-2xl ease-in duration-300"
-        >
+    <div class="container">
+      <div
+        class="overview-map-container rounded-xl shadow-xl hover:shadow-2xl ease-in duration-300"
+      >
+        <div class="overview-map">
           <app-map
             (map$)="onMapChanged($event)"
             [layers]="[]"
             (click$)="onClick($event)"
           ></app-map>
         </div>
-        <div class="m-10">
-          <mat-form-field appearance="fill" class="input">
-            <mat-label>Lattitude</mat-label>
-            <input
-              matInput
-              placeholder="Lattitude"
-              [(ngModel)]="selectedCoordinate.lat"
-            />
-          </mat-form-field>
-          <div class="form-container">
-            <mat-form-field appearance="fill" class="input">
-              <mat-label>Longitude</mat-label>
-              <input
-                matInput
-                placeholder="Longitude"
-                [(ngModel)]="selectedCoordinate.lng"
-              />
-            </mat-form-field>
+        <button
+          [hidden]="!this.editable"
+          mat-raised-button
+          color="accent"
+          (click)="onAdd()"
+        >
+          + Neuer Marker
+        </button>
+      </div>
+      <ng-container *ngIf="this.editable">
+        <div class="controlls-container">
+          <div>
             <mat-checkbox (change)="onExact($event)">Exakt</mat-checkbox>
             <mat-slider
-              [disabled]="coordinateRadius === 0.0"
+              [disabled]="radius === 0.0 || selectedMarker === undefined"
               [max]="1000"
               [min]="100"
             >
               <input
                 matSliderThumb
-                [ngModel]="coordinateRadius"
+                [ngModel]="radius"
                 (ngModelChange)="changeCircleRadius($event)"
               />
             </mat-slider>
           </div>
+
+          <mat-form-field>
+            <mat-label>Icons</mat-label>
+            <mat-select
+              [(value)]="icon"
+              (selectionChange)="setIcon($event)"
+              [disabled]="this.selectedMarker === undefined"
+            >
+              <mat-select-trigger>
+                <img
+                  class="option-icon"
+                  src="{{ iconService.getIconPath(icon) }}"
+                />
+              </mat-select-trigger>
+              <mat-option
+                *ngFor="let iconOption of icons | keyvalue"
+                [value]="iconOption.key"
+              >
+                <img class="option-icon" src="{{ iconOption.value }}" />
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <button mat-raised-button color="warn" (click)="onDeleteMarker()">
+            Marker Entfernen
+          </button>
         </div>
-      </div>
+      </ng-container>
     </div>
   `,
   styles: [
     `
+      .container {
+        display: flex;
+      }
+      .controlls-container {
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        margin-top: 2rem;
+        margin-left: 1rem;
+        margin-right: 1rem;
+      }
       .overview-map {
         height: 400px;
         width: 400px;
         flex-shrink: 0;
         flex-grow: 1;
-        overflow: hidden;
       }
-      .form-container {
+      .overview-map-container {
         display: flex;
         flex-direction: column;
+        overflow: hidden;
+      }
+      .option-icon {
+        margin: auto;
+        height: 2rem;
+        width: 2rem;
       }
     `,
   ],
 })
 export class PositionPickerComponent implements OnInit {
   @Input()
-  coordinates: LatLng[] = [];
-  selectedCoordinate: LatLng = new LatLng(0, 0);
+  markers: MarkerDB[] = [];
   @Output()
-  coordinatesChange: EventEmitter<LatLng[]> = new EventEmitter();
-  @Input()
-  coordinateRadius: number = 100;
-  @Output()
-  coordinateRadiusChange: EventEmitter<number> = new EventEmitter();
-  circle!: Circle;
-  @Input()
-  icon: keyof typeof ICONS = "iconDefault";
-  marker!: Marker;
-  map!: Map;
+  markersChange: EventEmitter<MarkerLatLng[]> = new EventEmitter();
 
-  constructor(private iconService: IconService) {}
+  markersMap: Map<MarkerLatLng, MarkerLayer> = new Map();
+  selectedCoordinate: LatLng = new LatLng(0, 0);
+  circle!: Circle;
+  layerGroup: LayerGroup = new LayerGroup();
+  map!: LeafletMap;
+  selectedMarker?: MarkerLatLng;
+  radius: number = 100;
+  icons = ICONS;
+  icon: keyof typeof ICONS = "iconDefault";
+  @Input()
+  editable: boolean = false;
+
+  constructor(public iconService: IconService) {}
 
   ngOnInit(): void {
-    let icon = new Icon({
-      iconUrl: this.iconService.getIconPath(this.icon).toString(),
-      iconSize: [20, 20],
+    console.log("ng init called");
+    console.log(this.markers);
+    this.markersMap = new Map();
+    this.markers.forEach((marker: MarkerLatLng) => {
+      let markerLayer = this.createLayerFromMarker(marker);
+      this.markersMap.set(marker, markerLayer);
+      this.layerGroup.addLayer(markerLayer.marker);
+      if (markerLayer.radius) {
+        this.layerGroup.addLayer(markerLayer.radius);
+      }
     });
-    for (let coordinate of this.coordinates) {
-      this.marker = new Marker(coordinate, { icon });
-      this.circle = new Circle(coordinate, {
-        radius: this.coordinateRadius,
-      });
-    }
+  }
+
+  selectMarker(marker: MarkerLatLng) {
+    this.selectedMarker = marker;
   }
 
   onExact(checked: MatCheckboxChange): void {
-    console.log("exact triggered");
-    if (checked.checked) {
-      this.changeCircleRadius(0);
-      this.map.removeLayer(this.circle);
+    if (this.selectedMarker) {
+      this.setRadius(0.0);
     } else {
-      this.changeCircleRadius(100);
-      this.map.addLayer(this.circle);
+      this.radius = 100;
     }
   }
-  setCoordinate(latlng: LatLng) {
-    this.selectedCoordinate = latlng;
-    this.marker.setLatLng(this.selectedCoordinate);
-    this.circle.setLatLng(this.selectedCoordinate);
-    this.coordinatesChange.emit(this.coordinates);
+
+  onAdd(): void {
+    this.selectedMarker = undefined;
+  }
+
+  createLayerFromMarker(marker: MarkerLatLng): MarkerLayer {
+    let icon = new Icon({
+      iconUrl: this.iconService.getIconPath(marker.icon_name).toString(),
+      iconSize: [20, 20],
+    });
+    let circle: Circle | undefined = undefined;
+    if (marker.radius !== 0.0) {
+      circle = new Circle(
+        {
+          lat: marker.latitude,
+          lng: marker.longitude,
+        },
+        {
+          radius: marker.radius,
+        }
+      );
+    }
+    let markerLayers = new Marker(
+      { lat: marker.latitude, lng: marker.longitude },
+      { icon }
+    ).on("click", () => {
+      this.selectMarker(marker);
+    });
+    return {
+      marker: markerLayers,
+      radius: circle,
+    };
+  }
+  refreshMarker(marker: MarkerLatLng, markerLayer: MarkerLayer) {
+    this.layerGroup.removeLayer(markerLayer.marker);
+    if (markerLayer.radius) {
+      this.layerGroup.removeLayer(markerLayer.radius);
+    }
+
+    let newMarkerGroup = this.createLayerFromMarker(marker);
+    markerLayer.marker = newMarkerGroup.marker;
+    markerLayer.radius = newMarkerGroup.radius;
+    this.layerGroup.addLayer(markerLayer.marker);
+    if (markerLayer.radius) {
+      this.layerGroup.addLayer(markerLayer.radius);
+    }
+    this.markersChange.emit(Array.from(this.markersMap.keys()));
+  }
+
+  onDeleteMarker() {
+    if (this.selectedMarker) {
+      let removedMarkerLayer = this.markersMap.get(this.selectedMarker)!;
+      this.layerGroup.removeLayer(removedMarkerLayer.marker);
+      if (removedMarkerLayer.radius) {
+        this.layerGroup.removeLayer(removedMarkerLayer.radius);
+      }
+      this.markersMap.delete(this.selectedMarker);
+      this.markersChange.emit(Array.from(this.markersMap.keys()));
+    }
+  }
+  createMarker(marker: MarkerLatLng) {
+    let newMarkerGroup = this.createLayerFromMarker(marker);
+    this.markersMap.set(marker, newMarkerGroup);
+    this.layerGroup.addLayer(newMarkerGroup.marker);
+    if (newMarkerGroup.radius) {
+      this.layerGroup.addLayer(newMarkerGroup.radius);
+    }
+    this.markersChange.emit(Array.from(this.markersMap.keys()));
+  }
+
+  setCoordinate(marker: MarkerLatLng, latlng: LatLng) {
+    // get coorrect marker
+    let markerLayer = this.markersMap.get(this.selectedMarker!)!;
+    marker.latitude = latlng.lat;
+    marker.longitude = latlng.lng;
+    this.refreshMarker(marker, markerLayer);
+    this.markersChange.emit(this.markers);
+  }
+
+  setRadius(radius: number) {
+    let markerLayer = this.markersMap.get(this.selectedMarker!)!;
+    this.selectedMarker!.radius = radius;
+    this.refreshMarker(this.selectedMarker!, markerLayer);
+    this.markersChange.emit(this.markers);
+  }
+
+  setIcon($event: MatSelectChange) {
+    let markerLayer = this.markersMap.get(this.selectedMarker!)!;
+    this.selectedMarker!.icon_name = $event.value;
+    this.refreshMarker(this.selectedMarker!, markerLayer);
   }
 
   onClick(event: LeafletMouseEvent) {
-    this.map.removeLayer(this.marker);
-    this.map.removeLayer(this.circle);
-    this.setCoordinate(event.latlng);
-    this.circle = new Circle(event.latlng, {
-      radius: this.coordinateRadius,
-    });
-    console.log(this.icon);
-    let icon = new Icon({
-      iconUrl: this.iconService.getIconPath(this.icon).toString(),
-      iconSize: [20, 20],
-    });
-    this.marker = new Marker(event.latlng, { icon });
-    this.map.addLayer(this.marker);
-    this.map.addLayer(this.circle);
+    if (!this.editable) {
+      return;
+    }
+    if (this.selectedMarker) {
+      this.setCoordinate(this.selectedMarker, event.latlng);
+    } else {
+      let marker: MarkerLatLng = {
+        latitude: event.latlng.lat,
+        longitude: event.latlng.lng,
+        radius: this.radius,
+        icon_name: this.icon,
+      };
+      this.createMarker(marker);
+      this.selectedMarker = marker;
+    }
+  }
+
+  centerView() {
+    let min_lat = this.markers.reduce((x, y) =>
+      x.latitude < y.latitude ? x : y
+    );
+    let min_lng = this.markers.reduce((x, y) =>
+      x.longitude < y.longitude ? x : y
+    );
+    let max_lat = this.markers.reduce((x, y) =>
+      x.latitude > y.latitude ? x : y
+    );
+    let max_lng = this.markers.reduce((x, y) =>
+      x.longitude > y.longitude ? x : y
+    );
+    let southWest = new LatLng(min_lat.latitude, min_lng.longitude);
+    let northEast = new LatLng(max_lat.latitude, max_lng.longitude);
+    let bounds = new LatLngBounds(southWest, northEast);
+    this.map.fitBounds(bounds);
   }
 
   changeCircleRadius(newRadius: number) {
-    this.coordinateRadius = newRadius;
-    this.circle.setRadius(newRadius);
-    this.coordinateRadiusChange.emit(newRadius);
+    this.setRadius(newRadius);
   }
 
-  onMapChanged(map$: Map) {
+  onMapChanged(map$: LeafletMap) {
     this.map = map$;
-    if (
-      this.marker.getLatLng().lat !== 0.0 &&
-      this.marker.getLatLng().lng !== 0.0
-    ) {
-      this.map.addLayer(this.marker);
-      this.map.addLayer(this.circle);
-      this.map.flyTo(this.marker.getLatLng());
-    }
+    this.map.addLayer(this.layerGroup);
+    this.centerView();
   }
 }

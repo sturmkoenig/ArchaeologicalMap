@@ -1,7 +1,7 @@
 import { Component } from "@angular/core";
 import { circle, Circle, LatLng, LeafletMouseEvent, Marker } from "leaflet";
 import { CardService } from "src/app/services/card.service";
-import { NewCard } from "src/app/model/card";
+import { MarkerDB, MarkerLatLng, NewCard } from "src/app/model/card";
 import { FormBuilder, Validators } from "@angular/forms";
 import { ICONS } from "src/app/services/icon.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -59,11 +59,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
         </mat-step>
         <mat-step>
           <ng-template matStepLabel>Position Auswählen</ng-template>
-          <app-position-picker
-            (coordinateRadiusChange)="changeRadius($event)"
-            (coordinatesChange)="changeCoordinate($event[0])"
-            [icon]="iconName"
-          >
+          <app-position-picker [(markers)]="newMarkers" [editable]="true">
           </app-position-picker>
           <div class="m-t-5">
             <button mat-button matStepperPrevious>Back</button>
@@ -95,6 +91,7 @@ export class CardWizzardComponent {
   Lattitude = 0;
   circleRadius = 100;
   iconName: keyof typeof ICONS = "iconDefault";
+  newMarkers: MarkerLatLng[] = [];
 
   firstFormGroup = this._formBuilder.group({
     cardTitle: ["", Validators.required],
@@ -113,7 +110,6 @@ export class CardWizzardComponent {
   ) {}
 
   submitCard() {
-    console.log(this.iconName);
     let newCard: NewCard = {
       markers: [
         {

@@ -28,9 +28,16 @@ import { IconService } from "src/app/services/icon.service";
           <mat-card-title>{{ card.title }}</mat-card-title>
         </mat-card-header>
         <mat-card-content>
-          <p>
-            {{ card.description }}
-          </p>
+          <div class="card-content">
+            <p (click)="logMarkers(card.markers)">
+              {{ card.description }}
+            </p>
+            <app-position-picker
+              class="marker-map"
+              [editable]="false"
+              [markers]="card.markers"
+            ></app-position-picker>
+          </div>
         </mat-card-content>
         <mat-card-actions>
           <!-- TODO what marker to pan to? -->
@@ -59,6 +66,15 @@ import { IconService } from "src/app/services/icon.service";
       .card {
         margin: 2rem;
       }
+      .marker-map {
+        top: 100px;
+        left: 100px;
+        margin-left: auto;
+      }
+      .card-content {
+        display: flex;
+        flex-direction: row;
+      }
 
       .container {
         display: flex;
@@ -68,6 +84,9 @@ import { IconService } from "src/app/services/icon.service";
   ],
 })
 export class CardDetailsComponent implements OnInit {
+  logMarkers(arg0: MarkerDB[]) {
+    console.log(arg0);
+  }
   cardId!: number;
   card$!: Promise<CardDB>;
 

@@ -5,7 +5,7 @@ import {
   MatDialogRef,
 } from "@angular/material/dialog";
 import { LatLng } from "leaflet";
-import { CardDB } from "src/app/model/card";
+import { CardDB, MarkerDB, MarkerLatLng } from "src/app/model/card";
 import { CardService } from "src/app/services/card.service";
 import { CardDeleteDialogComponent } from "./card-delete-dialog/card-delete-dialog.component";
 import { DialogRef } from "@angular/cdk/dialog";
@@ -25,16 +25,10 @@ import { DialogRef } from "@angular/cdk/dialog";
           <input matInput [(ngModel)]="updatedCard.description" />
         </mat-form-field>
       </div>
-      <!-- TODO fix icons -->
-      <app-icon-picker
-        [(icon)]="updatedCard.markers[0].icon_name"
-      ></app-icon-picker>
       <!-- TODO how to handle multiple positions here? SELECT one pos, and then -->
-      change it!
       <app-position-picker
-        [icon]="updatedCard.markers[0].icon_name"
-        [(coordinates)]="updatedCoordinate"
-        [(coordinateRadius)]="updatedCard.markers[0].radius"
+        [(markers)]="updatedMarkers"
+        [editable]="true"
       ></app-position-picker>
     </div>
     <div mat-dialog-actions>
@@ -73,8 +67,8 @@ import { DialogRef } from "@angular/cdk/dialog";
   ],
 })
 export class CardUpdateModalComponent {
-  updatedCoordinate: LatLng[];
   updatedCard: CardDB;
+  updatedMarkers: MarkerLatLng[];
 
   @Output()
   updated: EventEmitter<boolean> = new EventEmitter();
@@ -83,25 +77,20 @@ export class CardUpdateModalComponent {
   deleted: EventEmitter<boolean> = new EventEmitter();
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public card: any,
+    @Inject(MAT_DIALOG_DATA) public card: { currentCard: CardDB },
     private cardService: CardService,
     public dialog: MatDialog
   ) {
     this.updatedCard = card.currentCard;
-    this.updatedCoordinate = [
-      new LatLng(
-        0,
-        0
-        // card.currentCard.latitude,
-        // card.currentCard.longitude
-      ),
-    ];
+    this.updatedMarkers = this.updatedCard.markers;
   }
 
   onUpdate() {
-    // this.updatedCard.latitude = this.updatedCoordinate.lat;
-    // this.updatedCard.longitude = this.updatedCoordinate.lng;
-    this.cardService.updateCard(this.updatedCard);
+    this.cardService.updateCard(this.updatedCard, this.updatedMarkers);
+    let removedMarkers = this.updatedCard.markers.filter(
+      (originalMarker) => this.updatedMarkers.indexOf(originalMarker) === -1
+    );
+    this.cardService.deleteMarkers(removedMarkers);
     this.updated.emit(true);
   }
 

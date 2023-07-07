@@ -43,10 +43,6 @@ import { RandomCardsService } from "src/app/services/random-cards.service";
       <ng-container *ngFor="let card of allCards | async">
         <mat-card>
           <mat-card-header>
-            <div mat-card-avatar class="card-avatar">
-              <!-- TODO land flag or something as icon -->
-              <img src="{{ iconService.getIconPath('iconDefault') }}" />
-            </div>
             <mat-card-title>{{ card.title }}</mat-card-title>
             <mat-card-subtitle>{{ card.description }}</mat-card-subtitle>
           </mat-card-header>
@@ -160,6 +156,7 @@ export class CardListComponent implements OnInit {
   }
 
   openUpdateDialog(currentCard: CardDB) {
+    console.log(currentCard);
     const dialogRef = this.dialog.open(CardUpdateModalComponent, {
       data: {
         currentCard,

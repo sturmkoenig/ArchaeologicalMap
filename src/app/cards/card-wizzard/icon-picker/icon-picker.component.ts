@@ -17,11 +17,7 @@ import { ICONS, IconService } from "src/app/services/icon.service";
           [value]="iconOption.key"
           [selected]="icon === iconOption.key"
         >
-          <img
-            class="option-icon"
-            src="{{ iconOption.value }}"
-            alt="Photo of a Shiba Inu"
-          />
+          <img class="option-icon" src="{{ iconOption.value }}" />
         </mat-list-option>
       </ng-container>
     </mat-selection-list>

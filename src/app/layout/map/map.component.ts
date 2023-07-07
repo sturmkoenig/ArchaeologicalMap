@@ -45,7 +45,7 @@ export class MapComponent {
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }),
     ],
-    zoom: 16,
+    zoom: 5,
     center: latLng(53.009325188114076, 13.160270365480752),
   };
   public map!: Map;

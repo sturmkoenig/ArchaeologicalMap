@@ -4,6 +4,7 @@ import {
   CardDB,
   CardinalDirection,
   MarkerDB,
+  MarkerLatLng,
   NewCard,
 } from "src/app/model/card";
 import { fs, invoke } from "@tauri-apps/api";
@@ -61,14 +62,14 @@ export class CardService {
       .then((res) => JSON.parse(res));
   }
 
-  updateCard(newCard: CardDB) {
+  updateCard(newCard: CardDB, markers?: MarkerLatLng[]) {
     // TODO update position
     invoke("update_card", {
       card: {
         id: newCard.id,
         title: newCard.title,
         description: newCard.description,
-        markers: newCard.markers,
+        markers: markers,
         category: "",
       },
     });
@@ -82,5 +83,14 @@ export class CardService {
     invoke("delete_card", {
       id: id,
     }).then(() => console.log("card deleted"));
+  }
+
+  deleteMarkers(removedMarkers: MarkerDB[]) {
+    removedMarkers
+      .filter((marker) => marker.id !== undefined && marker.id !== null)
+      .forEach((marker) => {
+        console.log("deleting marker with id: " + marker.id!);
+        invoke("delete_marker", { markerId: marker.id! });
+      });
   }
 }
