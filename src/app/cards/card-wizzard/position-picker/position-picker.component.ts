@@ -25,7 +25,10 @@ import {
 import { Leaf } from "parchment/dist/typings/blot/abstract/blot";
 import { MarkerDB, MarkerLatLng } from "src/app/model/card";
 import { ICONS, IconService } from "src/app/services/icon.service";
-import { CardMarkerLayer } from "src/app/services/marker.service";
+import {
+  CardMarkerLayer,
+  MarkerService,
+} from "src/app/services/marker.service";
 
 interface MarkerLayer {
   marker: Marker;
@@ -151,7 +154,10 @@ export class PositionPickerComponent implements OnInit {
   @Input()
   editable: boolean = false;
 
-  constructor(public iconService: IconService) {}
+  constructor(
+    public iconService: IconService,
+    private markerService: MarkerService
+  ) {}
 
   ngOnInit(): void {
     console.log("ng init called");
@@ -289,21 +295,7 @@ export class PositionPickerComponent implements OnInit {
   }
 
   centerView() {
-    let min_lat = this.markers.reduce((x, y) =>
-      x.latitude < y.latitude ? x : y
-    );
-    let min_lng = this.markers.reduce((x, y) =>
-      x.longitude < y.longitude ? x : y
-    );
-    let max_lat = this.markers.reduce((x, y) =>
-      x.latitude > y.latitude ? x : y
-    );
-    let max_lng = this.markers.reduce((x, y) =>
-      x.longitude > y.longitude ? x : y
-    );
-    let southWest = new LatLng(min_lat.latitude, min_lng.longitude);
-    let northEast = new LatLng(max_lat.latitude, max_lng.longitude);
-    let bounds = new LatLngBounds(southWest, northEast);
+    let bounds = this.markerService.getBounds(this.markers);
     this.map.fitBounds(bounds);
   }
 

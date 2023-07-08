@@ -22,7 +22,7 @@ import { RandomCardsService } from "src/app/services/random-cards.service";
   selector: "app-card-list",
   template: `
     <div class="list-container">
-      <mat-form-field class="example-form-field">
+      <mat-form-field>
         <mat-label>Suche...</mat-label>
         <input
           matInput

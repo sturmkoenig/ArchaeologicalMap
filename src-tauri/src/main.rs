@@ -62,17 +62,17 @@ fn main() {
             let config = app.config();
 
             let mut database_path = app_local_data_dir(&config).unwrap();
-            database_path.push(PathBuf::from("am.db"));
+            database_path.push(PathBuf::from("error creating database"));
 
             let conn = &mut establish_connection();
             // TODO handle error
             conn.run_pending_migrations(MIGRATIONS);
 
-            let mut app_dir = app_data_dir(&config).expect("a");
+            let mut app_dir = app_data_dir(&config).expect("error creating app data dir");
             fs::create_dir(&app_dir);
             app_dir.push("content");
             fs::create_dir(app_dir);
-            let cache_dir = app_cache_dir(&config).expect("couold not resolve cache dir");
+            let cache_dir = app_cache_dir(&config).expect("error resolving cache dir");
             fs::create_dir(cache_dir);
 
             Ok(())

@@ -2,8 +2,10 @@ import { listen } from "@tauri-apps/api/event";
 import { AfterViewInit, Component, OnInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import {
+  Icon,
   LatLng,
   latLng,
+  LatLngBounds,
   Layer,
   LayerGroup,
   Map,
@@ -13,6 +15,7 @@ import {
 } from "leaflet";
 import { MarkerService } from "../services/marker.service";
 import { appWindow } from "@tauri-apps/api/window";
+import { W } from "@tauri-apps/api/event-30ea0228";
 
 export interface Compas {
   north: number;
@@ -49,15 +52,30 @@ export interface Compas {
         width: 100%;
         height: 100%;
       }
+      .bounce2 {
+      }
+      @keyframes fade {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0.5;
+        }
+      }
+
+      :host ::ng-deep .highlighted {
+        animation: fade 0.5s ease infinite alternate;
+      }
     `,
   ],
 })
 export class OverviewMapComponent implements OnInit, AfterViewInit {
   layers: Layer[] = [];
   position?: LatLng;
+  highligtedMarkerIds?: number[];
   lastFetchedMarkerIds?: number[];
   layerGroup: LayerGroup = new LayerGroup();
-  markerIdLayerMap: [number, Layer][] = [];
+  markerIdLayerMap: { id: number; layer: Layer }[] = [];
   options: MapOptions = {
     layers: [
       tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -79,7 +97,23 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     private route: ActivatedRoute
   ) {
     listen("panTo", (event: any) => {
-      this.panToLatLng(event.payload.lat, event.payload.lng);
+      let point: LatLng = new LatLng(event.payload.lat, event.payload.lng);
+      this.map.flyTo(point);
+    });
+    listen("panToBounds", (event: any) => {
+      let southWest: LatLng = new LatLng(
+        event.payload.minLat,
+        event.payload.minLng
+      );
+      let northEast: LatLng = new LatLng(
+        event.payload.maxLat,
+        event.payload.maxLng
+      );
+      let bounds: LatLngBounds = new LatLngBounds(southWest, northEast);
+      console.log(bounds);
+      this.map.flyToBounds(bounds);
+      this.highligtedMarkerIds = event.payload.markerIds;
+      console.log(this.highligtedMarkerIds);
     });
   }
 
@@ -137,25 +171,45 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
           markersToAdd = newFetchedMarkerIds;
           markersToRemove = [];
         }
-
         this.markerIdLayerMap
-          .filter((markerMap) => markersToRemove.indexOf(markerMap[0]) > -1)
+          .filter((markerMap) => markersToRemove.indexOf(markerMap.id) > -1)
           .forEach((markerMap) => {
-            this.layerGroup.removeLayer(markerMap[1]);
+            this.layerGroup.removeLayer(markerMap.layer);
           });
 
         this.markerIdLayerMap = this.markerIdLayerMap.filter(
-          (markerMap) => markersToRemove.indexOf(markerMap[0]) < 0
+          (markerMap) => markersToRemove.indexOf(markerMap.id) < 0
         );
 
         cardMarkers
           .filter((marker) => markersToAdd.indexOf(marker.markerId) > -1)
           .forEach((marker) => {
             this.layerGroup.addLayer(marker.marker);
-            this.markerIdLayerMap.push([marker.markerId, marker.marker]);
+            this.markerIdLayerMap.push({
+              id: marker.markerId,
+              layer: marker.marker,
+            });
             this.createHoverCoordinateRadius(marker.marker, marker.radius);
           });
         this.lastFetchedMarkerIds = newFetchedMarkerIds;
+        // reset marker highlights
+        this.markerIdLayerMap.forEach(({ id, layer }) => {
+          if (layer instanceof Marker) {
+            let icon = layer.getIcon();
+            icon.options.className = "";
+            layer.setIcon(icon);
+          }
+        });
+        this.markerIdLayerMap
+          .filter(({ id, layer }) => this.highligtedMarkerIds?.includes(id))
+          .forEach(({ id, layer }) => {
+            if (layer instanceof Marker) {
+              let icon = layer.getIcon();
+              icon.options.className = "highlighted";
+              layer.setIcon(icon);
+              console.log(layer.getIcon().options);
+            }
+          });
       });
   }
 
@@ -187,9 +241,5 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     appWindow.setTitle("map");
-  }
-
-  panToLatLng(lat: number, lng: number) {
-    this.map.flyTo({ lat: lat, lng: lng });
   }
 }

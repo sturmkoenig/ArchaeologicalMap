@@ -1,10 +1,13 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import {
+  Bounds,
   Circle,
   circleMarker,
   Icon,
   LatLng,
+  LatLngBounds,
+  LatLngBoundsExpression,
   Layer,
   marker,
   Marker,
@@ -80,6 +83,16 @@ export class MarkerService {
     } else {
       return { markerId: markerDB.id ?? 0, marker: iconMarker, radius: null };
     }
+  }
+  getBounds(markers: MarkerDB[]): LatLngBounds {
+    let min_lat = markers.reduce((x, y) => (x.latitude < y.latitude ? x : y));
+    let min_lng = markers.reduce((x, y) => (x.longitude < y.longitude ? x : y));
+    let max_lat = markers.reduce((x, y) => (x.latitude > y.latitude ? x : y));
+    let max_lng = markers.reduce((x, y) => (x.longitude > y.longitude ? x : y));
+    let southWest = new LatLng(min_lat.latitude, min_lng.longitude);
+    let northEast = new LatLng(max_lat.latitude, max_lng.longitude);
+    let bounds: LatLngBounds = new LatLngBounds(southWest, northEast);
+    return bounds;
   }
 }
 

@@ -12,6 +12,9 @@ import Quill from "quill";
 import { RangeStatic } from "quill";
 import { EditorComponent } from "src/app/layout/editor/editor.component";
 import { IconService } from "src/app/services/icon.service";
+import { MatDialog } from "@angular/material/dialog";
+import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal.component";
+import { MarkerService } from "src/app/services/marker.service";
 
 @Component({
   selector: "app-card-details",
@@ -29,7 +32,7 @@ import { IconService } from "src/app/services/icon.service";
         </mat-card-header>
         <mat-card-content>
           <div class="card-content">
-            <p (click)="logMarkers(card.markers)">
+            <p>
               {{ card.description }}
             </p>
             <app-position-picker
@@ -42,14 +45,17 @@ import { IconService } from "src/app/services/icon.service";
         <mat-card-actions>
           <!-- TODO what marker to pan to? -->
           <ng-container *ngIf="card.markers && card.markers[0]">
-            <button
-              mat-raised-button
-              color="primary"
-              (click)="panToLatLng(card.markers)"
-            >
+            <button color="primary" (click)="panToLatLng(card.markers)">
               auf karte zeigen
             </button>
           </ng-container>
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="openUpdateDialog(this.card)"
+          >
+            Ändern
+          </button>
         </mat-card-actions>
       </mat-card>
     </ng-container>
@@ -84,9 +90,6 @@ import { IconService } from "src/app/services/icon.service";
   ],
 })
 export class CardDetailsComponent implements OnInit {
-  logMarkers(arg0: MarkerDB[]) {
-    console.log(arg0);
-  }
   cardId!: number;
   card$!: Promise<CardDB>;
 
@@ -97,6 +100,8 @@ export class CardDetailsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private markerService: MarkerService,
+    public dialog: MatDialog,
     private _snackBar: MatSnackBar,
     private cardService: CardService,
     public iconService: IconService
@@ -133,8 +138,46 @@ export class CardDetailsComponent implements OnInit {
 
   createdEditor(editor: any) {}
 
-  panToLatLng(marker: MarkerLatLng[]) {
-    if (marker != null && marker[0])
+  panToLatLng(marker: MarkerDB[]) {
+    if (marker === null) {
+      return;
+    }
+    if (marker.length === 1) {
+      console.log("panTo");
       emit("panTo", { lat: marker[0].latitude, lng: marker[0].longitude });
+    } else {
+      let bounds = this.markerService.getBounds(marker);
+      emit("panToBounds", {
+        minLat: bounds.getSouthWest().lat,
+        minLng: bounds.getSouthWest().lng,
+        maxLat: bounds.getNorthEast().lat,
+        maxLng: bounds.getNorthEast().lng,
+        markerIds: marker.map((marker) => marker.id ?? 0),
+      });
+    }
+  }
+
+  openUpdateDialog(currentCard: CardDB) {
+    const dialogRef = this.dialog.open(CardUpdateModalComponent, {
+      data: {
+        currentCard,
+      },
+      enterAnimationDuration: "200ms",
+      exitAnimationDuration: "150ms",
+    });
+    const subscribeDialogDeleted =
+      dialogRef.componentInstance.deleted.subscribe((data: boolean) => {
+        if (data === true) {
+          console.log("Geloescht");
+          this._snackBar.open("Seite gelöscht", "⌫");
+          dialogRef.close();
+        }
+      });
+    const subscribeDialogUpdated =
+      dialogRef.componentInstance.updated.subscribe((data: boolean) => {
+        if (data === true) {
+          this._snackBar.open("Änderungen gespeichert!", "💾");
+        }
+      });
   }
 }
