@@ -69,13 +69,6 @@ import { RandomCardsService } from "src/app/services/random-cards.service";
         aria-label="Select page"
       >
       </mat-paginator>
-      <button
-        mat-raised-button
-        color="primary"
-        (click)="addThousandRandomEntities()"
-      >
-        Add 1000 entities
-      </button>
     </div>
   `,
   styles: [

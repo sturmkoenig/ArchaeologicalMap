@@ -140,14 +140,14 @@ export class PositionPickerComponent implements OnInit {
   @Input()
   markers: MarkerDB[] = [];
   @Output()
-  markersChange: EventEmitter<MarkerLatLng[]> = new EventEmitter();
+  markersChange: EventEmitter<MarkerDB[]> = new EventEmitter();
 
-  markersMap: Map<MarkerLatLng, MarkerLayer> = new Map();
+  markersMap: Map<MarkerDB, MarkerLayer> = new Map();
   selectedCoordinate: LatLng = new LatLng(0, 0);
   circle!: Circle;
   layerGroup: LayerGroup = new LayerGroup();
   map!: LeafletMap;
-  selectedMarker?: MarkerLatLng;
+  selectedMarker?: MarkerDB;
   radius: number = 100;
   icons = ICONS;
   icon: keyof typeof ICONS = "iconDefault";
@@ -163,7 +163,7 @@ export class PositionPickerComponent implements OnInit {
     console.log("ng init called");
     console.log(this.markers);
     this.markersMap = new Map();
-    this.markers.forEach((marker: MarkerLatLng) => {
+    this.markers.forEach((marker: MarkerDB) => {
       let markerLayer = this.createLayerFromMarker(marker);
       this.markersMap.set(marker, markerLayer);
       this.layerGroup.addLayer(markerLayer.marker);
@@ -173,8 +173,9 @@ export class PositionPickerComponent implements OnInit {
     });
   }
 
-  selectMarker(marker: MarkerLatLng) {
+  setSelectedMarker(marker: MarkerDB) {
     this.selectedMarker = marker;
+    this.icon = this.selectedMarker.icon_name;
   }
 
   onExact(checked: MatCheckboxChange): void {
@@ -189,7 +190,7 @@ export class PositionPickerComponent implements OnInit {
     this.selectedMarker = undefined;
   }
 
-  createLayerFromMarker(marker: MarkerLatLng): MarkerLayer {
+  createLayerFromMarker(marker: MarkerDB): MarkerLayer {
     let icon = new Icon({
       iconUrl: this.iconService.getIconPath(marker.icon_name).toString(),
       iconSize: [20, 20],
@@ -210,14 +211,14 @@ export class PositionPickerComponent implements OnInit {
       { lat: marker.latitude, lng: marker.longitude },
       { icon }
     ).on("click", () => {
-      this.selectMarker(marker);
+      this.setSelectedMarker(marker);
     });
     return {
       marker: markerLayers,
       radius: circle,
     };
   }
-  refreshMarker(marker: MarkerLatLng, markerLayer: MarkerLayer) {
+  refreshMarker(marker: MarkerDB, markerLayer: MarkerLayer) {
     this.layerGroup.removeLayer(markerLayer.marker);
     if (markerLayer.radius) {
       this.layerGroup.removeLayer(markerLayer.radius);
@@ -244,7 +245,7 @@ export class PositionPickerComponent implements OnInit {
       this.markersChange.emit(Array.from(this.markersMap.keys()));
     }
   }
-  createMarker(marker: MarkerLatLng) {
+  createMarker(marker: MarkerDB) {
     let newMarkerGroup = this.createLayerFromMarker(marker);
     this.markersMap.set(marker, newMarkerGroup);
     this.layerGroup.addLayer(newMarkerGroup.marker);
@@ -254,7 +255,7 @@ export class PositionPickerComponent implements OnInit {
     this.markersChange.emit(Array.from(this.markersMap.keys()));
   }
 
-  setCoordinate(marker: MarkerLatLng, latlng: LatLng) {
+  setCoordinate(marker: MarkerDB, latlng: LatLng) {
     // get coorrect marker
     let markerLayer = this.markersMap.get(this.selectedMarker!)!;
     marker.latitude = latlng.lat;
@@ -283,7 +284,7 @@ export class PositionPickerComponent implements OnInit {
     if (this.selectedMarker) {
       this.setCoordinate(this.selectedMarker, event.latlng);
     } else {
-      let marker: MarkerLatLng = {
+      let marker: MarkerDB = {
         latitude: event.latlng.lat,
         longitude: event.latlng.lng,
         radius: this.radius,

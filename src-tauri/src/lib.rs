@@ -1,13 +1,13 @@
 use self::models::{Card, NewCard};
+use diesel::prelude::*;
 use diesel::select;
 use diesel::sqlite::SqliteConnection;
-use diesel::{prelude::*};
 use dotenvy::dotenv;
 use models::{CardDTO, CardTitleMapping, Marker, MarkerDTO, NewMarker};
 use schema::cards::{self, id, title};
 use schema::marker::{self, latitude, longitude};
 
-use std::{path::PathBuf};
+use std::path::PathBuf;
 use tauri::api::path::data_dir;
 
 diesel::sql_function! (fn last_insert_rowid() -> diesel::sql_types::Integer);
@@ -85,9 +85,10 @@ pub fn query_card_by_id(conn: &mut SqliteConnection, card_id: i32) -> CardDTO {
     return card_dto;
 }
 
+// TODO find a way to set this path using the tauri api
 pub fn get_local_dir() -> PathBuf {
     let mut local_dir = data_dir().unwrap().clone();
-    local_dir.push(PathBuf::from("archaological-map"));
+    local_dir.push(PathBuf::from("de.lla.am"));
     local_dir
 }
 

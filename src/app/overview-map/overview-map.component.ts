@@ -98,6 +98,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   ) {
     listen("panTo", (event: any) => {
       let point: LatLng = new LatLng(event.payload.lat, event.payload.lng);
+      this.highligtedMarkerIds = [event.payload.id];
       this.map.flyTo(point);
     });
     listen("panToBounds", (event: any) => {

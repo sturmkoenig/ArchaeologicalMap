@@ -30,13 +30,11 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use std::env;
 use std::fs;
+use std::path::Path;
 use std::path::PathBuf;
 
-
 use app::query_create_card;
-use app::{
-    establish_connection, models::Card, query_all_cards, query_card_by_id,
-};
+use app::{establish_connection, models::Card, query_all_cards, query_card_by_id};
 
 const CONTENTDIR: &str = "content";
 const CACHEDIR: &str = "cache";
@@ -61,8 +59,10 @@ fn main() {
         .setup(|app| {
             let config = app.config();
 
-            let mut database_path = app_local_data_dir(&config).unwrap();
-            database_path.push(PathBuf::from("error creating database"));
+            let mut data_path = app_local_data_dir(&config).unwrap();
+            if !data_path.exists() {
+                std::fs::create_dir_all(data_path)?;
+            }
 
             let conn = &mut establish_connection();
             // TODO handle error

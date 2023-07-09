@@ -70,7 +70,9 @@ import { MarkerService } from "src/app/services/marker.service";
     <div class="container">
       <app-editor [cardTitleMapping]="cardTitleMapping"></app-editor>
       <span class="button-row">
-        <button mat-button (click)="onSaveContent()">save content</button>
+        <button mat-raised-button color="accent" (click)="onSaveContent()">
+          save content
+        </button>
       </span>
     </div>
   `,
@@ -100,6 +102,9 @@ import { MarkerService } from "src/app/services/marker.service";
       .container {
         display: flex;
         flex-direction: column;
+      }
+      .button-row {
+        margin: 10px;
       }
     `,
   ],
@@ -159,7 +164,11 @@ export class CardDetailsComponent implements OnInit {
     }
     if (marker.length === 1) {
       console.log("panTo");
-      emit("panTo", { lat: marker[0].latitude, lng: marker[0].longitude });
+      emit("panTo", {
+        lat: marker[0].latitude,
+        lng: marker[0].longitude,
+        id: marker[0].id ?? 0,
+      });
     } else {
       let bounds = this.markerService.getBounds(marker);
       emit("panToBounds", {
