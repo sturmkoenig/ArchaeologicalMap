@@ -35,27 +35,34 @@ import { MarkerService } from "src/app/services/marker.service";
             <p>
               {{ card.description }}
             </p>
-            <app-position-picker
+            <!-- <app-position-picker
               class="marker-map"
               [editable]="false"
               [markers]="card.markers"
-            ></app-position-picker>
+            ></app-position-picker> -->
           </div>
         </mat-card-content>
         <mat-card-actions>
           <!-- TODO what marker to pan to? -->
-          <ng-container *ngIf="card.markers && card.markers[0]">
-            <button color="primary" (click)="panToLatLng(card.markers)">
-              auf karte zeigen
+          <div class="card-buttons">
+            <button
+              mat-raised-button
+              color="accent"
+              (click)="openUpdateDialog(this.card)"
+            >
+              Ändern
             </button>
-          </ng-container>
-          <button
-            mat-raised-button
-            color="primary"
-            (click)="openUpdateDialog(this.card)"
-          >
-            Ändern
-          </button>
+            <ng-container *ngIf="card.markers">
+              <button
+                mat-mini-fab
+                color="warn"
+                (click)="panToLatLng(card.markers)"
+                aria-label="Example icon button with a home icon"
+              >
+                <mat-icon>pin_drop</mat-icon>
+              </button>
+            </ng-container>
+          </div>
         </mat-card-actions>
       </mat-card>
     </ng-container>
@@ -71,6 +78,14 @@ import { MarkerService } from "src/app/services/marker.service";
     `
       .card {
         margin: 2rem;
+      }
+      .card-buttons {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+      }
+      button:last-of-type {
+        margin-left: auto;
       }
       .marker-map {
         top: 100px;
