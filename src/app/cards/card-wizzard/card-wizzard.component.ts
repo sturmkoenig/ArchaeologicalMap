@@ -42,21 +42,6 @@ import { MatSnackBar } from "@angular/material/snack-bar";
             </div>
           </form>
         </mat-step>
-        <mat-step
-          [stepControl]="secondFormGroup"
-          errorMessage="Address is required."
-        >
-          <div class="flex flex-col items-center items-justify">
-            <form [formGroup]="secondFormGroup">
-              <ng-template matStepLabel>Icon Auswählen</ng-template>
-              <app-icon-picker [(icon)]="iconName"></app-icon-picker>
-              <div class="m-t-5">
-                <button mat-button matStepperPrevious>Back</button>
-                <button mat-button matStepperNext>Next</button>
-              </div>
-            </form>
-          </div>
-        </mat-step>
         <mat-step>
           <ng-template matStepLabel>Position Auswählen</ng-template>
           <app-position-picker [(markers)]="newMarkers" [editable]="true">
@@ -87,11 +72,8 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 })
 export class CardWizzardComponent {
   text: string = "example text";
-  Longitude = 0;
-  Lattitude = 0;
-  circleRadius = 100;
   iconName: keyof typeof ICONS = "iconDefault";
-  newMarkers: MarkerLatLng[] = [];
+  newMarkers: MarkerDB[] = [];
 
   firstFormGroup = this._formBuilder.group({
     cardTitle: ["", Validators.required],
@@ -111,29 +93,11 @@ export class CardWizzardComponent {
 
   submitCard() {
     let newCard: NewCard = {
-      markers: [
-        {
-          latitude: this.Lattitude,
-          radius: this.circleRadius,
-          longitude: this.Longitude,
-          icon_name: this.iconName,
-        },
-      ],
+      markers: this.newMarkers,
       title: this.firstFormGroup.controls["cardTitle"].value!,
       description: this.firstFormGroup.controls["cardText"].value!,
     };
     this.cardService.cardCreate(newCard);
     this._snackBar.open("Karte Gespeichert", "💾");
-  }
-
-  changeIcon(newIcon: keyof typeof ICONS) {
-    this.iconName = newIcon;
-  }
-  changeRadius(newRadius: number) {
-    this.circleRadius = newRadius;
-  }
-  changeCoordinate(newCoordinate: LatLng) {
-    this.Lattitude = newCoordinate.lat;
-    this.Longitude = newCoordinate.lng;
   }
 }
