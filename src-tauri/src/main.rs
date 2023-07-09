@@ -19,23 +19,23 @@ use app::query_join_markers;
 use app::query_markers_in_geological_area;
 use app::query_update_card;
 use app::query_update_marker;
-use app::schema::marker;
+
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use tauri::api::path::app_cache_dir;
-use tauri::api::path::app_config_dir;
+
 use tauri::api::path::app_data_dir;
 use tauri::api::path::app_local_data_dir;
-use tauri::AppHandle;
+
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use std::env;
 use std::fs;
 use std::path::PathBuf;
 
-use app::models::NewCard;
+
 use app::query_create_card;
 use app::{
-    establish_connection, get_path_local_dir, models::Card, query_all_cards, query_card_by_id,
+    establish_connection, models::Card, query_all_cards, query_card_by_id,
 };
 
 const CONTENTDIR: &str = "content";

@@ -1,13 +1,13 @@
 use self::models::{Card, NewCard};
 use diesel::select;
 use diesel::sqlite::SqliteConnection;
-use diesel::{prelude::*, sql_types::Float};
+use diesel::{prelude::*};
 use dotenvy::dotenv;
 use models::{CardDTO, CardTitleMapping, Marker, MarkerDTO, NewMarker};
 use schema::cards::{self, id, title};
 use schema::marker::{self, latitude, longitude};
-use serde_json::Error;
-use std::{env, path::PathBuf};
+
+use std::{path::PathBuf};
 use tauri::api::path::data_dir;
 
 diesel::sql_function! (fn last_insert_rowid() -> diesel::sql_types::Integer);
