@@ -50,6 +50,7 @@ pub struct Card {
     pub id: i32,
     pub title: String,
     pub description: String,
+    pub catalogue_id: i32,
 }
 
 #[derive(Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]

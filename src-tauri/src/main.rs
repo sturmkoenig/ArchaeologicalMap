@@ -171,6 +171,7 @@ fn update_card(card: CardDTO) -> bool {
             id: card.id.unwrap(),
             title: card.title,
             description: card.description,
+            catalogue_id: 0,
         },
     );
     for marker in card.markers.iter() {
