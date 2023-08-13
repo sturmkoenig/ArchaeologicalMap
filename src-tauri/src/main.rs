@@ -5,22 +5,25 @@
 extern crate diesel;
 extern crate diesel_migrations;
 
+pub mod persistence;
 use app::models::CardDTO;
 use app::models::CardTitleMapping;
 use app::models::Marker;
 use app::models::MarkerDTO;
-use app::query_card_names;
-use app::query_cards_paginated;
-use app::query_count_cards;
-use app::query_create_marker;
-use app::query_delet_marker;
-use app::query_delete_card;
-use app::query_join_markers;
-use app::query_markers_in_geological_area;
-use app::query_update_card;
-use app::query_update_marker;
-
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use persistence::cards::query_all_cards;
+use persistence::cards::query_card_by_id;
+use persistence::cards::query_card_names;
+use persistence::cards::query_cards_paginated;
+use persistence::cards::query_count_cards;
+use persistence::cards::query_create_card;
+use persistence::cards::query_delete_card;
+use persistence::cards::query_update_card;
+use persistence::markers::query_create_marker;
+use persistence::markers::query_delet_marker;
+use persistence::markers::query_join_markers;
+use persistence::markers::query_markers_in_geological_area;
+use persistence::markers::query_update_marker;
 use tauri::api::path::app_cache_dir;
 
 use tauri::api::path::app_data_dir;
@@ -33,8 +36,7 @@ use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 
-use app::query_create_card;
-use app::{establish_connection, models::Card, query_all_cards, query_card_by_id};
+use app::{establish_connection, models::Card};
 
 const CONTENTDIR: &str = "content";
 const CACHEDIR: &str = "cache";
