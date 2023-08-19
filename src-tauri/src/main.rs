@@ -33,13 +33,8 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use std::env;
 use std::fs;
-use std::path::Path;
-use std::path::PathBuf;
 
 use app::{establish_connection, models::Card};
-
-const CONTENTDIR: &str = "content";
-const CACHEDIR: &str = "cache";
 
 // main.rs
 fn main() {
@@ -171,7 +166,6 @@ fn update_card(card: CardDTO) -> bool {
             id: card.id.unwrap(),
             title: card.title,
             description: card.description,
-            catalogue_id: 0,
         },
     );
     for marker in card.markers.iter() {
@@ -231,3 +225,11 @@ fn read_markers_in_area(north: f32, east: f32, south: f32, west: f32) -> Vec<Mar
     results
 }
 // TODO Add mehtod that sends number of entries!
+
+// TODO implement methods
+fn get_previous_card_in_stack() {}
+fn get_next_card_in_stack() {}
+fn get_cards_in_stack(stack_id: i32) {}
+fn create_stack() {}
+fn update_stack() {}
+fn add_card_to_stack(card_id: i32, stack_id: i32) {}

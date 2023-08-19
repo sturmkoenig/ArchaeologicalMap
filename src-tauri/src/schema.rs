@@ -5,15 +5,6 @@ diesel::table! {
         id -> Integer,
         title -> Text,
         description -> Text,
-        catalogue_id -> Integer,
-    }
-}
-
-diesel::table! {
-    catalogue (id) {
-        id -> Integer,
-        name -> Text,
-        icon_url -> Text,
     }
 }
 
@@ -28,11 +19,9 @@ diesel::table! {
     }
 }
 
-diesel::joinable!(cards -> catalogue (catalogue_id));
 diesel::joinable!(marker -> cards (card_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     cards,
-    catalogue,
     marker,
 );
