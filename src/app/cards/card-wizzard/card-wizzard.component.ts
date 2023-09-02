@@ -72,7 +72,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 })
 export class CardWizzardComponent {
   text: string = "example text";
-  iconName: keyof typeof ICONS = "iconDefault";
+  iconName: keyof typeof ICONS = "iconMiscBlack";
   newMarkers: MarkerDB[] = [];
 
   firstFormGroup = this._formBuilder.group({

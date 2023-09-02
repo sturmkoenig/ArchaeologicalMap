@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="52.916687mm"
+   height="52.916656mm"
+   viewBox="0 0 52.916687 52.916656"
+   version="1.1"
+   id="svg5"
+   xml:space="preserve"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false" /><defs
+     id="defs2" /><g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-123.96158,-205.46835)"><rect
+       style="fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+       id="rect3575"
+       width="52.916672"
+       height="52.916656"
+       x="123.9616"
+       y="205.46835"
+       inkscape:export-filename="painted_cave_red.svg"
+       inkscape:export-xdpi="95.999969"
+       inkscape:export-ydpi="95.999969" /><path
+       style="fill:#000000;stroke-width:0.264583"
+       d="m 135.37866,256.2022 c -0.39248,-2.8088 -0.37935,-3.63383 0.0937,-5.88698 1.17609,-5.60167 5.61123,-10.25326 11.24363,-11.79235 2.00957,-0.54912 5.94481,-0.44241 8.06979,0.21884 5.28518,1.64463 9.34193,5.9774 10.60447,11.32602 0.42085,1.78285 0.3931,5.53359 -0.0561,7.58968 l -0.15897,0.7276 h -14.74573 -14.74573 z m -11.41007,-30.03021 -0.007,-20.70364 h 26.45834 26.45833 l -0.0197,20.57135 -0.0197,20.57135 -0.62557,-1.78946 c -1.51521,-4.33433 -3.69499,-7.71234 -7.0415,-10.91223 -3.55401,-3.39829 -7.30967,-5.547 -11.87273,-6.79269 -1.97754,-0.53985 -2.82372,-0.61218 -7.01146,-0.59932 -4.40876,0.0135 -4.93936,0.0684 -7.14375,0.73811 -8.91744,2.70938 -15.57525,9.07095 -18.51005,17.68645 l -0.65871,1.93373 z"
+       id="path3933" /></g></svg>

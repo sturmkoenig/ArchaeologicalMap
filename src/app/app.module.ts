@@ -39,12 +39,11 @@ import { LeafletModule } from "@asymmetrik/ngx-leaflet";
 import { CardDetailsComponent } from "./cards/card-details/card-details.component";
 import { LeafletMarkerClusterModule } from "@asymmetrik/ngx-leaflet-markercluster";
 import { CardListItemComponent } from "./layout/list/card-list-item/card-list-item.component";
-import { IconPickerComponent } from "./cards/card-wizzard/icon-picker/icon-picker.component";
 import { PositionPickerComponent } from "./cards/card-wizzard/position-picker/position-picker.component";
 import { CardUpdateModalComponent } from "./cards/card-update-modal/card-update-modal.component";
 import { EditorComponent } from "./layout/editor/editor.component";
-import { FilterPipe } from './layout/editor/filter.pipe';
-import { CardDeleteDialogComponent } from './cards/card-update-modal/card-delete-dialog/card-delete-dialog.component';
+import { FilterPipe } from "./layout/editor/filter.pipe";
+import { CardDeleteDialogComponent } from "./cards/card-update-modal/card-delete-dialog/card-delete-dialog.component";
 
 @NgModule({
   declarations: [
@@ -57,7 +56,6 @@ import { CardDeleteDialogComponent } from './cards/card-update-modal/card-delete
     CardListComponent,
     CardDetailsComponent,
     CardListItemComponent,
-    IconPickerComponent,
     PositionPickerComponent,
     CardUpdateModalComponent,
     EditorComponent,

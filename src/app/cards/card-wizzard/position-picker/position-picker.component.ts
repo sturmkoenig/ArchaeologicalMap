@@ -81,12 +81,6 @@ interface MarkerLayer {
               (selectionChange)="setIcon($event)"
               [disabled]="this.selectedMarker === undefined"
             >
-              <mat-select-trigger>
-                <img
-                  class="option-icon"
-                  src="{{ iconService.getIconPath(icon) }}"
-                />
-              </mat-select-trigger>
               <mat-option
                 *ngFor="let iconOption of icons | keyvalue"
                 [value]="iconOption.key"
@@ -150,7 +144,7 @@ export class PositionPickerComponent implements OnInit {
   selectedMarker?: MarkerDB;
   radius: number = 100;
   icons = ICONS;
-  icon: keyof typeof ICONS = "iconDefault";
+  icon: keyof typeof ICONS = "iconMiscBlack";
   @Input()
   editable: boolean = false;
 
