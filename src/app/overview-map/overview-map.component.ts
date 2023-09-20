@@ -81,7 +81,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
       tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         opacity: 0.7,
         maxZoom: 19,
-        detectRetina: true,
+        detectRetina: false,
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }),
@@ -111,10 +111,8 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
         event.payload.maxLng
       );
       let bounds: LatLngBounds = new LatLngBounds(southWest, northEast);
-      console.log(bounds);
       this.map.flyToBounds(bounds);
       this.highligtedMarkerIds = event.payload.markerIds;
-      console.log(this.highligtedMarkerIds);
     });
   }
 
@@ -208,7 +206,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
               let icon = layer.getIcon();
               icon.options.className = "highlighted";
               layer.setIcon(icon);
-              console.log(layer.getIcon().options);
             }
           });
       });
