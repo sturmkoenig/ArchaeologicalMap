@@ -1,4 +1,4 @@
-import { Component, Inject } from "@angular/core";
+import { ChangeDetectorRef, Component, Inject, NgZone } from "@angular/core";
 import { MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { fs, path } from "@tauri-apps/api";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
@@ -37,7 +37,7 @@ import { BehaviorSubject, Observable } from "rxjs";
           <mat-card-title>{{ stackName }}</mat-card-title>
         </mat-card-header>
         <img
-          *ngIf="fileUrl"
+          *ngIf="fileUrl | async"
           mat-card-image
           [src]="fileUrl | async"
           alt="stack header image"
@@ -70,7 +70,8 @@ export class StackCreatorComponent {
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private stackService: StackService
+    private stackService: StackService,
+    private changeDetectorRef: ChangeDetectorRef
   ) {
     listen("tauri://file-drop", (event) => {
       this.fileBrowseHandler(event);
@@ -78,7 +79,6 @@ export class StackCreatorComponent {
   }
 
   async fileBrowseHandler(arg0: any) {
-    console.log(arg0);
     if (arg0.payload !== null || arg0.payload !== undefined) {
       console.log(arg0.payload);
 
@@ -89,10 +89,8 @@ export class StackCreatorComponent {
 
       let copyPath = await path.join(dataDir, "content", "images", newFileName);
       await fs.copyFile(arg0.payload[0], copyPath);
-      console.log(newFileName);
       let fileUrl = convertFileSrc(copyPath);
       this.fileUrl.next(fileUrl);
-      console.log(fileUrl);
       this.fileName = newFileName;
     }
   }
