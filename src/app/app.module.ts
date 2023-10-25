@@ -15,6 +15,8 @@ import { HttpClientModule } from "@angular/common/http";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatListModule } from "@angular/material/list";
+import { MatGridListModule } from "@angular/material/grid-list";
+import { DragDropModule } from "@angular/cdk/drag-drop";
 
 import { MatSelectModule } from "@angular/material/select";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -44,6 +46,11 @@ import { CardUpdateModalComponent } from "./cards/card-update-modal/card-update-
 import { EditorComponent } from "./layout/editor/editor.component";
 import { FilterPipe } from "./layout/editor/filter.pipe";
 import { CardDeleteDialogComponent } from "./cards/card-update-modal/card-delete-dialog/card-delete-dialog.component";
+import { StackCreatorComponent } from "./stacks/stack-creator/stack-creator.component";
+import { StackDisplayComponent } from "./stacks/stack-list/stack-list.component";
+import { FileDropzoneComponent } from "./util/file-dropzone/file-dropzone.component";
+import { DndDirective } from "./util/file-dropzone/dnd.directive";
+import { StackDetailsComponent } from './stacks/stack-details/stack-details.component';
 
 @NgModule({
   declarations: [
@@ -61,16 +68,23 @@ import { CardDeleteDialogComponent } from "./cards/card-update-modal/card-delete
     EditorComponent,
     FilterPipe,
     CardDeleteDialogComponent,
+    StackCreatorComponent,
+    StackDisplayComponent,
+    FileDropzoneComponent,
+    DndDirective,
+    StackDetailsComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     MatListModule,
+    MatGridListModule,
     MatToolbarModule,
     ReactiveFormsModule,
     FormsModule,
     MatIconModule,
+    DragDropModule,
     MatSnackBarModule,
     MatSidenavModule,
     MatDividerModule,

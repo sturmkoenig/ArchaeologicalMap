@@ -1,44 +1,47 @@
-
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+<link
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+  rel="stylesheet"
+/>
 
 <div class="app-container">
-<app-toolbar class="app-toolbar" (onMenu)="drawer.toggle()"></app-toolbar>
-<mat-drawer-container class="example-container">
+  <app-toolbar class="app-toolbar" (onMenu)="drawer.toggle()"></app-toolbar>
+  <mat-drawer-container class="example-container">
     <mat-drawer #drawer class="example-sidenav" mode="side">
       <mat-list class="navigation-container">
-        <mat-list-item class="navigation-item" (click)="goMap()"> 
+        <mat-list-item class="navigation-item" (click)="goMap()">
           <div class="navigation-item-content">
-          <span class="nav-icon material-symbols-outlined">
-          map
-          </span>
-          Map
+            <span class="nav-icon material-symbols-outlined"> map </span>
+            Map
           </div>
         </mat-list-item>
         <mat-list-item class="navigation-item" (click)="goList()">
           <div class="navigation-item-content">
-          <span class="nav-icon material-symbols-outlined">
-            list
+            <span class="nav-icon material-symbols-outlined"> list </span>
+            List
+          </div>
+        </mat-list-item>
+        <mat-list-item class="navigation-item" (click)="goStacksList()">
+          <div class="navigation-item-content">
+            <span class="nav-icon material-symbols-outlined">
+              collections_bookmark
             </span>
-          List
+            Stacks
           </div>
         </mat-list-item>
 
         <mat-list-item class="navigation-item" (click)="goCreateNew()">
           <div class="navigation-item-content">
-          <span class="nav-icon material-symbols-outlined">
-            pin_drop
-            </span>
-          AddNew
+            <span class="nav-icon material-symbols-outlined"> pin_drop </span>
+            Neu
           </div>
         </mat-list-item>
       </mat-list>
     </mat-drawer>
-  
+
     <mat-drawer-content>
       <div class="main-content">
         <router-outlet></router-outlet>
       </div>
     </mat-drawer-content>
-  
   </mat-drawer-container>
-  </div>
+</div>

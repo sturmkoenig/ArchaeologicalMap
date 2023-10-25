@@ -97,7 +97,7 @@ export class CardWizzardComponent {
       title: this.firstFormGroup.controls["cardTitle"].value!,
       description: this.firstFormGroup.controls["cardText"].value!,
     };
-    this.cardService.cardCreate(newCard);
+    this.cardService.createCard(newCard);
     this._snackBar.open("Karte Gespeichert", "💾");
   }
 }

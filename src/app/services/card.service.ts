@@ -15,7 +15,7 @@ import { E } from "@tauri-apps/api/path-c062430b";
   providedIn: "root",
 })
 export class CardService {
-  cardCreate(newCard: NewCard): void {
+  createCard(newCard: NewCard): void {
     invoke("create_card", {
       card: {
         title: newCard.title,

@@ -82,6 +82,7 @@ import { RandomCardsService } from "src/app/services/random-cards.service";
         flex-direction: column;
       }
       .example-card {
+        z-index: 1000;
         max-width: 400px;
         margin-bottom: 8px;
       }
@@ -115,7 +116,7 @@ export class CardListComponent implements OnInit {
       let newRandomCard: NewCard =
         this.randomCardService.generateRandomEntity();
       console.log(newRandomCard);
-      this.cardService.cardCreate(newRandomCard);
+      this.cardService.createCard(newRandomCard);
     }
   }
 
@@ -149,7 +150,6 @@ export class CardListComponent implements OnInit {
   }
 
   openUpdateDialog(currentCard: CardDB) {
-    console.log(currentCard);
     const dialogRef = this.dialog.open(CardUpdateModalComponent, {
       data: {
         currentCard,

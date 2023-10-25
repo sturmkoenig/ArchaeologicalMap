@@ -10,6 +10,10 @@ use app::models::CardDTO;
 use app::models::CardTitleMapping;
 use app::models::Marker;
 use app::models::MarkerDTO;
+use app::models::NewStack;
+use app::models::Stack;
+use app::models::StackDTO;
+use app::schema::stack;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use persistence::cards::query_all_cards;
 use persistence::cards::query_card_by_id;
@@ -24,6 +28,8 @@ use persistence::markers::query_delet_marker;
 use persistence::markers::query_join_markers;
 use persistence::markers::query_markers_in_geological_area;
 use persistence::markers::query_update_marker;
+use persistence::stacks::query_all_stacks;
+use persistence::stacks::query_create_stack;
 use tauri::api::path::app_cache_dir;
 
 use tauri::api::path::app_data_dir;
@@ -51,7 +57,9 @@ fn main() {
             read_card_content,
             cache_card_names,
             delete_card,
-            delete_marker
+            delete_marker,
+            create_stack,
+            read_all_stacks
         ])
         .setup(|app| {
             let config = app.config();
@@ -71,6 +79,10 @@ fn main() {
             fs::create_dir(app_dir);
             let cache_dir = app_cache_dir(&config).expect("error resolving cache dir");
             fs::create_dir(cache_dir);
+            let mut images_dir = app_data_dir(&config).expect("error creating app data dir");
+            images_dir.push("content");
+            images_dir.push("images");
+            fs::create_dir(images_dir);
 
             Ok(())
         })
@@ -166,6 +178,7 @@ fn update_card(card: CardDTO) -> bool {
             id: card.id.unwrap(),
             title: card.title,
             description: card.description,
+            stack_id: None,
         },
     );
     for marker in card.markers.iter() {
@@ -226,10 +239,26 @@ fn read_markers_in_area(north: f32, east: f32, south: f32, west: f32) -> Vec<Mar
 }
 // TODO Add mehtod that sends number of entries!
 
+#[tauri::command]
+fn read_all_stacks() -> Vec<StackDTO> {
+    let conn = &mut establish_connection();
+    let stacks = query_all_stacks(conn);
+    let mut stackDTOs: Vec<StackDTO> = Vec::new();
+    for stack in stacks.iter() {
+        stackDTOs.push(StackDTO::from(stack.clone()))
+    }
+    return stackDTOs;
+}
+
 // TODO implement methods
 fn get_previous_card_in_stack() {}
 fn get_next_card_in_stack() {}
 fn get_cards_in_stack(stack_id: i32) {}
-fn create_stack() {}
+
+#[tauri::command]
+fn create_stack(stack: NewStack) {
+    let conn = &mut establish_connection();
+    query_create_stack(conn, &stack);
+}
 fn update_stack() {}
 fn add_card_to_stack(card_id: i32, stack_id: i32) {}

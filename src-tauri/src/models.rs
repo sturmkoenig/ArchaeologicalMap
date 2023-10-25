@@ -1,5 +1,5 @@
-use crate::schema::{cards, marker};
-use diesel::prelude::*;
+use crate::schema::{cards, marker, stack};
+use diesel::{prelude::*, sql_types::Nullable};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -50,6 +50,39 @@ pub struct Card {
     pub id: i32,
     pub title: String,
     pub description: String,
+    pub stack_id: Option<i32>,
+}
+
+#[derive(Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]
+#[diesel(table_name = stack)]
+pub struct Stack {
+    pub id: i32,
+    pub name: String,
+    pub image_name: String,
+}
+
+#[derive(Insertable, Deserialize)]
+#[diesel(table_name = stack)]
+pub struct NewStack {
+    pub name: String,
+    pub image_name: String,
+}
+
+#[derive(Queryable, Serialize, Clone, Debug, Deserialize)]
+pub struct StackDTO {
+    pub id: Option<i32>,
+    pub name: String,
+    pub image_name: String,
+}
+
+impl From<Stack> for StackDTO {
+    fn from(s: Stack) -> Self {
+        Self {
+            id: Some(s.id),
+            name: s.name,
+            image_name: s.image_name,
+        }
+    }
 }
 
 #[derive(Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]

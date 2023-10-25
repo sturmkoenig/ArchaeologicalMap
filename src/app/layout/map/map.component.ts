@@ -40,7 +40,7 @@ export class MapComponent {
       tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         opacity: 0.7,
         maxZoom: 19,
-        detectRetina: true,
+        detectRetina: false,
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }),

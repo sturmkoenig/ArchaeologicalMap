@@ -5,6 +5,7 @@ import { CardDetailsComponent } from "./cards/card-details/card-details.componen
 import { CardListComponent } from "./cards/card-list/card-list.component";
 import { CardWizzardComponent } from "./cards/card-wizzard/card-wizzard.component";
 import { OverviewMapComponent } from "./overview-map/overview-map.component";
+import { StackDisplayComponent } from "./stacks/stack-list/stack-list.component";
 
 const routes: Routes = [
   {
@@ -18,6 +19,20 @@ const routes: Routes = [
       {
         path: "",
         component: OverviewMapComponent,
+      },
+    ],
+  },
+  {
+    path: "stacks",
+    children: [
+      {
+        path: "list",
+        children: [
+          {
+            path: "",
+            component: StackDisplayComponent,
+          },
+        ],
       },
     ],
   },

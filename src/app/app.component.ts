@@ -23,4 +23,8 @@ export class AppComponent {
   goCreateNew() {
     this.router.navigate(["cards/new"]);
   }
+
+  goStacksList() {
+    this.router.navigate(["stacks/list"]);
+  }
 }
