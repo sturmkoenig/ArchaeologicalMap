@@ -1,6 +1,5 @@
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
-import { AppComponent } from "./app.component";
 import { CardDetailsComponent } from "./components/cards/card-details/card-details.component";
 import { CardListComponent } from "./components/cards/card-list/card-list.component";
 import { CardWizzardComponent } from "./components/cards/card-wizzard/card-wizzard.component";

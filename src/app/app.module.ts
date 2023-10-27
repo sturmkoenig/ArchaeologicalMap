@@ -39,7 +39,6 @@ import { CardListComponent } from "./components/cards/card-list/card-list.compon
 import { MapComponent } from "./layout/map/map.component";
 import { LeafletModule } from "@asymmetrik/ngx-leaflet";
 import { CardDetailsComponent } from "./components/cards/card-details/card-details.component";
-import { LeafletMarkerClusterModule } from "@asymmetrik/ngx-leaflet-markercluster";
 import { CardListItemComponent } from "./layout/list/card-list-item/card-list-item.component";
 import { PositionPickerComponent } from "./components/cards/card-wizzard/position-picker/position-picker.component";
 import { CardUpdateModalComponent } from "./components/cards/card-update-modal/card-update-modal.component";
@@ -102,7 +101,6 @@ import { StackDetailsComponent } from "./components/stacks/stack-details/stack-d
     MatPaginatorModule,
     MatMenuModule,
     LeafletModule,
-    LeafletMarkerClusterModule,
   ],
   providers: [],
   bootstrap: [AppComponent],

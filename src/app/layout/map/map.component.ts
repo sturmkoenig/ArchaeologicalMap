@@ -15,7 +15,6 @@ import {
     leaflet
     [leafletOptions]="options"
     [leafletLayers]="layers"
-    [leafletMarkerCluster]="layers"
     (leafletMapReady)="onMapReady($event)"
     (leafletMapMoveEnd)="onMapMoveEnd()"
     (leafletClick)="click$.emit($event)"

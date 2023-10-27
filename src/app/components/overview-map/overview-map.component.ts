@@ -32,7 +32,6 @@ export interface Compas {
         leaflet
         [leafletOptions]="options"
         [leafletLayers]="layers"
-        [leafletMarkerCluster]="layers"
         (leafletMapReady)="onMapReady($event)"
         (leafletMapMoveEnd)="mapMoveEnded($event)"
       ></div>
