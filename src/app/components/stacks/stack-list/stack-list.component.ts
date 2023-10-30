@@ -1,11 +1,16 @@
 import { Component } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { StackCreatorComponent } from "../stack-creator/stack-creator.component";
-import { StackDB } from "src/app/model/stack";
+import { Stack, StackPost } from "src/app/model/stack";
 import { StackService } from "src/app/services/stack.service";
 import { path } from "@tauri-apps/api";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { dataDir } from "@tauri-apps/api/path";
+import { Store } from "@ngrx/store";
+import { loadStacks, loadStacksSuccess } from "src/app/state/stack.actions";
+import { Observable } from "rxjs";
+import { selectAllStacks } from "src/app/state/stack.selectors";
+import { StackStore } from "src/app/state/stack.store";
 
 @Component({
   selector: "app-stack-display",
@@ -16,7 +21,7 @@ import { dataDir } from "@tauri-apps/api/path";
     <!-- <mat-drawer-content> -->
     <div class="stack-display__container">
       <div class="gridbox">
-        <div *ngFor="let stack of stacks" class="card__container">
+        <div *ngFor="let stack of stacks$ | async" class="card__container">
           <mat-card class="card">
             <mat-card-header>
               <div mat-card-avatar class="example-header-image"></div>
@@ -103,36 +108,16 @@ import { dataDir } from "@tauri-apps/api/path";
   ],
 })
 export class StackDisplayComponent {
-  public stacks?: StackDB[];
+  public stacks?: StackPost[];
+  public stacks$: Observable<Stack[]>;
   nav_position: string = "start";
 
-  constructor(private dialog: MatDialog, private stackService: StackService) {
-    this.stackService.readAllStacks().then((allStacks) => {
-      this.stacks = allStacks;
-      for (let stack of allStacks) {
-        this.getImageUrl(stack.image_name).then((imageUrl) => {
-          console.log("HIDEF IMAGE " + imageUrl);
-          if (imageUrl !== undefined) {
-            stack.image_name = imageUrl.toString();
-          }
-        });
-      }
-    });
+  constructor(private dialog: MatDialog, private stackStore: StackStore) {
+    this.stacks$ = this.stackStore.stacks$;
   }
 
   onTogglePosition(position: string) {
     this.nav_position = position === "start" ? "end" : "start";
-  }
-
-  getImageUrl(image_name: string): Promise<void | String> {
-    return path.appDataDir().then((dataDir) => {
-      return path
-        .join(dataDir, "content", "images", image_name)
-        .then((imagePath) => {
-          console.log(imagePath);
-          return convertFileSrc(imagePath);
-        });
-    });
   }
 
   onAddStack() {

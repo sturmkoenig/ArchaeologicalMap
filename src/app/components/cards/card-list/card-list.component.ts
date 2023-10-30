@@ -115,7 +115,6 @@ export class CardListComponent implements OnInit {
     for (let i = 0; i < 1000; i++) {
       let newRandomCard: NewCard =
         this.randomCardService.generateRandomEntity();
-      console.log(newRandomCard);
       this.cardService.createCard(newRandomCard);
     }
   }
@@ -160,7 +159,6 @@ export class CardListComponent implements OnInit {
     const subscribeDialogDeleted =
       dialogRef.componentInstance.deleted.subscribe((data: boolean) => {
         if (data === true) {
-          console.log("Geloescht");
           this._snackBar.open("Seite gelöscht", "⌫");
           dialogRef.close();
           this.inputChanged();

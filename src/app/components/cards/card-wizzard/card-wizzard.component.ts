@@ -46,11 +46,23 @@ import { MatSnackBar } from "@angular/material/snack-bar";
           <ng-template matStepLabel>Position Auswählen</ng-template>
           <app-position-picker [(markers)]="newMarkers" [editable]="true">
           </app-position-picker>
+          <!-- <mat-form-field>
+            <mat-label>Stapel</mat-label>
+            <mat-select [(ngModel)]="selectedStapel" name="food">
+              <mat-option
+                *ngFor="let stack of stacks | async"
+                [value]="stack.value"
+              >
+                {{ stack.value }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field> -->
           <div class="m-t-5">
             <button mat-button matStepperPrevious>Back</button>
             <button mat-button (click)="stepper.reset()">Reset</button>
             <button mat-button (click)="submitCard()">Speichern</button>
           </div>
+          <
         </mat-step>
       </mat-stepper>
     </div>

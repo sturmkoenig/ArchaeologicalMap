@@ -35,6 +35,10 @@ export enum ICONS {
   iconSingleMonumentBlack = "assets/icons/single_monument_black.svg",
   iconMonumentMiscBlack = "assets/icons/monument_misc_black.svg",
   iconSingleMonumentRed = "assets/icons/single_monument_red.svg",
+  iconChristianRed = "assets/icons/christian_red.svg",
+  iconChristianBlack = "assets/icons/christian_black.svg",
+  iconMuseumBlack = "assets/icons/museum_black.svg",
+  iconMuseumRed = "assets/icons/museum_red.svg",
 }
 
 @Injectable({

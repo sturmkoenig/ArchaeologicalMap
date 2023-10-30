@@ -89,7 +89,6 @@ export class CardService {
     removedMarkers
       .filter((marker) => marker.id !== undefined && marker.id !== null)
       .forEach((marker) => {
-        console.log("deleting marker with id: " + marker.id!);
         invoke("delete_marker", { markerId: marker.id! });
       });
   }

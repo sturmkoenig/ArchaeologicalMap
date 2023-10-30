@@ -163,7 +163,6 @@ export class CardDetailsComponent implements OnInit {
       return;
     }
     if (marker.length === 1) {
-      console.log("panTo");
       emit("panTo", {
         lat: marker[0].latitude,
         lng: marker[0].longitude,
@@ -192,7 +191,6 @@ export class CardDetailsComponent implements OnInit {
     const subscribeDialogDeleted =
       dialogRef.componentInstance.deleted.subscribe((data: boolean) => {
         if (data === true) {
-          console.log("Geloescht");
           this._snackBar.open("Seite gelöscht", "⌫");
           dialogRef.close();
         }

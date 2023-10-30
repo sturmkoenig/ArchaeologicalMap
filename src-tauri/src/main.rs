@@ -256,9 +256,9 @@ fn get_next_card_in_stack() {}
 fn get_cards_in_stack(stack_id: i32) {}
 
 #[tauri::command]
-fn create_stack(stack: NewStack) {
+fn create_stack(stack: NewStack) -> Stack {
     let conn = &mut establish_connection();
-    query_create_stack(conn, &stack);
+    query_create_stack(conn, &stack)
 }
 fn update_stack() {}
 fn add_card_to_stack(card_id: i32, stack_id: i32) {}

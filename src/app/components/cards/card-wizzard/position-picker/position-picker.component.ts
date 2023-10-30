@@ -154,8 +154,6 @@ export class PositionPickerComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    console.log("ng init called");
-    console.log(this.markers);
     this.markersMap = new Map();
     this.markers.forEach((marker: MarkerDB) => {
       let markerLayer = this.createLayerFromMarker(marker);

@@ -6,6 +6,7 @@ import { listen } from "@tauri-apps/api/event";
 import { v4 as uuid } from "uuid";
 import { StackService } from "src/app/services/stack.service";
 import { BehaviorSubject, Observable } from "rxjs";
+import { StackStore } from "src/app/state/stack.store";
 
 @Component({
   selector: "app-stack-creator",
@@ -70,7 +71,7 @@ export class StackCreatorComponent {
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private stackService: StackService,
+    private stackStore: StackStore,
     private changeDetectorRef: ChangeDetectorRef
   ) {
     listen("tauri://file-drop", (event) => {
@@ -80,8 +81,6 @@ export class StackCreatorComponent {
 
   async fileBrowseHandler(arg0: any) {
     if (arg0.payload !== null || arg0.payload !== undefined) {
-      console.log(arg0.payload);
-
       let dataDir = await path.appDataDir();
       let filePath: string = arg0.payload[0];
       let fileEnding = filePath.substring(filePath.lastIndexOf(".") + 1);
@@ -103,7 +102,7 @@ export class StackCreatorComponent {
     if (this.stackName === "" || this.fileName === "") {
       return;
     }
-    this.stackService.createStack({
+    this.stackStore.createStack({
       name: this.stackName,
       image_name: this.fileName,
     });

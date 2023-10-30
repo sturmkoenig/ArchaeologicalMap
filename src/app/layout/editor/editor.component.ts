@@ -167,7 +167,6 @@ export class EditorComponent implements OnInit {
     if (this.carrotPosition) {
       selection = this.carrotPosition;
     }
-    console.log(selection);
     this.quill.insertText(
       selection?.index ?? 0,
       title,
