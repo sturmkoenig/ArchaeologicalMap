@@ -1,72 +1,94 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
-import { MatCard } from "@angular/material/card";
-import { BehaviorSubject, catchError, Observable, throwError } from "rxjs";
-import { CardService } from "src/app/services/card.service";
+import { Component, OnInit, ViewChild } from "@angular/core";
+import { ActivatedRoute } from "@angular/router";
 import { invoke } from "@tauri-apps/api";
-import { emit, listen } from "@tauri-apps/api/event";
+import { emit } from "@tauri-apps/api/event";
+import { CardService } from "src/app/services/card.service";
 
-import { CardDB, MarkerDB, MarkerLatLng } from "src/app/model/card";
-import { MatSnackBar } from "@angular/material/snack-bar";
-import Quill from "quill";
-import { RangeStatic } from "quill";
-import { EditorComponent } from "src/app/layout/editor/editor.component";
-import { IconService } from "src/app/services/icon.service";
 import { MatDialog } from "@angular/material/dialog";
-import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal.component";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { Observable } from "rxjs";
+import { EditorComponent } from "src/app/layout/editor/editor.component";
+import { CardDB, MarkerDB } from "src/app/model/card";
+import { IconService } from "src/app/services/icon.service";
 import { MarkerService } from "src/app/services/marker.service";
+import { CardDetailsStore } from "src/app/state/card-details.store";
+import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal.component";
 
 @Component({
   selector: "app-card-details",
   template: `
-    <ng-container *ngIf="card$ | async as card">
-      <mat-card class="card">
-        <mat-card-header>
-          <!--TODO adjust card avatar to land or something-->
-          <!-- <div mat-card-avatar class="card-avatar">
-            <img
-              src="{{ iconService.getIconPath(card.markers[0].icon_name) }}"
-            />
-          </div> -->
-          <mat-card-title>{{ card.title }}</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="card-content">
-            <p>
-              {{ card.description }}
-            </p>
-            <!-- <app-position-picker
-              class="marker-map"
-              [editable]="false"
-              [markers]="card.markers"
-            ></app-position-picker> -->
-          </div>
-        </mat-card-content>
-        <mat-card-actions>
-          <!-- TODO what marker to pan to? -->
-          <div class="card-buttons">
-            <button
-              mat-raised-button
-              color="accent"
-              (click)="openUpdateDialog(this.card)"
+    <div class="card-details-component-container">
+      <div class="card-details-side-nav">
+        <ng-container
+          *ngFor="let card of cardDetailsStore.allCardsInStack$ | async"
+        >
+          <span
+            class="card-details-side-nav--container"
+            [routerLink]="'/cards/details'"
+            [queryParams]="{ id: card.id }"
+            [ngClass]="{ 'current-card': card.id === this.cardId }"
+            >{{ card.title }}
+          </span>
+        </ng-container>
+      </div>
+      <div class="card-details-container">
+        <ng-container *ngIf="card$ | async as card">
+          <div class="card">
+            <span
+              *ngIf="cardDetailsStore.previousCardId$ | async as previousCardId"
+              class="card--nav"
             >
-              Ändern
-            </button>
-            <ng-container *ngIf="card.markers">
               <button
-                mat-mini-fab
-                color="warn"
-                (click)="panToLatLng(card.markers)"
-                aria-label="Example icon button with a home icon"
+                mat-icon-button
+                [routerLink]="'/cards/details'"
+                [queryParams]="{ id: previousCardId }"
               >
-                <mat-icon>pin_drop</mat-icon>
+                <mat-icon>arrow_back_ios</mat-icon>
               </button>
-            </ng-container>
+            </span>
+            <div class="card--properties">
+              <h1>{{ card.title }}</h1>
+              <div class="card-content">
+                <p>
+                  {{ card.description }}
+                </p>
+              </div>
+              <span class="card--buttons">
+                <button
+                  mat-raised-button
+                  color="accent"
+                  (click)="openUpdateDialog(this.card)"
+                >
+                  Ändern
+                </button>
+                <ng-container *ngIf="card.markers">
+                  <button
+                    mat-mini-fab
+                    color="warn"
+                    (click)="panToLatLng(card.markers)"
+                    aria-label="Example icon button with a home icon"
+                  >
+                    <mat-icon>pin_drop</mat-icon>
+                  </button>
+                </ng-container>
+              </span>
+            </div>
+            <span
+              *ngIf="cardDetailsStore.nextCardId$ | async as nextCardId"
+              class="card--nav"
+            >
+              <button
+                mat-icon-button
+                [routerLink]="'/cards/details'"
+                [queryParams]="{ id: nextCardId }"
+              >
+                <mat-icon>arrow_forward_ios</mat-icon>
+              </button>
+            </span>
           </div>
-        </mat-card-actions>
-      </mat-card>
-    </ng-container>
-
+        </ng-container>
+      </div>
+    </div>
     <div class="container">
       <app-editor [cardTitleMapping]="cardTitleMapping"></app-editor>
       <span class="button-row">
@@ -78,17 +100,76 @@ import { MarkerService } from "src/app/services/marker.service";
   `,
   styles: [
     `
-      .card {
-        margin: 2rem;
-      }
-      .card-buttons {
-        width: 100%;
+      .card-details-component-container {
         display: flex;
-        flex-direction: row;
+        height: 15rem;
+        margin-bottom: 20px;
+        padding: 10px;
+        margin-top: 10px;
       }
-      button:last-of-type {
-        margin-left: auto;
+      .card-details-container {
+        flex-grow: 1;
       }
+      .card-details-side-nav {
+        display: flex;
+        border: solid;
+        border-color: #cccccc;
+        border-width: 0;
+        border-radius: 5px;
+        box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+        margin-left: 5px;
+        margin-right: 5px;
+        flex-direction: column;
+        flex-grow: 0;
+        height: 100%;
+        overflow: scroll;
+
+        span {
+          border-radius: 3px;
+          height: 2rem;
+          padding: 0.6rem;
+        }
+        span:nth-child(odd) {
+          background-color: #fdfefe;
+        }
+      }
+      .current-card {
+        background-color: #bf616a !important;
+        color: white;
+      }
+
+      .card {
+        height: 100%;
+        margin-left: 10px;
+        margin-right: 10px;
+        border: solid;
+        border-radius: 5px;
+        border-color: #cccccc;
+        border-width: 0;
+        background-color: #fdfefe;
+        box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+        display: flex;
+
+        &--properties {
+          flex-grow: 1;
+          display: flex;
+          flex-direction: column;
+          margin: 2rem;
+        }
+        &--buttons {
+          display: flex;
+          margin-top: auto;
+        }
+        &--nav {
+          display: flex;
+          align-items: center;
+          width: 50px;
+        }
+        button:last-of-type {
+          margin-left: auto;
+        }
+      }
+
       .marker-map {
         top: 100px;
         left: 100px;
@@ -111,37 +192,49 @@ import { MarkerService } from "src/app/services/marker.service";
 })
 export class CardDetailsComponent implements OnInit {
   cardId!: number;
-  card$!: Promise<CardDB>;
+  card$!: Observable<CardDB | undefined>;
 
   @ViewChild(EditorComponent)
   editor!: EditorComponent;
   cardTitleMapping!: [{ id: number; title: string }];
+  allCardsInStack$: Observable<CardDB[]>;
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
     private markerService: MarkerService,
     public dialog: MatDialog,
     private _snackBar: MatSnackBar,
     private cardService: CardService,
+    public cardDetailsStore: CardDetailsStore,
     public iconService: IconService
-  ) {}
+  ) {
+    this.allCardsInStack$ = this.cardDetailsStore.allCardsInStack$;
+  }
 
   async ngOnInit() {
     this.route.queryParams.subscribe((params) => {
+      console.log("queryParams changed!");
       this.cardId = +params["id"];
-      this.card$ = this.cardService.readCard(this.cardId);
+      this.cardDetailsStore.loadStackOfCards(this.cardId);
+      this.card$ = this.cardDetailsStore.currentCard$;
+      this.card$.subscribe((card) => {
+        console.log(card);
+        invoke("read_card_content", { id: this.cardId.toString() }).then(
+          (res: any) => {
+            let loadedContent: any;
+            if (!res) {
+              this.editor.setContents("");
+            }
+            try {
+              this.editor.setContents(JSON.parse(res));
+            } catch (error) {
+              return;
+            }
+          }
+        );
+      });
     });
-    invoke("read_card_content", { id: this.cardId.toString() }).then(
-      (res: any) => {
-        let loadedContent: any;
-        try {
-          this.editor.setContents(JSON.parse(res));
-        } catch (error) {
-          return;
-        }
-      }
-    );
+
     this.cardService.readCardTitleMapping().then((ctm) => {
       this.cardTitleMapping = ctm;
     });
@@ -201,5 +294,9 @@ export class CardDetailsComponent implements OnInit {
           this._snackBar.open("Änderungen gespeichert!", "💾");
         }
       });
+  }
+
+  onClickBackward() {
+    throw new Error("Method not implemented.");
   }
 }

@@ -18,6 +18,7 @@ use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use persistence::cards::query_all_cards;
 use persistence::cards::query_card_by_id;
 use persistence::cards::query_card_names;
+use persistence::cards::query_cards_in_stack;
 use persistence::cards::query_cards_paginated;
 use persistence::cards::query_count_cards;
 use persistence::cards::query_create_card;
@@ -59,7 +60,8 @@ fn main() {
             delete_card,
             delete_marker,
             create_stack,
-            read_all_stacks
+            read_all_stacks,
+            get_cards_in_stack
         ])
         .setup(|app| {
             let config = app.config();
@@ -120,6 +122,7 @@ fn read_cards_paginated(page: i64, filter: String) -> Vec<CardDTO> {
             title: card.title.clone(),
             description: card.description.clone(),
             markers: markers,
+            stack_id: card.stack_id,
         })
     }
     return card_dtos;
@@ -143,7 +146,7 @@ fn create_card(card: CardDTO) {
 
 // TODO may be moved to frontend
 #[tauri::command]
-fn read_card_content(app_handle: tauri::AppHandle, id: String) -> String {
+fn read_card_content(app_handle: tauri::AppHandle, id: String) -> Option<String> {
     let mut app_dir = app_handle
         .path_resolver()
         .app_data_dir()
@@ -151,8 +154,8 @@ fn read_card_content(app_handle: tauri::AppHandle, id: String) -> String {
     app_dir.push(format!("content/{}.json", id));
     let content = fs::read_to_string(app_dir);
     match content {
-        Ok(content) => return content,
-        Err(_e) => return String::from("no content"),
+        Ok(content) => return Some(content),
+        Err(_e) => return None,
     }
 }
 
@@ -178,7 +181,7 @@ fn update_card(card: CardDTO) -> bool {
             id: card.id.unwrap(),
             title: card.title,
             description: card.description,
-            stack_id: None,
+            stack_id: card.stack_id,
         },
     );
     for marker in card.markers.iter() {
@@ -251,9 +254,11 @@ fn read_all_stacks() -> Vec<StackDTO> {
 }
 
 // TODO implement methods
-fn get_previous_card_in_stack() {}
-fn get_next_card_in_stack() {}
-fn get_cards_in_stack(stack_id: i32) {}
+#[tauri::command]
+fn get_cards_in_stack(stack_id: i32) -> Vec<Card> {
+    let conn = &mut establish_connection();
+    query_cards_in_stack(conn, stack_id)
+}
 
 #[tauri::command]
 fn create_stack(stack: NewStack) -> Stack {

@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core";
-import { Observable, tap } from "rxjs";
+import { fs, invoke } from "@tauri-apps/api";
+import { appCacheDir } from "@tauri-apps/api/path";
 import {
   CardDB,
   CardinalDirection,
@@ -7,14 +8,16 @@ import {
   MarkerLatLng,
   NewCard,
 } from "src/app/model/card";
-import { fs, invoke } from "@tauri-apps/api";
-import { appCacheDir, appConfigDir } from "@tauri-apps/api/path";
-import { E } from "@tauri-apps/api/path-c062430b";
 
 @Injectable({
   providedIn: "root",
 })
 export class CardService {
+  getAllCardsForStack(stack_id: number): Promise<CardDB[]> {
+    console.log(stack_id);
+    return invoke("get_cards_in_stack", { stackId: stack_id });
+  }
+
   createCard(newCard: NewCard): void {
     invoke("create_card", {
       card: {
@@ -62,15 +65,15 @@ export class CardService {
       .then((res) => JSON.parse(res));
   }
 
-  updateCard(newCard: CardDB, markers?: MarkerLatLng[]) {
+  updateCard(updateCard: CardDB, markers?: MarkerLatLng[]) {
     // TODO update position
     invoke("update_card", {
       card: {
-        id: newCard.id,
-        title: newCard.title,
-        description: newCard.description,
+        id: updateCard.id,
+        title: updateCard.title,
+        description: updateCard.description,
         markers: markers,
-        category: "",
+        stack_id: updateCard.stack_id,
       },
     });
   }

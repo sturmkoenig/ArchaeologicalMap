@@ -9,6 +9,9 @@ import { CardDB, MarkerDB, MarkerLatLng } from "src/app/model/card";
 import { CardService } from "src/app/services/card.service";
 import { CardDeleteDialogComponent } from "./card-delete-dialog/card-delete-dialog.component";
 import { DialogRef } from "@angular/cdk/dialog";
+import { StackStore } from "src/app/state/stack.store";
+import { Observable } from "rxjs";
+import { Stack } from "src/app/model/stack";
 
 @Component({
   selector: "app-card-update-modal",
@@ -24,8 +27,19 @@ import { DialogRef } from "@angular/cdk/dialog";
           <mat-label>Beschreibung:</mat-label>
           <input matInput [(ngModel)]="updatedCard.description" />
         </mat-form-field>
+        <mat-form-field>
+          <mat-label>Stapel:</mat-label>
+          <mat-select [(ngModel)]="updatedCard.stack_id" name="food">
+            <mat-option
+              *ngFor="let stack of stacks$ | async"
+              [value]="stack.id"
+            >
+              {{ stack.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
       </div>
-      <!-- TODO how to handle multiple positions here? SELECT one pos, and then -->
+
       <app-position-picker
         [(markers)]="updatedMarkers"
         [editable]="true"
@@ -69,6 +83,7 @@ import { DialogRef } from "@angular/cdk/dialog";
 export class CardUpdateModalComponent {
   updatedCard: CardDB;
   updatedMarkers: MarkerLatLng[];
+  stacks$: Observable<Stack[]>;
 
   @Output()
   updated: EventEmitter<boolean> = new EventEmitter();
@@ -79,10 +94,12 @@ export class CardUpdateModalComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA) public card: { currentCard: CardDB },
     private cardService: CardService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private stackStore: StackStore
   ) {
     this.updatedCard = card.currentCard;
     this.updatedMarkers = this.updatedCard.markers;
+    this.stacks$ = stackStore.stacks$;
   }
 
   onUpdate() {

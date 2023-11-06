@@ -2,14 +2,7 @@ import { Component } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { StackCreatorComponent } from "../stack-creator/stack-creator.component";
 import { Stack, StackPost } from "src/app/model/stack";
-import { StackService } from "src/app/services/stack.service";
-import { path } from "@tauri-apps/api";
-import { convertFileSrc } from "@tauri-apps/api/tauri";
-import { dataDir } from "@tauri-apps/api/path";
-import { Store } from "@ngrx/store";
-import { loadStacks, loadStacksSuccess } from "src/app/state/stack.actions";
 import { Observable } from "rxjs";
-import { selectAllStacks } from "src/app/state/stack.selectors";
 import { StackStore } from "src/app/state/stack.store";
 
 @Component({
@@ -33,9 +26,9 @@ import { StackStore } from "src/app/state/stack.store";
               src="{{ stack.image_name }}"
             />
             <mat-card-content> </mat-card-content>
-            <mat-card-actions class="card__actions">
+            <!-- <mat-card-actions class="card__actions">
               <button mat-raised-button color="primary">Karten Zeigen</button>
-            </mat-card-actions>
+            </mat-card-actions> -->
           </mat-card>
         </div>
         <div>
@@ -45,10 +38,6 @@ import { StackStore } from "src/app/state/stack.store";
         </div>
       </div>
     </div>
-    <!-- <button (click)="sideNav.toggle()" mat-button>Toggle SideNav</button> -->
-    <!-- </mat-drawer-content> -->
-    <!-- </mat-drawer-container> -->
-    <!-- </mat-drawer-content> -->
   `,
   styles: [
     `

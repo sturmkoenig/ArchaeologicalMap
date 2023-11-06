@@ -5,6 +5,9 @@ import { MarkerDB, MarkerLatLng, NewCard } from "src/app/model/card";
 import { FormBuilder, Validators } from "@angular/forms";
 import { ICONS } from "src/app/services/icon.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { StackStore } from "src/app/state/stack.store";
+import { Observable } from "rxjs";
+import { Stack } from "src/app/model/stack";
 
 @Component({
   selector: "app-card-wizzard",
@@ -44,25 +47,24 @@ import { MatSnackBar } from "@angular/material/snack-bar";
         </mat-step>
         <mat-step>
           <ng-template matStepLabel>Position Auswählen</ng-template>
-          <app-position-picker [(markers)]="newMarkers" [editable]="true">
-          </app-position-picker>
-          <!-- <mat-form-field>
+          <mat-form-field>
             <mat-label>Stapel</mat-label>
-            <mat-select [(ngModel)]="selectedStapel" name="food">
+            <mat-select [(ngModel)]="selectedStack" name="food">
               <mat-option
-                *ngFor="let stack of stacks | async"
-                [value]="stack.value"
+                *ngFor="let stack of stacks$ | async"
+                [value]="stack.id"
               >
-                {{ stack.value }}
+                {{ stack.name }}
               </mat-option>
             </mat-select>
-          </mat-form-field> -->
+          </mat-form-field>
+          <app-position-picker [(markers)]="newMarkers" [editable]="true">
+          </app-position-picker>
           <div class="m-t-5">
             <button mat-button matStepperPrevious>Back</button>
             <button mat-button (click)="stepper.reset()">Reset</button>
             <button mat-button (click)="submitCard()">Speichern</button>
           </div>
-          <
         </mat-step>
       </mat-stepper>
     </div>
@@ -86,6 +88,8 @@ export class CardWizzardComponent {
   text: string = "example text";
   iconName: keyof typeof ICONS = "iconMiscBlack";
   newMarkers: MarkerDB[] = [];
+  stacks$: Observable<Stack[]>;
+  selectedStack?: number;
 
   firstFormGroup = this._formBuilder.group({
     cardTitle: ["", Validators.required],
@@ -100,14 +104,18 @@ export class CardWizzardComponent {
   constructor(
     private _formBuilder: FormBuilder,
     private cardService: CardService,
-    private _snackBar: MatSnackBar
-  ) {}
+    private _snackBar: MatSnackBar,
+    private stackStore: StackStore
+  ) {
+    this.stacks$ = stackStore.stacks$;
+  }
 
   submitCard() {
     let newCard: NewCard = {
       markers: this.newMarkers,
       title: this.firstFormGroup.controls["cardTitle"].value!,
       description: this.firstFormGroup.controls["cardText"].value!,
+      stackId: this.selectedStack,
     };
     this.cardService.createCard(newCard);
     this._snackBar.open("Karte Gespeichert", "💾");

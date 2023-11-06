@@ -79,6 +79,7 @@ pub fn query_create_card(card_dto: &CardDTO, conn: &mut SqliteConnection) -> i32
     let new_card: NewCard = NewCard {
         title: &card_dto.title,
         description: &card_dto.description,
+        stack_id: card_dto.stack_id,
     };
 
     diesel::insert_into(cards::table)
@@ -89,4 +90,12 @@ pub fn query_create_card(card_dto: &CardDTO, conn: &mut SqliteConnection) -> i32
     select(last_insert_rowid())
         .first(conn)
         .expect("error getting id")
+}
+
+pub fn query_cards_in_stack(conn: &mut SqliteConnection, stack_id: i32) -> Vec<Card> {
+    cards::table
+        .filter(schema::cards::stack_id.eq(stack_id))
+        .order(schema::cards::stack_id)
+        .load(conn)
+        .expect("error loading cards in stack")
 }

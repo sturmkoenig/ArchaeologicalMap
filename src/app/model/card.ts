@@ -12,6 +12,7 @@
 
 import { LatLng } from "leaflet";
 import { ICONS } from "../services/icon.service";
+import { Stack } from "./stack";
 
 export interface CardinalDirection {
   north: number;
@@ -31,6 +32,7 @@ export interface NewCard {
   title: string;
   description: string;
   markers: MarkerLatLng[];
+  stackId?: number;
 }
 
 export interface CardDB {
@@ -38,6 +40,7 @@ export interface CardDB {
   title: string;
   description: string;
   markers: MarkerDB[];
+  stack_id: number;
 }
 
 export interface MarkerDB {
