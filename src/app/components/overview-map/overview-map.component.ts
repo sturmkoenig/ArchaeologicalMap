@@ -15,7 +15,6 @@ import {
 } from "leaflet";
 import { MarkerService } from "../../services/marker.service";
 import { appWindow } from "@tauri-apps/api/window";
-import { W } from "@tauri-apps/api/event-30ea0228";
 
 export interface Compas {
   north: number;
