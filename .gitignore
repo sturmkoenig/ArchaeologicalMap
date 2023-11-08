@@ -2,5 +2,6 @@ node_modules
 .angular
 dist
 src-tauri/target
-.DS_Store
+.DS_Store*
 test.db
+Icon*
