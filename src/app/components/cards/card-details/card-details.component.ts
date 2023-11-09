@@ -218,20 +218,21 @@ export class CardDetailsComponent implements OnInit {
       this.cardDetailsStore.loadStackOfCards(this.cardId);
       this.card$ = this.cardDetailsStore.currentCard$;
       this.card$.subscribe((card) => {
-        console.log(card);
-        invoke("read_card_content", { id: this.cardId.toString() }).then(
-          (res: any) => {
-            let loadedContent: any;
-            if (!res) {
-              this.editor.setContents("");
-            }
-            try {
-              this.editor.setContents(JSON.parse(res));
-            } catch (error) {
-              return;
-            }
+        if (!card) {
+          this.editor.setContents("");
+          return;
+        }
+        this.cardService.getCardContent(card.id).then((res: any) => {
+          let loadedContent: any;
+          if (!res) {
+            this.editor.setContents("");
           }
-        );
+          try {
+            this.editor.setContents(JSON.parse(res));
+          } catch (error) {
+            this.editor.setContents("");
+          }
+        });
       });
     });
 
@@ -241,12 +242,9 @@ export class CardDetailsComponent implements OnInit {
   }
 
   onSaveContent() {
-    invoke("write_card_content", {
-      id: this.cardId.toString(),
-      content: JSON.stringify(this.editor.getContents()),
-    }).then((res) => {
-      this._snackBar.open("Gespeichert!", "💾");
-    });
+    this.cardService
+      .saveCardContent(this.cardId.toString(), this.editor.getContents())
+      .then(() => this._snackBar.open("Gespeichert!", "💾"));
   }
 
   createdEditor(editor: any) {}

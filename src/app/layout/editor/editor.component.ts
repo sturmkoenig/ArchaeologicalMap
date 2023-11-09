@@ -1,6 +1,7 @@
 import { Component, Input, OnInit, EventEmitter, Output } from "@angular/core";
 import Quill, { RangeStatic } from "quill";
 import ImageResize from "quill-image-resize-module";
+import { BehaviorSubject, Observable } from "rxjs";
 
 Quill.register("modules/imageResize", ImageResize);
 
@@ -141,6 +142,8 @@ export class EditorComponent implements OnInit {
   // TODO this is kind of ugly since cardtitlemapping is specialiced. It would be better to extract the titlebar
   @Input()
   cardTitleMapping!: [{ id: number; title: string }];
+  @Output()
+  content: BehaviorSubject<any> = new BehaviorSubject("");
   searchText: string = "";
   carrotPosition?: RangeStatic | null;
 

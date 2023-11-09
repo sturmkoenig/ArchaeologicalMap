@@ -95,4 +95,13 @@ export class CardService {
         invoke("delete_marker", { markerId: marker.id! });
       });
   }
+  saveCardContent(cardId: string, content: any): Promise<any> {
+    return invoke("write_card_content", {
+      id: cardId,
+      content: JSON.stringify(content),
+    });
+  }
+  getCardContent(cardId: number): Promise<any> {
+    return invoke("read_card_content", { id: cardId.toString() });
+  }
 }
