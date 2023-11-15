@@ -72,7 +72,6 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
       return undefined;
     }
     if (state.nextCard) {
-      console.log("HI?");
       return state.nextCard.id;
     }
     return undefined;

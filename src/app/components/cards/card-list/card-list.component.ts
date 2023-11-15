@@ -138,7 +138,7 @@ export class CardListComponent implements OnInit {
       url: "cards/details?id=" + cardId,
     });
     webview.once("tauri://error", function (e) {
-      console.log("window creation error: " + JSON.stringify(e));
+      console.error("window creation error: " + JSON.stringify(e));
     });
   }
 

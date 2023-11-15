@@ -1,18 +1,19 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { invoke } from "@tauri-apps/api";
-import { emit } from "@tauri-apps/api/event";
+import { TauriEvent, emit } from "@tauri-apps/api/event";
 import { CardService } from "src/app/services/card.service";
 
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { Observable } from "rxjs";
+import { BehaviorSubject, Observable, from } from "rxjs";
 import { EditorComponent } from "src/app/layout/editor/editor.component";
 import { CardDB, MarkerDB } from "src/app/model/card";
-import { IconService } from "src/app/services/icon.service";
 import { MarkerService } from "src/app/services/marker.service";
 import { CardDetailsStore } from "src/app/state/card-details.store";
 import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal.component";
+import { CardContentService } from "src/app/services/card-content.service";
+import { WebviewWindow, appWindow } from "@tauri-apps/api/window";
 
 @Component({
   selector: "app-card-details",
@@ -190,7 +191,7 @@ import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal
     `,
   ],
 })
-export class CardDetailsComponent implements OnInit {
+export class CardDetailsComponent implements OnInit, OnDestroy {
   cardId!: number;
   card$!: Observable<CardDB | undefined>;
 
@@ -205,47 +206,43 @@ export class CardDetailsComponent implements OnInit {
     public dialog: MatDialog,
     private _snackBar: MatSnackBar,
     private cardService: CardService,
-    public cardDetailsStore: CardDetailsStore,
-    public iconService: IconService
+    private cardContentService: CardContentService,
+    public cardDetailsStore: CardDetailsStore
   ) {
     this.allCardsInStack$ = this.cardDetailsStore.allCardsInStack$;
   }
 
   async ngOnInit() {
     this.route.queryParams.subscribe((params) => {
-      console.log("queryParams changed!");
+      if (this.editor) {
+        this.cardContentService.cardContent.next(this.editor.getContents());
+      }
       this.cardId = +params["id"];
       this.cardDetailsStore.loadStackOfCards(this.cardId);
       this.card$ = this.cardDetailsStore.currentCard$;
-      this.card$.subscribe((card) => {
-        if (!card) {
-          this.editor.setContents("");
-          return;
-        }
-        this.cardService.getCardContent(card.id).then((res: any) => {
-          let loadedContent: any;
-          if (!res) {
-            this.editor.setContents("");
-          }
-          try {
-            this.editor.setContents(JSON.parse(res));
-          } catch (error) {
-            this.editor.setContents("");
-          }
-        });
-      });
+      this.cardContentService.setCardId(this.cardId);
     });
 
     this.cardService.readCardTitleMapping().then((ctm) => {
       this.cardTitleMapping = ctm;
     });
+    appWindow.onCloseRequested(async () => {
+      this.cardContentService.cardContent.next(this.editor.getContents());
+      await this.cardContentService.saveCardContent();
+    });
+    // window.getCurrent().listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
+    //   alert("Closing window and maybe saving some data :)")
+    // })
+    // appWindow.listen("close", async ({ event, payload }) => {
+    //   await this.cardContentService.setCardId(0);
+    // });
   }
 
-  onSaveContent() {
-    this.cardService
-      .saveCardContent(this.cardId.toString(), this.editor.getContents())
-      .then(() => this._snackBar.open("Gespeichert!", "💾"));
+  async ngOnDestroy() {
+    this.cardContentService.saveCardContent();
   }
+
+  onSaveContent() {}
 
   createdEditor(editor: any) {}
 

@@ -162,7 +162,6 @@ export class FileDropzoneComponent {
   constructor() {}
 
   onFileDropped(fileUrl: string) {
-    console.log("filedropped");
     this.fileUrlEmitter.emit(fileUrl);
   }
 
@@ -190,7 +189,6 @@ export class FileDropzoneComponent {
    */
   deleteFile(index: number) {
     if (this.files[index].progress < 100) {
-      console.log("Upload in progress.");
       return;
     }
     this.files.splice(index, 1);
