@@ -75,10 +75,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "archaological-map:build:production"
+              "buildTarget": "archaological-map:build:production"
             },
             "development": {
-              "browserTarget": "archaological-map:build:development"
+              "buildTarget": "archaological-map:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -86,7 +86,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "archaological-map:build"
+            "buildTarget": "archaological-map:build"
           }
         },
         "test": {
