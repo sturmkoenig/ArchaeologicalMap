@@ -92,10 +92,26 @@ pub fn query_create_card(card_dto: &CardDTO, conn: &mut SqliteConnection) -> i32
         .expect("error getting id")
 }
 
-pub fn query_cards_in_stack(conn: &mut SqliteConnection, stack_id: i32) -> Vec<Card> {
-    cards::table
+pub fn query_cards_in_stack(conn: &mut SqliteConnection, stack_id: i32) -> Vec<CardDTO> {
+    let mut cards = cards::table
         .filter(schema::cards::stack_id.eq(stack_id))
         .order(schema::cards::stack_id)
         .load(conn)
-        .expect("error loading cards in stack")
+        .expect("error loading cards in stack");
+    let markers: Vec<Marker> = marker::table
+        .filter(marker::card_id.eq_any(cards.iter().map(|card: &Card| card.id)))
+        .load(conn)
+        .expect("error loading markers");
+    let mut card_dtos: Vec<CardDTO> = Vec::new();
+    for card in cards {
+        let marker_dtos = markers
+            .iter()
+            .filter(|marker| marker.card_id.eq(&card.id))
+            .map(|marker| marker.clone().into())
+            .collect();
+        let mut card_dto: CardDTO = card.into();
+        card_dto.markers = marker_dtos;
+        card_dtos.push(card_dto);
+    }
+    return card_dtos;
 }

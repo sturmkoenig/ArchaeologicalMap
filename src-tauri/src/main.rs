@@ -257,7 +257,7 @@ fn read_all_stacks() -> Vec<StackDTO> {
 
 // TODO implement methods
 #[tauri::command]
-fn get_cards_in_stack(stack_id: i32) -> Vec<Card> {
+fn get_cards_in_stack(stack_id: i32) -> Vec<CardDTO> {
     let conn = &mut establish_connection();
     query_cards_in_stack(conn, stack_id)
 }

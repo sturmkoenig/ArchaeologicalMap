@@ -230,12 +230,6 @@ export class CardDetailsComponent implements OnInit, OnDestroy {
       this.cardContentService.cardContent.next(this.editor.getContents());
       await this.cardContentService.saveCardContent();
     });
-    // window.getCurrent().listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
-    //   alert("Closing window and maybe saving some data :)")
-    // })
-    // appWindow.listen("close", async ({ event, payload }) => {
-    //   await this.cardContentService.setCardId(0);
-    // });
   }
 
   async ngOnDestroy() {
