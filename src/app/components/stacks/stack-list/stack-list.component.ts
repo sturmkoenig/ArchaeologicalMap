@@ -26,7 +26,7 @@ import { StackStore } from "src/app/state/stack.store";
               src="{{ stack.image_name }}"
             />
             <mat-card-content> </mat-card-content>
-            <mat-card-actions class="card__actions">
+            <!-- <mat-card-actions class="card__actions">
               <button
                 mat-raised-button
                 color="primary"
@@ -34,7 +34,7 @@ import { StackStore } from "src/app/state/stack.store";
               >
                 Ändern
               </button>
-            </mat-card-actions>
+            </mat-card-actions> -->
           </mat-card>
         </div>
         <div>

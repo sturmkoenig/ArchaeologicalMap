@@ -44,10 +44,6 @@ import { StackStore } from "src/app/state/stack.store";
           alt="stack header image"
         />
         <mat-card-content> </mat-card-content>
-        <mat-card-actions>
-          <button mat-button>LIKE</button>
-          <button mat-button>SHARE</button>
-        </mat-card-actions>
       </mat-card>
     </div>
   `,
