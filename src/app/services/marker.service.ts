@@ -1,27 +1,16 @@
-import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import {
-  Bounds,
-  Circle,
-  circleMarker,
-  Icon,
-  LatLng,
-  LatLngBounds,
-  LatLngBoundsExpression,
-  Layer,
-  marker,
-  Marker,
-} from "leaflet";
-import { catchError, Observable, of, switchMap } from "rxjs";
-import { Map } from "leaflet";
-import { CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
-import { CardService } from "./card.service";
+import { Injectable } from "@angular/core";
 import { WebviewWindow } from "@tauri-apps/api/window";
-import { IconService } from "./icon.service";
-import { Router } from "@angular/router";
+import { Circle, Icon, LatLng, LatLngBounds, Layer, Marker } from "leaflet";
+import { from, Observable, switchMap, zip } from "rxjs";
+import { CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
 import { v4 as uuidv4 } from "uuid";
+import { CardService } from "./card.service";
+import { IconService } from "./icon.service";
 
 export interface CardMarkerLayer {
+  card?: CardDB;
+  markerDB: MarkerDB;
   markerId: number;
   marker: Marker;
   radius: Layer | null;
@@ -46,19 +35,28 @@ export class MarkerService {
     });
   }
 
-  getMarkersInArea(directions: CardinalDirection): Promise<CardMarkerLayer[]> {
-    return this.cardService
-      .readMarkersInArea(directions)
-      .then((markersDB: MarkerDB[]) => {
-        let markers: CardMarkerLayer[] = [];
-        markersDB.forEach((markerDB) => {
-          markers.push(this.markerToMapLayer(markerDB));
-        });
-        return markers;
-      });
+  getMarkersInArea(
+    directions: CardinalDirection
+  ): Observable<CardMarkerLayer[]> {
+    return from(this.cardService.readMarkersInArea(directions)).pipe(
+      switchMap((markersDB: MarkerDB[]) => {
+        return zip(
+          /* TODO refactor: 
+            1. filter unique marker.card_id
+            2. fetch all cards
+            3. set  m.card_i==card.id 
+            */
+          markersDB.map((m) =>
+            this.cardService
+              .readCard(m.card_id!)
+              .then((c) => this.markerToMapLayer(m, c))
+          )
+        );
+      })
+    );
   }
 
-  markerToMapLayer(markerDB: MarkerDB): CardMarkerLayer {
+  markerToMapLayer(markerDB: MarkerDB, cardDB: CardDB): CardMarkerLayer {
     let icon = new Icon({
       iconUrl: this.iconService.getIconPath(markerDB.icon_name).toString(),
       iconSize: [20, 20],
@@ -68,20 +66,28 @@ export class MarkerService {
       icon,
       interactive: true,
     });
-    // TODO get card title from cache
-    let title: string =
-      this.cardTitleMapping.find((obj) => obj.id === markerDB.card_id)?.title ??
-      "Kein Titel Vorhanden";
-    const div: HTMLDivElement = createPopupHTML(markerDB, title);
+    const div: HTMLDivElement = createPopupHTML(markerDB, cardDB);
     iconMarker.bindPopup(div);
     if (markerDB.radius !== 0.0) {
       let circle = new Circle([markerDB.latitude, markerDB.longitude], {
         className: "fade-in",
         radius: markerDB.radius,
       });
-      return { markerId: markerDB.id ?? 0, marker: iconMarker, radius: circle };
+      return {
+        card: cardDB,
+        markerDB: markerDB,
+        markerId: markerDB.id ?? 0,
+        marker: iconMarker,
+        radius: circle,
+      };
     } else {
-      return { markerId: markerDB.id ?? 0, marker: iconMarker, radius: null };
+      return {
+        card: cardDB,
+        markerDB: markerDB,
+        markerId: markerDB.id ?? 0,
+        marker: iconMarker,
+        radius: null,
+      };
     }
   }
   getBounds(markers: MarkerDB[]): LatLngBounds {
@@ -96,9 +102,10 @@ export class MarkerService {
   }
 }
 
-function createPopupHTML(marker: MarkerDB, title: string): HTMLDivElement {
+function createPopupHTML(marker: MarkerDB, card: CardDB): HTMLDivElement {
   const div: HTMLDivElement = document.createElement("div");
-  div.innerHTML = `<h3>` + title + `</h3>`;
+  div.innerHTML =
+    `<h3>` + card.title + `</h3>` + `<p>` + card.description + `</p>`;
   const button = document.createElement("button");
   button.innerHTML = "Bearbeiten";
   button.onclick = () => {
@@ -106,7 +113,7 @@ function createPopupHTML(marker: MarkerDB, title: string): HTMLDivElement {
       url: "cards/details?id=" + marker.card_id,
     });
     webview.once("tauri://error", function (e) {
-      console.log("window creation error: " + JSON.stringify(e));
+      console.error("window creation error: " + JSON.stringify(e));
     });
   };
   div.appendChild(button);

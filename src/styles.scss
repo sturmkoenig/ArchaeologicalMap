@@ -3,8 +3,28 @@
 @tailwind utilities;
 
 /* You can add global styles to this file, and also import other style files */
-@import '~quill/dist/quill.snow.css';
+@import "~quill/dist/quill.snow.css";
 
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+.round-button__add {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #5e81ac;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  height: 80px;
+  width: 80px;
+  border-radius: 50%;
+  position: fixed;
+  bottom: 50px;
+  right: 50px;
+  transition: all 1s ease;
+}

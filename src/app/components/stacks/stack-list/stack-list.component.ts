@@ -38,7 +38,7 @@ import { StackStore } from "src/app/state/stack.store";
           </mat-card>
         </div>
         <div>
-          <div class="button-add" (click)="onAddStack()">
+          <div class="round-button__add" (click)="onAddStack()">
             <span class="icon-add material-symbols-outlined"> add </span>
           </div>
         </div>
@@ -76,20 +76,7 @@ import { StackStore } from "src/app/state/stack.store";
       .gridbox > div {
         margin: 6px;
       }
-      .button-add {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: #5e81ac;
-        box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
-        height: 80px;
-        width: 80px;
-        border-radius: 50%;
-        position: fixed;
-        bottom: 50px;
-        right: 50px;
-        transition: all 1s ease;
-      }
+
       .button-add:hover {
         box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 20px;
       }
@@ -121,5 +108,10 @@ export class StackDisplayComponent {
       exitAnimationDuration: "150ms",
     });
   }
-  onUpdateStack(clickedStack: Stack) {}
+  onUpdateStack(clickedStack: Stack) {
+    this.dialog.open(StackCreatorComponent, {
+      enterAnimationDuration: "200ms",
+      exitAnimationDuration: "150ms",
+    });
+  }
 }

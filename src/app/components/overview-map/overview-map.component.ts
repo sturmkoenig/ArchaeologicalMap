@@ -13,34 +13,64 @@ import {
   Marker,
   tileLayer,
 } from "leaflet";
-import { MarkerService } from "../../services/marker.service";
+import { CardMarkerLayer, MarkerService } from "../../services/marker.service";
 import { appWindow } from "@tauri-apps/api/window";
+import { CardDB, MarkerDB } from "src/app/model/card";
 
-export interface Compas {
-  north: number;
-  south: number;
-  west: number;
-  east: number;
+export interface mapCardMarker {
+  card: CardDB;
+  marker: MarkerDB;
+  Layer: Layer;
 }
+
 @Component({
   selector: "app-overview-map",
   template: `
-    <div class="overview-map">
-      <div
-        class="map-container"
-        leaflet
-        [leafletOptions]="options"
-        [leafletLayers]="layers"
-        (leafletMapReady)="onMapReady($event)"
-        (leafletMapMoveEnd)="mapMoveEnded($event)"
-      ></div>
+    <div class="overview-map--container">
+      <div class="overview-map">
+        <div
+          class="map-container"
+          leaflet
+          [leafletOptions]="options"
+          [leafletLayers]="layers"
+          (leafletMapReady)="onMapReady($event)"
+          (leafletMapMoveEnd)="mapMoveEnded($event)"
+        ></div>
+        <!-- <div class="round-button__add button">
+          <span class="icon-add material-symbols-outlined"> add </span>
+        </div> -->
+      </div>
+      <!-- <div class="crud-card--container" *ngClass="{ hidden: false }">
+        @if(currentCard){
+        <div class="crud-card--container__add-card">
+          <app-card-wizzard>
+            <app-card-input></app-card-input>
+          </app-card-wizzard>
+        </div>
+        } @else {
+        <div class="crud-card--container__update-card">
+          <app-card-input [(card)]="currentCard"></app-card-input>
+        </div>
+        }
+      </div> -->
     </div>
   `,
   styles: [
     `
-      .overview-map {
+      .button {
+        z-index: 1000;
+      }
+      .overview-map--container {
+        display: flex;
         height: 100%;
         width: 100%;
+        flex-direction: row;
+      }
+      .crud-card--container {
+        width: 400px;
+      }
+      .overview-map {
+        flex-grow: 1;
         overflow: hidden;
       }
       .fade-in {
@@ -74,6 +104,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   lastFetchedMarkerIds?: number[];
   layerGroup: LayerGroup = new LayerGroup();
   markerIdLayerMap: { id: number; layer: Layer }[] = [];
+  currentCard?: CardDB;
   options: MapOptions = {
     layers: [
       tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -155,8 +186,11 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
         south: bounds.getSouth(),
         west: bounds.getWest(),
       })
-      .then((cardMarkers) => {
-        let newFetchedMarkerIds = cardMarkers.map((marker) => marker.markerId);
+      .subscribe((cardMarkers) => {
+        console.log(cardMarkers);
+        let newFetchedMarkerIds = cardMarkers.map(
+          (marker: CardMarkerLayer) => marker.markerId
+        );
         let markersToAdd: number[];
         let markersToRemove: number[];
         if (this.lastFetchedMarkerIds) {
@@ -179,9 +213,15 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
         );
 
         cardMarkers
-          .filter((marker) => markersToAdd.indexOf(marker.markerId) > -1)
-          .forEach((marker) => {
+          .filter(
+            (marker: CardMarkerLayer) =>
+              markersToAdd.indexOf(marker.markerId) > -1
+          )
+          .forEach((marker: CardMarkerLayer) => {
             this.layerGroup.addLayer(marker.marker);
+            marker.marker.addEventListener("click", () => {
+              console.log(marker.card);
+            });
             this.markerIdLayerMap.push({
               id: marker.markerId,
               layer: marker.marker,

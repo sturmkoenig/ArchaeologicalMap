@@ -59,7 +59,7 @@ import { Stack } from "src/app/model/stack";
       <button
         mat-raised-button
         color="warn"
-        (click)="openDeleteDialog(updatedCard.title, updatedCard.id)"
+        (click)="openDeleteDialog(updatedCard.title, updatedCard.id!)"
       >
         delete
       </button>

@@ -218,6 +218,7 @@ export class CardDetailsComponent implements OnInit, OnDestroy {
         this.cardContentService.cardContent.next(this.editor.getContents());
       }
       this.cardId = +params["id"];
+      console.log(this.cardId);
       this.cardDetailsStore.loadStackOfCards(this.cardId);
       this.card$ = this.cardDetailsStore.currentCard$;
       this.cardContentService.setCardId(this.cardId);

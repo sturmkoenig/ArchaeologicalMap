@@ -99,6 +99,7 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
     combineLatest([
       cardId$.pipe(
         switchMap((cardId) => {
+          console.log(cardId);
           return this.cardService.readCard(cardId);
         })
       ),
@@ -106,8 +107,21 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
     ]).pipe(
       switchMap(([card, currentStackId]) => {
         if (currentStackId && currentStackId === card.stack_id) {
-          this.updateCurrentCard(card.id);
+          this.updateCurrentCard(card.id!);
           return of();
+        }
+        if (currentStackId === 0) {
+          return of(
+            this.setAllCards({
+              status: status.loaded,
+              previousCard: undefined,
+              nextCard: undefined,
+              currentStackId: 0,
+              currentCardIndex: 0,
+              currentCard: card,
+              cardsInStack: [card],
+            })
+          );
         }
         return from(this.cardService.getAllCardsForStack(card.stack_id)).pipe(
           tap({

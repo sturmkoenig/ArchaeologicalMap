@@ -53,7 +53,7 @@ import { RandomCardsService } from "src/app/services/random-cards.service";
             <button
               mat-raised-button
               color="accent"
-              (click)="goToDetailsPage(card.id, card.title)"
+              (click)="goToDetailsPage(card.id!, card.title)"
             >
               Info-Seite öffnen
             </button>

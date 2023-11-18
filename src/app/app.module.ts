@@ -53,6 +53,7 @@ import { DndDirective } from "./util/file-dropzone/dnd.directive";
 import { FileDropzoneComponent } from "./util/file-dropzone/file-dropzone.component";
 import { CardService } from "./services/card.service";
 import { ComponentStore } from "@ngrx/component-store";
+import { CardInputComponent } from "./components/cards/card-input/card-input.component";
 
 @NgModule({
   declarations: [
@@ -64,6 +65,7 @@ import { ComponentStore } from "@ngrx/component-store";
     CardWizzardComponent,
     CardListComponent,
     CardDetailsComponent,
+    CardInputComponent,
     CardListItemComponent,
     PositionPickerComponent,
     CardUpdateModalComponent,

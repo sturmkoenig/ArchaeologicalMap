@@ -36,7 +36,7 @@ export interface NewCard {
 }
 
 export interface CardDB {
-  id: number;
+  id?: number;
   title: string;
   description: string;
   markers: MarkerDB[];
@@ -46,6 +46,7 @@ export interface CardDB {
 export interface MarkerDB {
   id?: number;
   card_id?: number;
+  card?: CardDB;
   longitude: number;
   latitude: number;
   radius: number;
