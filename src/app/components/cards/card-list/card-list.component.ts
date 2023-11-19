@@ -17,6 +17,13 @@ import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ICONS, IconService } from "src/app/services/icon.service";
 import { RandomCardsService } from "src/app/services/random-cards.service";
+import {
+  animate,
+  state,
+  style,
+  transition,
+  trigger,
+} from "@angular/animations";
 
 @Component({
   selector: "app-card-list",
@@ -40,30 +47,88 @@ import { RandomCardsService } from "src/app/services/random-cards.service";
           <mat-icon>close</mat-icon>
         </button>
       </mat-form-field>
-      <ng-container *ngFor="let card of allCards | async">
-        <mat-card>
-          <mat-card-header>
-            <mat-card-title>{{ card.title }}</mat-card-title>
-            <mat-card-subtitle>{{ card.description }}</mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-actions>
-            <button mat-button color="primary" (click)="openUpdateDialog(card)">
-              Bearbeiten
-            </button>
+      <table mat-table [dataSource]="allCards" multiTemplateDataRows>
+        <ng-container matColumnDef="title">
+          <th mat-header-cell *matHeaderCellDef>Title</th>
+          <td mat-cell *matCellDef="let element">
+            <b>{{ element.title }}</b>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="description">
+          <th mat-header-cell *matHeaderCellDef>Description</th>
+          <td mat-cell *matCellDef="let element">{{ element.description }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="expand">
+          <th mat-header-cell *matHeaderCellDef aria-label="row actions">
+            &nbsp;
+          </th>
+          <td mat-cell *matCellDef="let element">
             <button
-              mat-raised-button
-              color="accent"
-              (click)="goToDetailsPage(card.id!, card.title)"
+              mat-icon-button
+              aria-label="expand row"
+              (click)="
+                expandedElement = expandedElement === element ? null : element;
+                $event.stopPropagation()
+              "
             >
-              Info-Seite öffnen
+              @if (expandedElement === element) {
+              <mat-icon>keyboard_arrow_up</mat-icon>
+              } @else {
+              <mat-icon>keyboard_arrow_down</mat-icon>
+              }
             </button>
-          </mat-card-actions>
-        </mat-card>
-        <br />
-      </ng-container>
+          </td>
+
+          <ng-container matColumnDef="expandedDetail">
+            <td
+              mat-cell
+              *matCellDef="let element"
+              [attr.colspan]="columnsToDisplayWithExpand.length"
+            >
+              <div
+                class="expanded-card--actions"
+                [@detailExpand]="
+                  element == expandedElement ? 'expanded' : 'collapsed'
+                "
+              >
+                <button
+                  mat-button
+                  color="primary"
+                  (click)="openUpdateDialog(element)"
+                >
+                  Bearbeiten
+                </button>
+                <button
+                  mat-raised-button
+                  color="accent"
+                  (click)="goToDetailsPage(element.id!, element.title)"
+                >
+                  Info-Seite öffnen
+                </button>
+              </div>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="columnsToDisplayWithExpand"></tr>
+          <tr
+            mat-row
+            *matRowDef="let element; columns: columnsToDisplayWithExpand"
+            class="card-row"
+            [class.expanded-row]="expandedElement === element"
+            (click)="
+              expandedElement = expandedElement === element ? null : element
+            "
+          ></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: ['expandedDetail']"
+            class="card-detail-row"
+          ></tr>
+        </ng-container>
+      </table>
       <mat-paginator
         [length]="numCards"
-        [pageSizeOptions]="[20]"
+        [pageSizeOptions]="[1000]"
         [pageIndex]="pageIndex"
         (page)="changePage($event)"
         aria-label="Select page"
@@ -71,13 +136,28 @@ import { RandomCardsService } from "src/app/services/random-cards.service";
       </mat-paginator>
     </div>
   `,
+  animations: [
+    trigger("detailExpand", [
+      state("collapsed,void", style({ height: "0px", minHeight: "0" })),
+      state("expanded", style({ height: "*" })),
+      transition(
+        "expanded <=> collapsed",
+        animate("225ms cubic-bezier(0.4, 0.0, 0.2, 1)")
+      ),
+    ]),
+  ],
   styles: [
     `
       button {
         margin: 0.2rem;
       }
+
+      .card-row td {
+        border-bottom-width: 0;
+      }
+
       .list-container {
-        padding: 2rem;
+        padding-top: 2rem;
         display: flex;
         flex-direction: column;
       }
@@ -85,6 +165,23 @@ import { RandomCardsService } from "src/app/services/random-cards.service";
         z-index: 1000;
         max-width: 400px;
         margin-bottom: 8px;
+      }
+      tr {
+        padding-left: 10px;
+      }
+      tr:nth-child(even) {
+        background-color: white;
+      }
+      tr.card-detail-row {
+        height: 0;
+      }
+
+      tr.card-row:not(.expanded-row):hover {
+        background: whitesmoke;
+      }
+
+      tr.card-row:not(.expanded-row):active {
+        background: #efefef;
       }
     `,
   ],
@@ -95,6 +192,9 @@ export class CardListComponent implements OnInit {
   filter: string = "";
   modelChanged: Subject<string> = new Subject<string>();
   subscription!: Subscription;
+  displayedColumns: String[] = ["title", "description"];
+  columnsToDisplayWithExpand = [...this.displayedColumns, "expand"];
+  expandedElement: CardDB | null;
   debounceTime = 500;
   pageIndex: number = 0;
 
@@ -109,6 +209,7 @@ export class CardListComponent implements OnInit {
       .getNumberOfCards()
       .then((count) => (this.numCards = count));
     this.allCards = from(this.cardService.readCardsPaginated(0, ""));
+    this.expandedElement = null;
   }
 
   ngOnInit(): void {

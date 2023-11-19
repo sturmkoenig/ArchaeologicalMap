@@ -107,7 +107,7 @@ function createPopupHTML(marker: MarkerDB, card: CardDB): HTMLDivElement {
   div.innerHTML =
     `<h3>` + card.title + `</h3>` + `<p>` + card.description + `</p>`;
   const button = document.createElement("button");
-  button.innerHTML = "Bearbeiten";
+  button.innerHTML = "Info-Seite Zeigen";
   button.onclick = () => {
     const webview = new WebviewWindow(uuidv4(), {
       url: "cards/details?id=" + marker.card_id,

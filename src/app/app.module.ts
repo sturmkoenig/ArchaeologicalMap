@@ -24,6 +24,7 @@ import { MatMenuModule } from "@angular/material/menu";
 import { MatPaginatorModule } from "@angular/material/paginator";
 import { MatSelectModule } from "@angular/material/select";
 import { MatSliderModule } from "@angular/material/slider";
+import { MatTableModule } from "@angular/material/table";
 
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 
@@ -103,6 +104,7 @@ import { CardInputComponent } from "./components/cards/card-input/card-input.com
     MatFormFieldModule,
     MatCheckboxModule,
     MatSliderModule,
+    MatTableModule,
     MatPaginatorModule,
     MatMenuModule,
     LeafletModule,

@@ -18,7 +18,7 @@ pub fn query_cards_paginated(
     filter: String,
 ) -> Vec<Card> {
     // TODO sensible page size
-    let page_size = 20;
+    let page_size = 1000;
     cards::table
         .order_by(title)
         .limit(page_size)
