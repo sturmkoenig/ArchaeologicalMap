@@ -20,6 +20,7 @@ import { WebviewWindow, appWindow } from "@tauri-apps/api/window";
   template: `
     <div class="card-details-component-container">
       <div class="card-details-side-nav">
+        @if(currentStackId$ | async){
         <ng-container
           *ngFor="let card of cardDetailsStore.allCardsInStack$ | async"
         >
@@ -31,6 +32,7 @@ import { WebviewWindow, appWindow } from "@tauri-apps/api/window";
             >{{ card.title }}
           </span>
         </ng-container>
+        }
       </div>
       <div class="card-details-container">
         <ng-container *ngIf="card$ | async as card">
@@ -199,6 +201,7 @@ export class CardDetailsComponent implements OnInit, OnDestroy {
   editor!: EditorComponent;
   cardTitleMapping!: [{ id: number; title: string }];
   allCardsInStack$: Observable<CardDB[]>;
+  currentStackId$: Observable<number | undefined>;
 
   constructor(
     private route: ActivatedRoute,
@@ -210,6 +213,8 @@ export class CardDetailsComponent implements OnInit, OnDestroy {
     public cardDetailsStore: CardDetailsStore
   ) {
     this.allCardsInStack$ = this.cardDetailsStore.allCardsInStack$;
+    this.currentStackId$ = this.cardDetailsStore.currentStackId$;
+    this.card$ = this.cardDetailsStore.currentCard$;
   }
 
   async ngOnInit() {
@@ -218,9 +223,7 @@ export class CardDetailsComponent implements OnInit, OnDestroy {
         this.cardContentService.cardContent.next(this.editor.getContents());
       }
       this.cardId = +params["id"];
-      console.log(this.cardId);
       this.cardDetailsStore.loadStackOfCards(this.cardId);
-      this.card$ = this.cardDetailsStore.currentCard$;
       this.cardContentService.setCardId(this.cardId);
     });
 

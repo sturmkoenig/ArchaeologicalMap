@@ -111,14 +111,6 @@ export class CardListComponent implements OnInit {
     this.allCards = from(this.cardService.readCardsPaginated(0, ""));
   }
 
-  addThousandRandomEntities() {
-    for (let i = 0; i < 1000; i++) {
-      let newRandomCard: NewCard =
-        this.randomCardService.generateRandomEntity();
-      this.cardService.createCard(newRandomCard);
-    }
-  }
-
   ngOnInit(): void {
     this.subscription = this.modelChanged
       .pipe(debounceTime(this.debounceTime))

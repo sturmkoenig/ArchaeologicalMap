@@ -40,16 +40,16 @@ export interface mapCardMarker {
           <span class="icon-add material-symbols-outlined"> add </span>
         </div> -->
       </div>
-      <!-- <div class="crud-card--container" *ngClass="{ hidden: false }">
-        @if(currentCard){
+      <!-- <div class="crud-card--container">
+        @if(!currentCard){
         <div class="crud-card--container__add-card">
-          <app-card-wizzard>
-            <app-card-input></app-card-input>
-          </app-card-wizzard>
+          <app-card-input [(card)]="newCard"></app-card-input>
+          <p>hi</p>
         </div>
         } @else {
         <div class="crud-card--container__update-card">
           <app-card-input [(card)]="currentCard"></app-card-input>
+          <p>ho</p>
         </div>
         }
       </div> -->
@@ -104,6 +104,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   lastFetchedMarkerIds?: number[];
   layerGroup: LayerGroup = new LayerGroup();
   markerIdLayerMap: { id: number; layer: Layer }[] = [];
+  newCard?: CardDB;
   currentCard?: CardDB;
   options: MapOptions = {
     layers: [

@@ -12,7 +12,7 @@ export enum status {
 export type CardDetailsState =
   | {
       status: status.loaded;
-      currentStackId: number;
+      currentStackId?: number;
       previousCard?: CardDB;
       currentCard: CardDB;
       nextCard?: CardDB;
@@ -79,7 +79,7 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
 
   readonly currentStackId$ = this.select((state) => {
     if (state.status === status.loading) {
-      return null;
+      return undefined;
     } else {
       return state.currentStackId;
     }
@@ -95,34 +95,30 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
     };
   });
 
-  readonly loadStackOfCards = this.effect((cardId$: Observable<number>) =>
-    combineLatest([
-      cardId$.pipe(
-        switchMap((cardId) => {
-          console.log(cardId);
-          return this.cardService.readCard(cardId);
-        })
-      ),
-      this.currentStackId$,
-    ]).pipe(
+  readonly loadStackOfCards = this.effect((cardId$: Observable<number>) => {
+    let card$ = cardId$.pipe(
+      switchMap((cardId) => {
+        return this.cardService.readCard(cardId);
+      })
+    );
+    return combineLatest([card$, this.currentStackId$]).pipe(
       switchMap(([card, currentStackId]) => {
-        if (currentStackId && currentStackId === card.stack_id) {
-          this.updateCurrentCard(card.id!);
-          return of();
-        }
-        if (currentStackId === 0) {
+        if (!card.stack_id) {
           return of(
             this.setAllCards({
               status: status.loaded,
-              previousCard: undefined,
-              nextCard: undefined,
-              currentStackId: 0,
               currentCardIndex: 0,
               currentCard: card,
               cardsInStack: [card],
             })
           );
         }
+
+        if (currentStackId && currentStackId === card.stack_id) {
+          this.updateCurrentCard(card.id!);
+          return of();
+        }
+
         return from(this.cardService.getAllCardsForStack(card.stack_id)).pipe(
           tap({
             next: (allCardsInStack) => {
@@ -150,8 +146,8 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
           })
         );
       })
-    )
-  );
+    );
+  });
 
   readonly updateCurrentCard = this.updater((state, cardId: number) => {
     if (state.status === status.loading) {
