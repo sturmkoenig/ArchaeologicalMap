@@ -1,19 +1,18 @@
-import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
-import { invoke } from "@tauri-apps/api";
-import { TauriEvent, emit } from "@tauri-apps/api/event";
+import { emit } from "@tauri-apps/api/event";
 import { CardService } from "src/app/services/card.service";
 
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { BehaviorSubject, Observable, from } from "rxjs";
+import { appWindow } from "@tauri-apps/api/window";
+import { Observable } from "rxjs";
 import { EditorComponent } from "src/app/layout/editor/editor.component";
 import { CardDB, MarkerDB } from "src/app/model/card";
+import { CardContentService } from "src/app/services/card-content.service";
 import { MarkerService } from "src/app/services/marker.service";
 import { CardDetailsStore } from "src/app/state/card-details.store";
 import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal.component";
-import { CardContentService } from "src/app/services/card-content.service";
-import { WebviewWindow, appWindow } from "@tauri-apps/api/window";
 
 @Component({
   selector: "app-card-details",
@@ -94,11 +93,6 @@ import { WebviewWindow, appWindow } from "@tauri-apps/api/window";
     </div>
     <div class="container">
       <app-editor [cardTitleMapping]="cardTitleMapping"></app-editor>
-      <span class="button-row">
-        <button mat-raised-button color="accent" (click)="onSaveContent()">
-          save content
-        </button>
-      </span>
     </div>
   `,
   styles: [
@@ -187,13 +181,10 @@ import { WebviewWindow, appWindow } from "@tauri-apps/api/window";
         display: flex;
         flex-direction: column;
       }
-      .button-row {
-        margin: 10px;
-      }
     `,
   ],
 })
-export class CardDetailsComponent implements OnInit, OnDestroy {
+export class CardDetailsComponent implements OnInit {
   cardId!: number;
   card$!: Observable<CardDB | undefined>;
 
@@ -235,14 +226,6 @@ export class CardDetailsComponent implements OnInit, OnDestroy {
       await this.cardContentService.saveCardContent();
     });
   }
-
-  async ngOnDestroy() {
-    this.cardContentService.saveCardContent();
-  }
-
-  onSaveContent() {}
-
-  createdEditor(editor: any) {}
 
   panToLatLng(marker: MarkerDB[]) {
     if (marker === null) {
@@ -287,9 +270,5 @@ export class CardDetailsComponent implements OnInit, OnDestroy {
           this._snackBar.open("Änderungen gespeichert!", "💾");
         }
       });
-  }
-
-  onClickBackward() {
-    throw new Error("Method not implemented.");
   }
 }
