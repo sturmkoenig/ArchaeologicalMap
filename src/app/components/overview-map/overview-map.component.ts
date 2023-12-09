@@ -1,21 +1,24 @@
 import { listen } from "@tauri-apps/api/event";
 import { AfterViewInit, Component, OnInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
+import { listen } from "@tauri-apps/api/event";
+import { appWindow } from "@tauri-apps/api/window";
 import {
   Icon,
   LatLng,
   latLng,
   LatLngBounds,
+  LatLngBoundsExpression,
   Layer,
   LayerGroup,
   Map,
   MapOptions,
   Marker,
+  latLng,
   tileLayer,
 } from "leaflet";
 import { CardMarkerLayer, MarkerService } from "../../services/marker.service";
-import { appWindow } from "@tauri-apps/api/window";
-import { CardDB, MarkerDB } from "src/app/model/card";
+import { SettingService } from "src/app/services/setting.service";
 
 export interface mapCardMarker {
   card: CardDB;
@@ -124,7 +127,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
 
   constructor(
     private markerService: MarkerService,
-    private route: ActivatedRoute
+    private settingsService: SettingService
   ) {
     listen("panTo", (event: any) => {
       let point: LatLng = new LatLng(event.payload.lat, event.payload.lng);
@@ -276,7 +279,18 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     }
   }
 
-  ngOnInit(): void {
+  async ngOnInit() {
+    this.settingsService
+      .loadMapBoundingBox()
+      .then((boundingBox: LatLngBoundsExpression | undefined) => {
+        if (boundingBox) {
+          this.map.fitBounds(boundingBox);
+        }
+      });
     appWindow.setTitle("map");
+    appWindow.onCloseRequested(async () => {
+      // persist card postion here
+      await this.settingsService.saveMapBoundingBox(this.map.getBounds());
+    });
   }
 }
