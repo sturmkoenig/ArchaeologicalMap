@@ -1,22 +1,3 @@
-import { Component, OnInit, Output, EventEmitter } from "@angular/core";
-import { WebviewWindow } from "@tauri-apps/api/window";
-import { invoke, tauri } from "@tauri-apps/api";
-import {
-  Observable,
-  Subject,
-  Subscription,
-  debounceTime,
-  from,
-  throwError,
-} from "rxjs";
-import { CardDB, NewCard } from "src/app/model/card";
-import { CardService } from "src/app/services/card.service";
-import { PageEvent } from "@angular/material/paginator";
-import { MatDialog } from "@angular/material/dialog";
-import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal.component";
-import { MatSnackBar } from "@angular/material/snack-bar";
-import { ICONS, IconService } from "src/app/services/icon.service";
-import { RandomCardsService } from "src/app/services/random-cards.service";
 import {
   animate,
   state,
@@ -24,6 +5,16 @@ import {
   transition,
   trigger,
 } from "@angular/animations";
+import { Component, OnInit } from "@angular/core";
+import { MatDialog } from "@angular/material/dialog";
+import { PageEvent } from "@angular/material/paginator";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { WebviewWindow } from "@tauri-apps/api/window";
+import { Observable, Subject, Subscription, debounceTime, from } from "rxjs";
+import { CardDB } from "src/app/model/card";
+import { CardService } from "src/app/services/card.service";
+import { IconService } from "src/app/services/icon.service";
+import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal.component";
 
 @Component({
   selector: "app-card-list",
@@ -202,8 +193,7 @@ export class CardListComponent implements OnInit {
     private cardService: CardService,
     public dialog: MatDialog,
     public iconService: IconService,
-    private _snackBar: MatSnackBar,
-    private randomCardService: RandomCardsService
+    private _snackBar: MatSnackBar
   ) {
     this.cardService
       .getNumberOfCards()
