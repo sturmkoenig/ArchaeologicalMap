@@ -10,10 +10,13 @@ use app::models::CardDTO;
 use app::models::CardTitleMapping;
 use app::models::Marker;
 use app::models::MarkerDTO;
+use app::models::NewMarker;
 use app::models::NewStack;
 use app::models::Stack;
 use app::models::StackDTO;
+use app::schema::marker;
 use app::schema::stack;
+use diesel::SqliteConnection;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use persistence::cards::query_all_cards;
 use persistence::cards::query_card_by_id;
@@ -52,13 +55,14 @@ fn main() {
             read_card,
             read_cards,
             read_cards_paginated,
-            read_markers_in_area,
             update_card,
             count_cards,
             write_card_content,
             read_card_content,
             cache_card_names,
             delete_card,
+            create_marker,
+            read_markers_in_area,
             delete_marker,
             create_stack,
             update_stack,
@@ -137,13 +141,14 @@ fn read_card(id: i32) -> CardDTO {
 }
 
 #[tauri::command]
-fn create_card(card: CardDTO) {
+fn create_card(card: CardDTO) -> CardDTO {
     let conn = &mut establish_connection();
     let card_id = query_create_card(&card, conn);
 
     for marker in card.markers.iter() {
-        query_create_marker(conn, card_id, marker)
+        query_create_marker(conn, card_id, marker);
     }
+    read_card(card_id)
 }
 
 // TODO may be moved to frontend
@@ -171,6 +176,9 @@ fn write_card_content(app_handle: tauri::AppHandle, id: String, content: String)
     fs::write(content_dir, content).expect("error opening file");
 }
 
+// updates card. Markers send with the card are updated as well when they have an id.
+// If the send marker has no id, it will be created. If a marker is missing from the card
+// it is not deleted!
 #[tauri::command]
 fn update_card(card: CardDTO) -> bool {
     let conn = &mut establish_connection();
@@ -186,23 +194,34 @@ fn update_card(card: CardDTO) -> bool {
             stack_id: card.stack_id,
         },
     );
-    for marker in card.markers.iter() {
+    create_markers_from_marker_dtos(card.id.unwrap(), card.markers, conn);
+
+    return true;
+}
+
+fn create_markers_from_marker_dtos(
+    card_id: i32,
+    markers: Vec<MarkerDTO>,
+    conn: &mut SqliteConnection,
+) {
+    for marker in markers.iter() {
         match marker.id {
             Some(id) => query_update_marker(
                 conn,
                 Marker {
                     id: id,
-                    card_id: card.id.unwrap(),
+                    card_id: card_id,
                     latitude: marker.latitude,
                     longitude: marker.longitude,
                     radius: marker.radius,
                     icon_name: marker.icon_name.clone(),
                 },
             ),
-            None => query_create_marker(conn, card.id.unwrap(), marker),
+            None => {
+                let _ = query_create_marker(conn, card_id, marker);
+            }
         }
     }
-    return true;
 }
 
 #[tauri::command]
@@ -273,4 +292,11 @@ fn update_stack(updated_stack: Stack) -> Stack {
     let conn = &mut establish_connection();
     query_update_stack(conn, &updated_stack)
 }
+
+#[tauri::command]
+fn create_marker(new_marker: MarkerDTO, card_id: i32) -> Marker {
+    let conn = &mut establish_connection();
+    query_create_marker(conn, card_id, &new_marker)
+}
+
 fn add_card_to_stack(card_id: i32, stack_id: i32) {}

@@ -40,7 +40,7 @@ export interface CardDB {
   title: string;
   description: string;
   markers: MarkerDB[];
-  stack_id: number;
+  stack_id?: number;
 }
 
 export interface MarkerDB {

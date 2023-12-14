@@ -55,6 +55,7 @@ import { FileDropzoneComponent } from "./util/file-dropzone/file-dropzone.compon
 import { CardService } from "./services/card.service";
 import { ComponentStore } from "@ngrx/component-store";
 import { CardInputComponent } from "./components/cards/card-input/card-input.component";
+import { MarkerInputComponent } from "./components/markers/marker-input/marker-input.component";
 
 @NgModule({
   declarations: [
@@ -77,6 +78,7 @@ import { CardInputComponent } from "./components/cards/card-input/card-input.com
     StackDisplayComponent,
     FileDropzoneComponent,
     DndDirective,
+    MarkerInputComponent,
     StackDetailsComponent,
   ],
   imports: [

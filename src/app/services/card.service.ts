@@ -14,12 +14,11 @@ import {
 })
 export class CardService {
   getAllCardsForStack(stack_id: number): Promise<CardDB[]> {
-    console.log(stack_id);
     return invoke("get_cards_in_stack", { stackId: stack_id });
   }
 
-  createCard(newCard: NewCard): void {
-    invoke("create_card", {
+  createCard(newCard: NewCard): Promise<CardDB> {
+    return invoke("create_card", {
       card: {
         title: newCard.title,
         description: newCard.description,
@@ -65,7 +64,7 @@ export class CardService {
       .then((res) => JSON.parse(res));
   }
 
-  updateCard(updateCard: CardDB, markers?: MarkerLatLng[]) {
+  updateCard(updateCard: CardDB, markers?: MarkerDB[]) {
     // TODO update position
     invoke("update_card", {
       card: {

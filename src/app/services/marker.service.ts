@@ -7,6 +7,7 @@ import { CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
 import { v4 as uuidv4 } from "uuid";
 import { CardService } from "./card.service";
 import { IconService } from "./icon.service";
+import { invoke } from "@tauri-apps/api";
 
 export interface CardMarkerLayer {
   card?: CardDB;
@@ -54,6 +55,10 @@ export class MarkerService {
         );
       })
     );
+  }
+
+  createNewMarker(cardId: number, newMarker: MarkerDB): Promise<MarkerDB> {
+    return invoke("create_marker", { newMarker: newMarker, cardId: cardId });
   }
 
   markerToMapLayer(markerDB: MarkerDB, cardDB: CardDB): CardMarkerLayer {

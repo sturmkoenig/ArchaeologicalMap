@@ -1,14 +1,19 @@
 use app::{
+    last_insert_rowid,
     models::{Marker, MarkerDTO, NewMarker},
     schema::{
         self,
         marker::{self, latitude, longitude},
     },
 };
-use diesel::prelude::*;
-use diesel::SqliteConnection;
+use diesel::{prelude::*, QueryDsl};
+use diesel::{select, SqliteConnection};
 
-pub fn query_create_marker(conn: &mut SqliteConnection, card_id: i32, marker_dto: &MarkerDTO) {
+pub fn query_create_marker(
+    conn: &mut SqliteConnection,
+    card_id: i32,
+    marker_dto: &MarkerDTO,
+) -> Marker {
     let marker: NewMarker = NewMarker {
         card_id: card_id,
         latitude: marker_dto.latitude,
@@ -20,7 +25,22 @@ pub fn query_create_marker(conn: &mut SqliteConnection, card_id: i32, marker_dto
     diesel::insert_into(marker::table)
         .values(&marker)
         .execute(conn)
-        .expect("error creating marker");
+        .expect("error creating new marker");
+
+    let marker_id: i32 = select(last_insert_rowid())
+        .first(conn)
+        .expect("error getting id of newly created marker");
+
+    let created_marker = marker::table
+        .filter(marker::id.eq(marker_id))
+        .first::<Marker>(conn)
+        .expect("error reading newly created marker from db");
+
+    return created_marker;
+    // match created_marker {
+    // Ok(marker) => return Some(marker),
+    // Err(E) => return None;
+    // }
 }
 
 pub fn query_all_markers(conn: &mut SqliteConnection) -> Vec<Marker> {

@@ -19,18 +19,32 @@ import { NgForm } from "@angular/forms";
   selector: "app-card-input",
   template: `
     @if(this.card){
-    <form #cardInput class="card-input">
+    <form class="card-input">
       <mat-form-field>
         <mat-label>Title:</mat-label>
-        <input matInput [(ngModel)]="card.title" />
+        <input
+          matInput
+          [ngModel]="card.title"
+          (ngModelChange)="onTitleChange($event)"
+          [ngModelOptions]="{ standalone: true }"
+        />
       </mat-form-field>
       <mat-form-field>
         <mat-label>Beschreibung:</mat-label>
-        <input matInput [(ngModel)]="card.description" />
+        <input
+          matInput
+          [ngModel]="card.description"
+          (ngModelChange)="onDescriptionChange($event)"
+          [ngModelOptions]="{ standalone: true }"
+        />
       </mat-form-field>
       <mat-form-field>
         <mat-label>Stapel:</mat-label>
-        <mat-select [(ngModel)]="card.stack_id" name="food">
+        <mat-select
+          [value]="card.stack_id"
+          (valueChange)="onStackIdChange($event)"
+          name="stack"
+        >
           <mat-option *ngFor="let stack of stacks$ | async" [value]="stack.id">
             {{ stack.name }}
           </mat-option>
@@ -43,9 +57,8 @@ import { NgForm } from "@angular/forms";
         .card-input {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
-        padding: 1rem;
-      }`,
+        }
+      `,
 })
 export class CardInputComponent implements OnChanges {
   @Input()
@@ -63,10 +76,26 @@ export class CardInputComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    console.log("card input");
+    console.log(this.card);
     if (this.card && this.cardForm) {
       this.cardForm.valueChanges?.subscribe((val) => {
         this.cardChange.emit(this.card);
       });
     }
+  }
+  onStackIdChange(newStackId: any) {
+    this.card!.stack_id = newStackId;
+    this.cardChange.emit(this.card);
+  }
+
+  onTitleChange(newTitle: string) {
+    this.card!.title = newTitle;
+    this.cardChange.emit(this.card);
+  }
+
+  onDescriptionChange(newDescription: string) {
+    this.card!.description = newDescription;
+    this.cardChange.emit(this.card);
   }
 }
