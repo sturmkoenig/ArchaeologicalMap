@@ -28,7 +28,8 @@ use persistence::cards::query_create_card;
 use persistence::cards::query_delete_card;
 use persistence::cards::query_update_card;
 use persistence::markers::query_create_marker;
-use persistence::markers::query_delet_marker;
+use persistence::markers::query_delete_all_markers_for_card;
+use persistence::markers::query_delete_marker;
 use persistence::markers::query_join_markers;
 use persistence::markers::query_markers_in_geological_area;
 use persistence::markers::query_update_marker;
@@ -234,12 +235,13 @@ fn count_cards() -> i64 {
 fn delete_card(id: i32) {
     let conn = &mut establish_connection();
     query_delete_card(conn, id);
+    query_delete_all_markers_for_card(conn, id);
 }
 
 #[tauri::command]
 fn delete_marker(marker_id: i32) {
     let conn = &mut establish_connection();
-    query_delet_marker(conn, marker_id);
+    query_delete_marker(conn, marker_id);
 }
 
 #[tauri::command]

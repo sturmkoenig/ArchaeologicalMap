@@ -57,8 +57,12 @@ pub fn query_update_marker(conn: &mut SqliteConnection, updated_marker: Marker) 
         .expect("Error while updating marker");
 }
 
-pub fn query_delet_marker(conn: &mut SqliteConnection, marker_id: i32) {
+pub fn query_delete_marker(conn: &mut SqliteConnection, marker_id: i32) {
     diesel::delete(marker::table.filter(schema::marker::id.eq(marker_id))).execute(conn);
+}
+
+pub fn query_delete_all_markers_for_card(conn: &mut SqliteConnection, card_id: i32) {
+    diesel::delete(marker::table.filter(schema::marker::card_id.eq(card_id))).execute(conn);
 }
 
 pub fn query_markers_in_geological_area(

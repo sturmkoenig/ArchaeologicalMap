@@ -119,11 +119,10 @@ import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal
         flex-direction: column;
         flex-grow: 0;
         height: 100%;
-        overflow: scroll;
+        overflow: auto;
 
         span {
           border-radius: 3px;
-          height: 2rem;
           padding: 0.6rem;
         }
         span:nth-child(odd) {

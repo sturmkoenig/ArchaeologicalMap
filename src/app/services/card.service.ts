@@ -81,10 +81,13 @@ export class CardService {
     return invoke("count_cards", {});
   }
 
-  deleteCard(id: number) {
-    invoke("delete_card", {
+  deleteCard(id: number): Promise<any> {
+    return invoke("delete_card", {
       id: id,
     }).then(() => console.log("card deleted"));
+  }
+  deleteMarker(markerId: number): Promise<any> {
+    return invoke("delete_marker", { markerId: markerId });
   }
 
   deleteMarkers(removedMarkers: MarkerDB[]) {

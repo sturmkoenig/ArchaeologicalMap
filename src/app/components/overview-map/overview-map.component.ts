@@ -39,7 +39,7 @@ export interface mapCardMarker {
           [leafletOptions]="options"
           [leafletLayers]="layers"
           (leafletMapReady)="onMapReady($event)"
-          (leafletMapMoveEnd)="mapMoveEnded($event)"
+          (leafletMapMoveEnd)="mapMoveEnded()"
         ></div>
       </div>
       @if(selectedMarkerMap) {
@@ -70,7 +70,7 @@ export interface mapCardMarker {
                 color="accent"
                 (click)="onAddNewMarkerToCard()"
               >
-                + Neuer Marker
+                Neuer Marker
               </button>
 
               <button
@@ -80,6 +80,13 @@ export interface mapCardMarker {
               >
                 Marker bewegen
               </button>
+              <button
+                mat-raised-button
+                color="warn"
+                (click)="onDeleteSelectedMarker()"
+              >
+                Marker Loeschen
+              </button>
             </span>
             <button
               mat-raised-button
@@ -87,6 +94,13 @@ export interface mapCardMarker {
               (click)="onGoToInfoPage()"
             >
               Info Seite
+            </button>
+            <button
+              mat-raised-button
+              color="warn"
+              (click)="onDeleteSelectedCard()"
+            >
+              Karte Löschen
             </button>
           </span>
         </div>
@@ -147,8 +161,10 @@ export interface mapCardMarker {
         align-items: center;
         padding: 2rem;
         &__buttons {
+          width: 70%;
           &--marker-options {
             display: flex;
+            // flex-wrap: wrap;
             gap: 10px;
           }
           display: flex;
@@ -178,7 +194,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   position?: LatLng;
   highligtedMarkerIds?: number[];
   previousMarkersInAreaIds?: number[];
-  layerGroup: LayerGroup = new LayerGroup();
+  mainLayerGroup: LayerGroup = new LayerGroup();
   radiusLayerGroup: LayerGroup = new LayerGroup();
   mapMarkerIdToLayer: { id: number; layer: Layer }[] = [];
   newCard?: CardDB;
@@ -284,6 +300,37 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     // this.selectedMarkerMap = {card: newCard, marker: }
   }
 
+  async onDeleteSelectedCard() {
+    if (!this.selectedMarkerMap?.card || !this.selectedMarkerMap.card.id) {
+      throw new Error("no card exists");
+    }
+    await this.cardService
+      .deleteCard(this.selectedMarkerMap.card.id)
+      .then(() => {
+        this.reloadMainLayerGroup();
+      });
+  }
+  reloadMainLayerGroup() {
+    this.previousMarkersInAreaIds = [];
+    this.map.removeLayer(this.mainLayerGroup);
+    this.mainLayerGroup = new LayerGroup();
+    this.map.addLayer(this.mainLayerGroup);
+    this.mapMoveEnded();
+  }
+
+  async onDeleteSelectedMarker() {
+    if (!this.selectedMarkerMap || !this.selectedMarkerMap.markerDB.id) {
+      throw new Error("marker does not exist");
+    }
+
+    await this.cardService
+      .deleteMarker(this.selectedMarkerMap!.markerDB.id)
+      .then(() => {
+        this.reloadMainLayerGroup();
+      });
+    this.selectedMarkerMap = undefined;
+  }
+
   updateSelectedMarker() {
     if (this.selectedMarkerMap === undefined) {
       return;
@@ -302,9 +349,11 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
       throw new Error("Selected marker not in markers!");
     }
     this.selectedMarkerMap = newLayerMap;
-    this.layerGroup.removeLayer(this.mapMarkerIdToLayer[selectedIndex].layer);
+    this.mainLayerGroup.removeLayer(
+      this.mapMarkerIdToLayer[selectedIndex].layer
+    );
     this.mapMarkerIdToLayer[selectedIndex].layer = newLayerMap.marker;
-    this.layerGroup.addLayer(newLayerMap.marker);
+    this.mainLayerGroup.addLayer(newLayerMap.marker);
     this.updateRadiusLayerGroup(newLayerMap.radius);
     this.addRadiusLayer(newLayerMap.radius);
     this.cardService.updateCard(this.selectedMarkerMap!.card!, [
@@ -381,13 +430,13 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     this.cardService.updateCard(newCard, []);
     this.previousMarkersInAreaIds = [];
     this.mapMarkerIdToLayer = [];
-    this.mapMoveEnded(undefined);
+    this.mapMoveEnded();
   }
 
   onMapReady(map: Map) {
     this.map = map;
     this.zoom = map.getZoom();
-    this.map.addLayer(this.layerGroup);
+    this.map.addLayer(this.mainLayerGroup);
   }
 
   mapChanged(emittedMap: Map) {
@@ -396,14 +445,14 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
 
   addRadiusLayer(radius: Layer | null) {
     if (radius !== null) {
-      this.layerGroup.addLayer(radius);
+      this.mainLayerGroup.addLayer(radius);
     }
   }
 
   makeNewMapElement(cardMarkerLayer: CardMarkerLayer) {
-    this.layerGroup.addLayer(cardMarkerLayer.marker);
+    this.mainLayerGroup.addLayer(cardMarkerLayer.marker);
     cardMarkerLayer.marker.addEventListener("click", () => {
-      this.ngZone.run(() => this.updateSelectedMarkerMap(cardMarkerLayer));
+      this.ngZone.run(() => this.changeSelectedMarkerMap(cardMarkerLayer));
     });
 
     this.mapMarkerIdToLayer.push({
@@ -419,7 +468,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
 
   removeRadiuslayer(radius: Layer | null) {
     if (radius !== null) {
-      this.layerGroup.removeLayer(radius);
+      this.mainLayerGroup.removeLayer(radius);
     }
   }
 
@@ -428,39 +477,41 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     marker.on("mouseout", (e) => this.removeRadiuslayer(radius));
   }
 
-  updateSelectedMarkerMap(selectedMarker: CardMarkerLayer) {
-    // reset old marker to conventional layer
+  changeSelectedMarkerMap(selectedMarker: CardMarkerLayer) {
+    // // reset old marker to conventional layer
     if (this.selectedMarkerMap) {
       this.map.removeLayer(this.radiusLayerGroup);
       this.radiusLayerGroup = new LayerGroup();
       this.map.addLayer(this.radiusLayerGroup);
-      this.layerGroup.removeLayer(this.selectedMarkerMap.marker);
+      this.mainLayerGroup.removeLayer(this.selectedMarkerMap.marker);
       this.makeNewMapElement(this.selectedMarkerMap);
+      this.mapMoveEnded();
     }
 
     // add special
     this.selectedMarkerMap = selectedMarker;
     if (this.selectedMarkerMap?.radius) {
-      this.layerGroup.removeLayer(this.selectedMarkerMap.marker);
-      this.layerGroup.removeLayer(this.selectedMarkerMap.radius);
+      this.mainLayerGroup.removeLayer(this.selectedMarkerMap.marker);
+      this.mainLayerGroup.removeLayer(this.selectedMarkerMap.radius);
       this.selectedMarkerMap.marker.off("mouseover");
       this.selectedMarkerMap.marker.off("mouseout");
       this.updateRadiusLayerGroup(this.selectedMarkerMap?.radius);
-      this.layerGroup.addLayer(this.selectedMarkerMap.marker);
+      this.mainLayerGroup.addLayer(this.selectedMarkerMap.marker);
     }
   }
 
-  mapMoveEnded($event: any) {
+  mapMoveEnded() {
     let bounds = this.map.getBounds();
 
     if (this.map.getZoom() < 7) {
-      this.map.removeLayer(this.layerGroup);
-      this.layerGroup = new LayerGroup();
-      this.map.addLayer(this.layerGroup);
+      this.map.removeLayer(this.mainLayerGroup);
+      this.mainLayerGroup = new LayerGroup();
+      this.map.addLayer(this.mainLayerGroup);
       this.previousMarkersInAreaIds = [];
       this.mapMarkerIdToLayer = [];
       return;
     }
+
     this.markerService
       .getMarkersInArea({
         north: bounds.getNorth(),
@@ -469,6 +520,9 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
         west: bounds.getWest(),
       })
       .subscribe((currentMarkersInArea) => {
+        console.log(
+          currentMarkersInArea.forEach((curr) => console.log(curr.card))
+        );
         let currentMarkersInAreaIds = currentMarkersInArea.map(
           (marker: CardMarkerLayer) => marker.markerId
         );
@@ -482,7 +536,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
         this.mapMarkerIdToLayer
           .filter((markerMap) => markerIdsToRemove.indexOf(markerMap.id) > -1)
           .forEach((markerMap) => {
-            this.layerGroup.removeLayer(markerMap.layer);
+            this.mainLayerGroup.removeLayer(markerMap.layer);
           });
 
         this.mapMarkerIdToLayer = this.mapMarkerIdToLayer.filter(
