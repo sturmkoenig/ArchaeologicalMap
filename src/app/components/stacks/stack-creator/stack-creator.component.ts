@@ -68,10 +68,11 @@ export class StackCreatorComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
     private stackStore: StackStore,
-    private changeDetectorRef: ChangeDetectorRef
+    private changeDetectorRef: ChangeDetectorRef,
+    private ngZone: NgZone
   ) {
     listen("tauri://file-drop", (event) => {
-      this.fileBrowseHandler(event);
+      this.ngZone.run(() => this.fileBrowseHandler(event));
     });
   }
 
