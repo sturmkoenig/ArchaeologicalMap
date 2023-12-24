@@ -122,6 +122,9 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
         return from(this.cardService.getAllCardsForStack(card.stack_id)).pipe(
           tap({
             next: (allCardsInStack) => {
+              allCardsInStack.sort((card, nextCard) =>
+                card.title.localeCompare(nextCard.title)
+              );
               let currentCardIndex: number = allCardsInStack.findIndex(
                 (x) => x.id === card.id
               );
