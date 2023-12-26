@@ -305,6 +305,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
           this.map.off("click");
           this.cursorStyle = undefined;
         });
+        this.reloadMainLayerGroup();
       });
     });
     // this.selectedMarkerMap = {card: newCard, marker: }
