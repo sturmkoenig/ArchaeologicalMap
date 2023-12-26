@@ -81,7 +81,6 @@ export class MarkerInputComponent {
   }
 
   onChangeCircleRadius(newRadius: number) {
-    console.log("new radius: " + newRadius);
     this.setRadius(newRadius);
   }
 

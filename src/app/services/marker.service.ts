@@ -110,7 +110,7 @@ export class MarkerService {
 function createPopupHTML(marker: MarkerDB, card: CardDB): HTMLDivElement {
   const div: HTMLDivElement = document.createElement("div");
   div.innerHTML =
-    `<h3>` + card.title + `</h3>` + `<p>` + card.description + `</p>`;
+    `<h4>` + card.title + `</h4>` + `<p>` + card.description + `</p>`;
   const button = document.createElement("button");
   button.innerHTML = "Info-Seite Zeigen";
   button.onclick = () => {

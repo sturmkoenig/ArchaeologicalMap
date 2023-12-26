@@ -37,7 +37,6 @@ export class CardContentService {
       EMPTY;
       return firstValueFrom(of("hi from empty save"));
     }
-    console.log(this.currentCardId.getValue());
     return invoke("write_card_content", {
       id: this.currentCardId.getValue().toString(),
       content: JSON.stringify(this.cardContent.getValue()),

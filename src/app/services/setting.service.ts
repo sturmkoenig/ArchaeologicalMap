@@ -16,7 +16,6 @@ export class SettingService {
   constructor() {}
 
   async saveMapBoundingBox(latLngBounds: LatLngBoundsExpression) {
-    console.log(latLngBounds);
     fs.writeFile(this.mapSettingsFileName, JSON.stringify(latLngBounds), {
       dir: BaseDirectory.AppData,
     });

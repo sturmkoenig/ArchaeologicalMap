@@ -24,7 +24,6 @@ export class StackStore extends ComponentStore<StackState> {
 
   readonly loadStacks = this.effect(() => {
     return from(this.stackService.getAll()).pipe(
-      tap((stacks) => console.log(stacks)),
       tap((stacks: Stack[]) => {
         for (let stack of stacks) {
           this.getImageUrl(stack.image_name).then((imageUrl) => {

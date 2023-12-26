@@ -42,14 +42,23 @@ export interface mapCardMarker {
           (leafletMapMoveEnd)="mapMoveEnded()"
         ></div>
       </div>
-      @if(selectedMarkerMap) {
+      @if(selectedMarkerMap) { @if(!updateCardVisible){
+      <div
+        class="round-button__add button"
+        (click)="updateCardVisible = !updateCardVisible"
+      >
+        <span color="accent" class="icon-add material-symbols-outlined">
+          update
+        </span>
+      </div>
+      } @else {
       <div class="crud-card--container">
         <div class="crud-card--container__toggle">
           <button
             mat-fab
             color="primary"
             aria-label="Example icon button with a delete icon"
-            (click)="selectedMarkerMap = undefined"
+            (click)="selectedMarkerMap = undefined; updateCardVisible = false"
           >
             <mat-icon>arrow_forward_ios </mat-icon>
           </button>
@@ -105,7 +114,7 @@ export interface mapCardMarker {
           </span>
         </div>
       </div>
-      } @else {
+      } } @else {
       <div class="round-button__add button" (click)="onAddNewCard()">
         <span class="icon-add material-symbols-outlined"> add </span>
       </div>
@@ -196,6 +205,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   previousMarkersInAreaIds?: number[];
   mainLayerGroup: LayerGroup = new LayerGroup();
   radiusLayerGroup: LayerGroup = new LayerGroup();
+  selectedLayerGroup: LayerGroup = new LayerGroup();
   mapMarkerIdToLayer: { id: number; layer: Layer }[] = [];
   newCard?: CardDB;
   selectedMarkerMap?: CardMarkerLayer;
@@ -215,13 +225,13 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   };
   public map!: Map;
   public zoom!: number;
+  updateCardVisible: boolean = false;
 
   constructor(
     private markerService: MarkerService,
     private route: ActivatedRoute,
     private ngZone: NgZone,
     private settingsService: SettingService,
-    private iconService: IconService,
     private cardService: CardService
   ) {
     listen("panTo", (event: any) => {
@@ -310,6 +320,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
         this.reloadMainLayerGroup();
       });
   }
+
   reloadMainLayerGroup() {
     this.previousMarkersInAreaIds = [];
     this.map.removeLayer(this.mainLayerGroup);
@@ -331,34 +342,12 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     this.selectedMarkerMap = undefined;
   }
 
-  updateSelectedMarker() {
-    if (this.selectedMarkerMap === undefined) {
-      return;
-    }
-
-    let newLayerMap: CardMarkerLayer = this.markerService.markerToMapLayer(
-      this.selectedMarkerMap.markerDB,
-      this.selectedMarkerMap.card!
-    );
-
-    let selectedIndex = this.mapMarkerIdToLayer.findIndex(
-      (x) => x.id === this.selectedMarkerMap!.markerDB.id
-    );
-
-    if (selectedIndex === -1) {
-      throw new Error("Selected marker not in markers!");
-    }
-    this.selectedMarkerMap = newLayerMap;
-    this.mainLayerGroup.removeLayer(
-      this.mapMarkerIdToLayer[selectedIndex].layer
-    );
-    this.mapMarkerIdToLayer[selectedIndex].layer = newLayerMap.marker;
-    this.mainLayerGroup.addLayer(newLayerMap.marker);
-    this.updateRadiusLayerGroup(newLayerMap.radius);
-    this.addRadiusLayer(newLayerMap.radius);
-    this.cardService.updateCard(this.selectedMarkerMap!.card!, [
-      this.selectedMarkerMap!.markerDB,
-    ]);
+  async updateSelectedMarker() {
+    await this.cardService
+      .updateCard(this.selectedMarkerMap!.card!, [
+        this.selectedMarkerMap!.markerDB,
+      ])
+      .then(() => this.reloadMainLayerGroup());
   }
 
   onMoveExistingMarker() {
@@ -478,25 +467,22 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   }
 
   changeSelectedMarkerMap(selectedMarker: CardMarkerLayer) {
-    // // reset old marker to conventional layer
-    if (this.selectedMarkerMap) {
-      this.map.removeLayer(this.radiusLayerGroup);
-      this.radiusLayerGroup = new LayerGroup();
-      this.map.addLayer(this.radiusLayerGroup);
-      this.mainLayerGroup.removeLayer(this.selectedMarkerMap.marker);
-      this.makeNewMapElement(this.selectedMarkerMap);
-      this.mapMoveEnded();
-    }
-
+    this.reloadMainLayerGroup();
     // add special
+    this.map.removeLayer(this.selectedLayerGroup);
+    this.selectedLayerGroup = new LayerGroup();
+    this.map.addLayer(this.selectedLayerGroup);
+    selectedMarker.marker
+      .addTo(this.selectedLayerGroup)
+      .setOpacity(0)
+      .openPopup();
+
     this.selectedMarkerMap = selectedMarker;
     if (this.selectedMarkerMap?.radius) {
-      this.mainLayerGroup.removeLayer(this.selectedMarkerMap.marker);
       this.mainLayerGroup.removeLayer(this.selectedMarkerMap.radius);
       this.selectedMarkerMap.marker.off("mouseover");
       this.selectedMarkerMap.marker.off("mouseout");
       this.updateRadiusLayerGroup(this.selectedMarkerMap?.radius);
-      this.mainLayerGroup.addLayer(this.selectedMarkerMap.marker);
     }
   }
 
@@ -520,9 +506,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
         west: bounds.getWest(),
       })
       .subscribe((currentMarkersInArea) => {
-        console.log(
-          currentMarkersInArea.forEach((curr) => console.log(curr.card))
-        );
         let currentMarkersInAreaIds = currentMarkersInArea.map(
           (marker: CardMarkerLayer) => marker.markerId
         );

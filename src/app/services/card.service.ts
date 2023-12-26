@@ -64,9 +64,9 @@ export class CardService {
       .then((res) => JSON.parse(res));
   }
 
-  updateCard(updateCard: CardDB, markers?: MarkerDB[]) {
+  updateCard(updateCard: CardDB, markers?: MarkerDB[]): Promise<boolean> {
     // TODO update position
-    invoke("update_card", {
+    return invoke("update_card", {
       card: {
         id: updateCard.id,
         title: updateCard.title,

@@ -76,8 +76,6 @@ export class CardInputComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log("card input");
-    console.log(this.card);
     if (this.card && this.cardForm) {
       this.cardForm.valueChanges?.subscribe((val) => {
         this.cardChange.emit(this.card);
