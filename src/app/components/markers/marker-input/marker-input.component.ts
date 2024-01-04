@@ -6,9 +6,7 @@ import {
   Output,
   SimpleChanges,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
 import { MarkerDB } from "src/app/model/card";
-import { Marker } from "leaflet";
 import { ICONS, IconService, iconsSorted } from "src/app/services/icon.service";
 import { MatSelectChange } from "@angular/material/select";
 import { MatCheckboxChange } from "@angular/material/checkbox";
@@ -73,6 +71,7 @@ import { MatCheckboxChange } from "@angular/material/checkbox";
 
 mat-button-toggle-group {
   margin-left: 12px;
+  margin-bottom: 20px;
 }
   
   `,

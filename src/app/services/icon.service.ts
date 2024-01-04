@@ -13,6 +13,9 @@ export enum ICONS {
   iconBurialMoundBlack = "assets/icons/burial_mound_black.svg",
   iconBurialMoundRed = "assets/icons/burial_mound_red.svg ",
   iconBurialMoundSpecial = "assets/icons/burial_mound_special.svg",
+  iconFieldOfBurialMoundsBlack = "assets/icons/field_of_burial_mounds_black.svg",
+  iconFieldOfBurialMoundsRed = "assets/icons/field_of_burial_mounds_red.svg",
+  iconFieldOfBurialMoundsSpecial = "assets/icons/field_of_burial_mounds_special.svg",
   iconMiscBlack = "assets/icons/misc_black.svg",
   iconMiscRed = "assets/icons/misc_red.svg",
   iconMiscSpecial = "assets/icons/misc_special.png",
@@ -51,70 +54,38 @@ export enum ICONS {
   iconMonumentMiscBlack = "assets/icons/monument_misc_black.svg",
   iconMonumentMiscRed = "assets/icons/monument_misc_red.svg",
   iconMonumentMiscSpecial = "assets/icons/monument_misc_special.svg",
-  iconMuseumBlack = "assets/icons/museum_black.svg",
-  iconMuseumRed = "assets/icons/museum_red.svg",
-  iconMuseumSpecial = "assets/icons/museum_special.svg",
   iconMonumentBlack = "assets/icons/monument_black.svg",
   iconMonumentRed = "assets/icons/monument_red.svg",
   iconMonumentSpecial = "assets/icons/monument_special.svg",
   iconChristianBlack = "assets/icons/christian_black.svg",
   iconChristianRed = "assets/icons/christian_red.svg",
   iconChristianSpecial = "assets/icons/christian_special.svg",
-  // "assets/icons/field_of_burial_mounds_special.svg"
+  iconMuseumBlack = "assets/icons/museum_black.svg",
+  iconMuseumRed = "assets/icons/museum_red.svg",
+  iconMuseumSpecial = "assets/icons/museum_special.svg",
 }
 
 export const iconsSorted = {
-  iconBorderLimes: [
-    ICONS.iconBorderLimesRed,
-    ICONS.iconBorderLimesBlack,
-    ICONS.iconBorderLimesSpecial,
-  ],
-  iconMonument: [
-    ICONS.iconMonumentRed,
-    ICONS.iconMonumentBlack,
-    ICONS.iconMonumentSpecial,
-  ],
+  iconCave: [ICONS.iconCaveRed, ICONS.iconCaveBlack, ICONS.iconCaveSpecial],
   iconPaintedCave: [
     ICONS.iconPaintedCaveRed,
     ICONS.iconPaintedCaveBlack,
     ICONS.iconPaintedCaveSpecial,
+  ],
+  iconMegalithicTombstone: [
+    ICONS.iconMegalithicTombstoneRed,
+    ICONS.iconMegalithicTombstoneBlack,
+    ICONS.iconMegalithicTombstoneSpecial,
   ],
   iconBurialMound: [
     ICONS.iconBurialMoundRed,
     ICONS.iconBurialMoundBlack,
     ICONS.iconBurialMoundSpecial,
   ],
-  iconCave: [ICONS.iconCaveRed, ICONS.iconCaveBlack, ICONS.iconCaveSpecial],
-  iconPetroglyph: [
-    ICONS.iconPetroglyphRed,
-    ICONS.iconPetroglyphBlack,
-    ICONS.iconPetroglyphSpecial,
-  ],
-  iconChristianChurch: [
-    ICONS.iconChristianChurchRed,
-    ICONS.iconChristianChurchBlack,
-    ICONS.iconChristianChurchSpecial,
-  ],
-  iconRoman: [ICONS.iconRomanRed, ICONS.iconRomanBlack, ICONS.iconRomanSpecial],
-  iconChurch: [
-    ICONS.iconChurchRed,
-    ICONS.iconChurchBlack,
-    // ICONS.iconChurchSpecial,
-  ],
-  iconRomanSettlement: [
-    ICONS.iconRomanSettlementRed,
-    ICONS.iconRomanSettlementBlack,
-    ICONS.iconRomanSettlementSpecial,
-  ],
-  iconRomanSettlementMilitary: [
-    ICONS.iconRomanSettlementMilitaryRed,
-    ICONS.iconRomanSettlementMilitaryBlack,
-    ICONS.iconRomanSettlementMilitarySpecial,
-  ],
-  iconFortifiedSettlement: [
-    ICONS.iconFortifiedSettlementRed,
-    ICONS.iconFortifiedSettlementBlack,
-    ICONS.iconFortifiedSettlementSpecial,
+  iconFieldOfBurialMounds: [
+    ICONS.iconFieldOfBurialMoundsRed,
+    ICONS.iconFieldOfBurialMoundsBlack,
+    ICONS.iconFieldOfBurialMoundsSpecial,
   ],
   iconMisc: [ICONS.iconMiscRed, ICONS.iconMiscBlack, ICONS.iconMiscSpecial],
   iconMiscCarved: [
@@ -122,35 +93,71 @@ export const iconsSorted = {
     ICONS.iconMiscCarvedBlack,
     ICONS.iconMiscCarvedSpecial,
   ],
+  iconRoman: [ICONS.iconRomanRed, ICONS.iconRomanBlack, ICONS.iconRomanSpecial],
   iconRuneStone: [
     ICONS.iconRuneStoneRed,
     ICONS.iconRuneStoneBlack,
     ICONS.iconRuneStoneSpecial,
+  ],
+  iconChristianChurch: [
+    ICONS.iconChristianChurchRed,
+    ICONS.iconChristianChurchBlack,
+    ICONS.iconChristianChurchSpecial,
+  ],
+  iconPetroglyph: [
+    ICONS.iconPetroglyphRed,
+    ICONS.iconPetroglyphBlack,
+    ICONS.iconPetroglyphSpecial,
+  ],
+  iconFortifiedSettlement: [
+    ICONS.iconFortifiedSettlementRed,
+    ICONS.iconFortifiedSettlementBlack,
+    ICONS.iconFortifiedSettlementSpecial,
+  ],
+  iconRomanSettlementMilitary: [
+    ICONS.iconRomanSettlementMilitaryRed,
+    ICONS.iconRomanSettlementMilitaryBlack,
+    ICONS.iconRomanSettlementMilitarySpecial,
+  ],
+  iconRomanSettlement: [
+    ICONS.iconRomanSettlementRed,
+    ICONS.iconRomanSettlementBlack,
+    ICONS.iconRomanSettlementSpecial,
+  ],
+  iconBorderLimes: [
+    ICONS.iconBorderLimesRed,
+    ICONS.iconBorderLimesBlack,
+    ICONS.iconBorderLimesSpecial,
+  ],
+  iconChurch: [
+    ICONS.iconChurchRed,
+    ICONS.iconChurchBlack,
+    // ICONS.iconChurchSpecial,
   ],
   iconSingleMonument: [
     ICONS.iconSingleMonumentRed,
     ICONS.iconSingleMonumentBlack,
     ICONS.iconSingleMonumentSpecial,
   ],
-  iconMonumentMisc: [
-    ICONS.iconMonumentMiscRed,
-    ICONS.iconMonumentMiscBlack,
-    ICONS.iconMonumentMiscSpecial,
-  ],
   iconChristian: [
     ICONS.iconChristianRed,
     ICONS.iconChristianBlack,
     ICONS.iconChristianSpecial,
   ],
+  iconMonumentMisc: [
+    ICONS.iconMonumentMiscRed,
+    ICONS.iconMonumentMiscBlack,
+    ICONS.iconMonumentMiscSpecial,
+  ],
+  iconMonument: [
+    ICONS.iconMonumentRed,
+    ICONS.iconMonumentBlack,
+    ICONS.iconMonumentSpecial,
+  ],
   iconMuseum: [
     ICONS.iconMuseumRed,
     ICONS.iconMuseumBlack,
     ICONS.iconMuseumSpecial,
-  ],
-  iconMegalithicTombstone: [
-    ICONS.iconMegalithicTombstoneRed,
-    ICONS.iconMegalithicTombstoneBlack,
-    ICONS.iconMegalithicTombstoneSpecial,
   ],
 };
 

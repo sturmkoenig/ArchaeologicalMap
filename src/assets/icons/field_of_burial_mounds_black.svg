@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="55.64043mm"
+   height="55.708618mm"
+   viewBox="0 0 55.640431 55.708618"
+   version="1.1"
+   id="svg5"
+   xml:space="preserve"
+   inkscape:version="1.2 (dc2aeda, 2022-05-15)"
+   sodipodi:docname="field_of_burial_mounds_special.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.37511246"
+     inkscape:cx="1464.894"
+     inkscape:cy="313.2394"
+     inkscape:window-width="3440"
+     inkscape:window-height="1323"
+     inkscape:window-x="1512"
+     inkscape:window-y="25"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" /><defs
+     id="defs2" /><g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-17.735936,-182.85185)"><ellipse
+       style="fill:#ffffff;fill-opacity:1;stroke-width:0.284353"
+       id="path4748-6-6-5"
+       cx="45.551426"
+       cy="210.7697"
+       rx="27.790764"
+       ry="27.790766"
+       inkscape:export-filename="../../ArchaeologicalMap/ArchaeologicalMap/src/assets/icons/field_of_burial_mounds_black.svg"
+       inkscape:export-xdpi="91.39727"
+       inkscape:export-ydpi="91.39727" /><path
+       style="fill:#000000;stroke-width:0.340914"
+       d="M 40.689254,238.19632 C 27.733716,235.58096 18.653315,225.3037 17.794836,212.28429 c -0.860197,-13.04559 7.780866,-24.99724 20.72509,-28.66534 3.609333,-1.02281 10.453686,-1.02281 14.063017,0 16.621207,4.71007 25.22792,22.48152 18.490034,38.17886 -3.258629,7.59168 -10.268756,13.6354 -18.390013,15.85482 -3.414615,0.93316 -8.84502,1.17933 -11.99371,0.54369 z m 25.759221,-11.24305 c 0,-0.34568 -20.732777,-43.97434 -20.897046,-43.97434 -0.164269,0 -20.897034,43.62866 -20.897034,43.97434 0,0.096 9.403664,0.17446 20.897034,0.17446 11.49337,0 20.897046,-0.0784 20.897046,-0.17446 z"
+       id="path4892-9" /></g></svg>
