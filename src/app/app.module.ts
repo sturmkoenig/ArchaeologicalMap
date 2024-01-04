@@ -2,6 +2,7 @@ import { NgModule } from "@angular/core";
 import { BrowserModule } from "@angular/platform-browser";
 
 import { DragDropModule } from "@angular/cdk/drag-drop";
+import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import { HttpClientModule } from "@angular/common/http";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
@@ -39,7 +40,6 @@ import { CardDetailsComponent } from "./components/cards/card-details/card-detai
 import { CardListComponent } from "./components/cards/card-list/card-list.component";
 import { CardDeleteDialogComponent } from "./components/cards/card-update-modal/card-delete-dialog/card-delete-dialog.component";
 import { CardUpdateModalComponent } from "./components/cards/card-update-modal/card-update-modal.component";
-import { CardWizzardComponent } from "./components/cards/card-wizzard/card-wizzard.component";
 import { PositionPickerComponent } from "./components/cards/card-wizzard/position-picker/position-picker.component";
 import { StackCreatorComponent } from "./components/stacks/stack-creator/stack-creator.component";
 import { StackDetailsComponent } from "./components/stacks/stack-details/stack-details.component";
@@ -64,7 +64,6 @@ import { MarkerInputComponent } from "./components/markers/marker-input/marker-i
     MapComponent,
     ToolbarComponent,
     SidebarComponent,
-    CardWizzardComponent,
     CardListComponent,
     CardDetailsComponent,
     CardInputComponent,
@@ -97,6 +96,7 @@ import { MarkerInputComponent } from "./components/markers/marker-input/marker-i
     MatDividerModule,
     HttpClientModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatCardModule,
     MatSelectModule,
     MatInputModule,
