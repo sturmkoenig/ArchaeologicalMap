@@ -1,8 +1,15 @@
-import { Component, EventEmitter, Input, Output } from "@angular/core";
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MarkerDB } from "src/app/model/card";
 import { Marker } from "leaflet";
-import { ICONS } from "src/app/services/icon.service";
+import { ICONS, IconService, iconsSorted } from "src/app/services/icon.service";
 import { MatSelectChange } from "@angular/material/select";
 import { MatCheckboxChange } from "@angular/material/checkbox";
 
@@ -32,13 +39,23 @@ import { MatCheckboxChange } from "@angular/material/checkbox";
             (selectionChange)="setIcon($event)"
           >
             <mat-option
-              *ngFor="let iconOption of icons | keyvalue"
+              *ngFor="let iconOption of iconsSorted | keyvalue"
               [value]="iconOption.key"
             >
-              <img class="option-icon" src="{{ iconOption.value }}" />
+              <img class="option-icon" src="{{ iconOption.value[1] }}" />
             </mat-option>
           </mat-select>
         </mat-form-field>
+        @if(this.selectedIconCategory){
+        <mat-button-toggle-group name="fontStyle" aria-label="Font Style">
+          <mat-button-toggle
+            *ngFor="let icon of iconsSorted[selectedIconCategory]; index as i"
+            (click)="setIconVariant(i)"
+          >
+            <img class="option-icon" src="{{ icon }}" />
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+        }
       </div>
     </div>
     }
@@ -53,10 +70,14 @@ import { MatCheckboxChange } from "@angular/material/checkbox";
           height: 2rem;
           width: 2rem;
         }
+
+mat-button-toggle-group {
+  margin-left: 12px;
+}
   
   `,
 })
-export class MarkerInputComponent {
+export class MarkerInputComponent implements OnChanges {
   @Input()
   marker?: MarkerDB;
   @Output()
@@ -64,14 +85,46 @@ export class MarkerInputComponent {
   @Output()
   markerMove: EventEmitter<boolean> = new EventEmitter();
   icons = ICONS;
+  iconsSorted = iconsSorted;
   icon: keyof typeof ICONS = "iconMiscBlack";
+  variant: number = 1;
+  selectedIconCategory!: keyof typeof iconsSorted;
+  constructor(public iconService: IconService) {}
 
-  onAdd() {
-    throw new Error("Method not implemented.");
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log(changes);
+    if (!changes["marker"]) {
+      return;
+    }
+    let currentIconCategory = changes["marker"].currentValue.icon_name;
+    if (currentIconCategory.match("Red")) {
+      this.selectedIconCategory = currentIconCategory.replace("Red", "");
+      this.variant = 0;
+    } else if (currentIconCategory.match("Black")) {
+      this.selectedIconCategory = currentIconCategory.replace("Black", "");
+      this.variant = 1;
+    }
+  }
+
+  getIconNameByPath(iconPath: ICONS) {
+    return Object.keys(ICONS)[Object.values(ICONS).indexOf(iconPath)];
   }
 
   setIcon(newIcon: MatSelectChange) {
-    this.marker!.icon_name = newIcon.value;
+    console.log(newIcon);
+    this.selectedIconCategory = newIcon.value;
+    let iconName: any = this.getIconNameByPath(
+      iconsSorted[this.selectedIconCategory][this.variant]
+    );
+    this.marker!.icon_name = iconName;
+    this.markerChange.emit(this.marker);
+  }
+  setIconVariant(newVariant: number) {
+    this.variant = newVariant;
+    let iconName: any = this.getIconNameByPath(
+      iconsSorted[this.selectedIconCategory][this.variant]
+    );
+    this.marker!.icon_name = iconName;
     this.markerChange.emit(this.marker);
   }
 
