@@ -222,6 +222,7 @@ export class CardListComponent implements OnInit {
     });
     webview.once("tauri://error", function (e) {
       console.error("window creation error: " + JSON.stringify(e));
+      webview.emit("set-focus-to");
     });
   }
 

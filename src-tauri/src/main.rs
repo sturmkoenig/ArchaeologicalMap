@@ -35,6 +35,7 @@ use persistence::markers::query_markers_in_geological_area;
 use persistence::markers::query_update_marker;
 use persistence::stacks::query_all_stacks;
 use persistence::stacks::query_create_stack;
+use persistence::stacks::query_delete_stack;
 use persistence::stacks::query_update_stack;
 use tauri::api::path::app_cache_dir;
 
@@ -67,6 +68,7 @@ fn main() {
             delete_marker,
             create_stack,
             update_stack,
+            delete_stack,
             read_all_stacks,
             get_cards_in_stack
         ])
@@ -302,3 +304,10 @@ fn create_marker(new_marker: MarkerDTO, card_id: i32) -> Marker {
 }
 
 fn add_card_to_stack(card_id: i32, stack_id: i32) {}
+
+#[tauri::command]
+fn delete_stack(stack_id: i32) -> Option<bool> {
+    let conn = &mut establish_connection();
+    query_delete_stack(conn, stack_id);
+    Some(true)
+}

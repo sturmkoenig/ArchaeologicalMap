@@ -1,7 +1,6 @@
 import { AfterViewInit, Component, NgZone, OnInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
-import { listen } from "@tauri-apps/api/event";
-import { v4 as uuidv4 } from "uuid";
+import { emit, listen } from "@tauri-apps/api/event";
 import { WebviewWindow, appWindow } from "@tauri-apps/api/window";
 import {
   LatLng,
@@ -16,10 +15,9 @@ import {
   tileLayer,
 } from "leaflet";
 import { CardDB, MarkerDB } from "src/app/model/card";
-import { CardMarkerLayer, MarkerService } from "../../services/marker.service";
-import { SettingService } from "src/app/services/setting.service";
-import { IconService } from "src/app/services/icon.service";
 import { CardService } from "src/app/services/card.service";
+import { SettingService } from "src/app/services/setting.service";
+import { CardMarkerLayer, MarkerService } from "../../services/marker.service";
 
 export interface mapCardMarker {
   card: CardDB;
@@ -234,23 +232,26 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     private settingsService: SettingService,
     private cardService: CardService
   ) {
-    listen("panTo", (event: any) => {
-      let point: LatLng = new LatLng(event.payload.lat, event.payload.lng);
-      this.highligtedMarkerIds = [event.payload.id];
+    listen("panTo", (panToEvent: any) => {
+      let point: LatLng = new LatLng(
+        panToEvent.payload.lat,
+        panToEvent.payload.lng
+      );
+      this.highligtedMarkerIds = [panToEvent.payload.id];
       this.map.flyTo(point);
     });
-    listen("panToBounds", (event: any) => {
+    listen("panToBounds", (panToBoundsEvent: any) => {
       let southWest: LatLng = new LatLng(
-        event.payload.minLat,
-        event.payload.minLng
+        panToBoundsEvent.payload.minLat,
+        panToBoundsEvent.payload.minLng
       );
       let northEast: LatLng = new LatLng(
-        event.payload.maxLat,
-        event.payload.maxLng
+        panToBoundsEvent.payload.maxLat,
+        panToBoundsEvent.payload.maxLng
       );
       let bounds: LatLngBounds = new LatLngBounds(southWest, northEast);
       this.map.flyToBounds(bounds);
-      this.highligtedMarkerIds = event.payload.markerIds;
+      this.highligtedMarkerIds = panToBoundsEvent.payload.markerIds;
     });
   }
 
@@ -262,11 +263,18 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     ) {
       return;
     }
-    const webview = new WebviewWindow(uuidv4(), {
-      url: "cards/details?id=" + this.selectedMarkerMap.card!.id!,
-    });
+    console.log(
+      "creating window with id: " + this.selectedMarkerMap.card!.id!.toString()
+    );
+    const webview = new WebviewWindow(
+      this.selectedMarkerMap.card!.id!.toString(),
+      {
+        url: "cards/details?id=" + this.selectedMarkerMap.card!.id!,
+      }
+    );
     webview.once("tauri://error", function (e) {
       console.error("window creation error: " + JSON.stringify(e));
+      webview.emit("set-focus-to");
     });
   }
 

@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { invoke } from "@tauri-apps/api";
+import { fs, invoke, path } from "@tauri-apps/api";
 import { Stack, StackPost } from "../model/stack";
 
 @Injectable({
@@ -17,5 +17,11 @@ export class StackService {
   }
   getAll(): Promise<Stack[]> {
     return invoke("read_all_stacks", {});
+  }
+  async deleteStack(
+    stackIdToDelete: number,
+    stackHeaderImage: string
+  ): Promise<void> {
+    return invoke("delete_stack", { stackId: stackIdToDelete });
   }
 }

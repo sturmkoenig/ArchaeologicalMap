@@ -17,7 +17,7 @@ export class CardService {
     return invoke("get_cards_in_stack", { stackId: stack_id });
   }
 
-  createCard(newCard: NewCard): Promise<CardDB> {
+  createCard(newCard: CardDB): Promise<CardDB> {
     return invoke("create_card", {
       card: {
         title: newCard.title,

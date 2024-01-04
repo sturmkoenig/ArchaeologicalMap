@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
-import { emit } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
 import { CardService } from "src/app/services/card.service";
 
 import { MatDialog } from "@angular/material/dialog";
@@ -205,6 +205,11 @@ export class CardDetailsComponent implements OnInit {
     this.allCardsInStack$ = this.cardDetailsStore.allCardsInStack$;
     this.currentStackId$ = this.cardDetailsStore.currentStackId$;
     this.card$ = this.cardDetailsStore.currentCard$;
+    listen("tauri://focus", async () => {
+      console.log("Content saved");
+      this.cardContentService.cardContent.next(this.editor.getContents());
+      await this.cardContentService.saveCardContent();
+    });
   }
 
   async ngOnInit() {
@@ -215,6 +220,9 @@ export class CardDetailsComponent implements OnInit {
       this.cardId = +params["id"];
       this.cardDetailsStore.loadStackOfCards(this.cardId);
       this.cardContentService.setCardId(this.cardId);
+      listen("set-focus-to", async () => {
+        await appWindow.setFocus();
+      });
     });
 
     this.cardService.readCardTitleMapping().then((ctm) => {

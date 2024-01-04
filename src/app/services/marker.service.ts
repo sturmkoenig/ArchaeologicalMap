@@ -114,11 +114,12 @@ function createPopupHTML(marker: MarkerDB, card: CardDB): HTMLDivElement {
   const button = document.createElement("button");
   button.innerHTML = "Info-Seite Zeigen";
   button.onclick = () => {
-    const webview = new WebviewWindow(uuidv4(), {
+    const webview = new WebviewWindow(marker.card_id!.toString(), {
       url: "cards/details?id=" + marker.card_id,
     });
     webview.once("tauri://error", function (e) {
       console.error("window creation error: " + JSON.stringify(e));
+      webview.emit("set-focus-to");
     });
   };
   div.appendChild(button);

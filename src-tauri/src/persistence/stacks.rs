@@ -2,9 +2,9 @@ use crate::diesel::RunQueryDsl;
 use app::{
     last_insert_rowid,
     models::{NewStack, Stack, StackDTO},
-    schema::{self, marker::icon_name, stack},
+    schema::{self, cards, marker::icon_name, stack},
 };
-use diesel::expression_methods::ExpressionMethods;
+use diesel::{expression_methods::ExpressionMethods, sql_types::Nullable};
 use diesel::{select, QueryDsl, SqliteConnection};
 
 pub fn query_create_stack(conn: &mut SqliteConnection, new_stack: &NewStack) -> Stack {
@@ -39,4 +39,12 @@ pub fn query_all_stacks(conn: &mut SqliteConnection) -> Vec<Stack> {
     stack::table
         .load::<Stack>(conn)
         .expect("could not load all stacks from database")
+}
+
+pub fn query_delete_stack(conn: &mut SqliteConnection, stack_id: i32) {
+    diesel::delete(stack::table.filter(stack::id.eq(stack_id))).execute(conn);
+    diesel::update(cards::table)
+        .filter(schema::cards::stack_id.eq(stack_id))
+        .set(cards::stack_id.eq(None::<i32>))
+        .execute(conn);
 }

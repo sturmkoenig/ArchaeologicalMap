@@ -26,15 +26,15 @@ import { StackStore } from "src/app/state/stack.store";
               src="{{ stack.image_name }}"
             />
             <mat-card-content> </mat-card-content>
-            <!-- <mat-card-actions class="card__actions">
+            <mat-card-actions class="card__actions">
               <button
                 mat-raised-button
                 color="primary"
-                (click)="onUpdateStack(stack)"
+                (click)="onDeleteStack(stack)"
               >
-                Ändern
+                Loeschen
               </button>
-            </mat-card-actions> -->
+            </mat-card-actions>
           </mat-card>
         </div>
         <div>
@@ -53,7 +53,6 @@ import { StackStore } from "src/app/state/stack.store";
       }
       .card {
         height: 300px;
-        z-index: -1;
         display: flex;
 
         &__image {
@@ -92,14 +91,9 @@ import { StackStore } from "src/app/state/stack.store";
 export class StackDisplayComponent {
   public stacks?: StackPost[];
   public stacks$: Observable<Stack[]>;
-  nav_position: string = "start";
 
   constructor(private dialog: MatDialog, private stackStore: StackStore) {
     this.stacks$ = this.stackStore.stacks$;
-  }
-
-  onTogglePosition(position: string) {
-    this.nav_position = position === "start" ? "end" : "start";
   }
 
   onAddStack() {
@@ -113,5 +107,9 @@ export class StackDisplayComponent {
       enterAnimationDuration: "200ms",
       exitAnimationDuration: "150ms",
     });
+  }
+
+  onDeleteStack(stack: Stack) {
+    this.stackStore.deleteStack(stack);
   }
 }

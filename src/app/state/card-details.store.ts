@@ -171,10 +171,7 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
     };
   });
 
-  constructor(
-    private cardService: CardService,
-    private readonly componentStore: ComponentStore<CardDetailsState>
-  ) {
+  constructor(private cardService: CardService) {
     super({ status: status.loading });
   }
 }

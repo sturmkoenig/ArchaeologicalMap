@@ -22,8 +22,12 @@ export class StackStore extends ComponentStore<StackState> {
     stacks: stacks,
   }));
 
-  readonly loadStacks = this.effect(() => {
-    return from(this.stackService.getAll()).pipe(
+  readonly deleteStackId = this.updater((state, stackIdToDelete: number) => ({
+    stacks: state.stacks.filter((stack) => stack.id !== stackIdToDelete),
+  }));
+
+  readonly loadStacks = this.effect<void>(() =>
+    from(this.stackService.getAll()).pipe(
       tap((stacks: Stack[]) => {
         for (let stack of stacks) {
           this.getImageUrl(stack.image_name).then((imageUrl) => {
@@ -33,6 +37,18 @@ export class StackStore extends ComponentStore<StackState> {
           });
         }
         this.setAllStacks(stacks);
+      })
+    )
+  );
+  readonly deleteStack = this.effect((deleteStack$: Observable<Stack>) => {
+    return deleteStack$.pipe(
+      tap((deleteStack: Stack) => {
+        this.deleteStackId(deleteStack.id);
+      }),
+      switchMap((deleteStack: Stack) => {
+        return from(
+          this.stackService.deleteStack(deleteStack.id, deleteStack.image_name)
+        );
       })
     );
   });
@@ -72,5 +88,6 @@ export class StackStore extends ComponentStore<StackState> {
 
   constructor(private stackService: StackService) {
     super({ stacks: [] });
+    this.loadStacks();
   }
 }
