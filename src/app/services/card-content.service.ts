@@ -32,11 +32,12 @@ export class CardContentService {
       .subscribe();
   }
 
-  saveCardContent() {
+  async saveCardContent() {
     if (this.cardContent.getValue() === undefined) {
       EMPTY;
       return firstValueFrom(of("hi from empty save"));
     }
+    console.log("content", this.cardContent.getValue());
     return invoke("write_card_content", {
       id: this.currentCardId.getValue().toString(),
       content: JSON.stringify(this.cardContent.getValue()),
@@ -46,7 +47,7 @@ export class CardContentService {
   setCardId(cardId: number) {
     this.cardId.next(cardId);
   }
-  loadCardContent(cardId: number) {
+  async loadCardContent(cardId: number) {
     return invoke("read_card_content", { id: cardId.toString() }).then(
       (res: any) => {
         let loadedContent: any;

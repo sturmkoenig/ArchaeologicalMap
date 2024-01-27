@@ -2,15 +2,26 @@ import { Component, Input, OnInit } from "@angular/core";
 import Quill, { RangeStatic } from "quill";
 import ImageResize from "quill-image-resize-module";
 import { CardContentService } from "src/app/services/card-content.service";
+import QuillImageDropAndPaste, { ImageData as QuillImageData } from 'quill-image-drop-and-paste';
+import { DomSanitizer, SafeUrl } from "@angular/platform-browser";
+
+
+interface IImageMeta {
+  type: string;
+  dataUrl: string;
+  blobUrl: SafeUrl;
+  file: File | null;
+}
 
 Quill.register("modules/imageResize", ImageResize);
+
 
 var BaseImageFormat = Quill.import("formats/image");
 const ImageFormatAttributesList = ["alt", "height", "width", "style"];
 
 class ImageFormat extends BaseImageFormat {
   static formats(domNode: any) {
-    return ImageFormatAttributesList.reduce(function (formats: any, attribute) {
+    return ImageFormatAttributesList.reduce(function(formats: any, attribute) {
       if (domNode.hasAttribute(attribute)) {
         formats[attribute] = domNode.getAttribute(attribute);
       }
@@ -73,29 +84,49 @@ Quill.register({ "formats/internal_link": LinkBlot });
 @Component({
   selector: "app-editor",
   template: `
+  <div class="editor-container">
     <div id="toolbar">
       <!-- Add font size dropdown -->
-      <select class="ql-size">
-        <option value="small"></option>
-        <!-- Note a missing, thus falsy value, is used to reset to default -->
-        <option selected></option>
-        <option value="large"></option>
-        <option value="huge"></option>
-      </select>
-      <!-- Add a bold button -->
-      <button class="ql-bold"></button>
-      <!-- Add subscript and superscript buttons -->
-      <button class="ql-script" value="sub"></button>
-      <button class="ql-script" value="super"></button>
-      <button class="ql-image" value="super"></button>
-      <button [matMenuTriggerFor]="menu" (click)="saveCarrotPosition()">
-        <mat-icon
-          aria-hidden="false"
-          aria-label="Example home icon"
-          fontIcon="link"
-        ></mat-icon>
-      </button>
+        <span class="ql-formats">
+          <button class="ql-bold"></button>
+          <button class="ql-italic"></button>
+          <button class="ql-underline"></button>
+          <button class="ql-strike"></button>
+        </span>
+
+        <span class="ql-formats">
+          <button class="ql-list" value="ordered"></button>
+          <button class="ql-list" value="bullet"></button>
+          <select class="ql-size">
+          <option value="small"></option>
+          <option selected></option>
+          <option value="large"></option>
+          <option value="huge"></option>
+          </select>
+        </span>
+
+        <span class="ql-formats">
+          <select class="ql-color"></select>
+          <select class="ql-background"></select>
+          <select class="ql-font"></select>
+        </span>
+
+        <span class="ql-formats">
+          <button class="ql-clean"></button>
+        </span>
+        <span class="ql-formats">
+          <button class="ql-image" value="super"></button>
+          <button [matMenuTriggerFor]="menu" (click)="saveCarrotPosition()">
+            <mat-icon
+              aria-hidden="false"
+              aria-label="Example home icon"
+              fontIcon="link"
+            ></mat-icon>
+          </button>
+        </span>
+
     </div>
+    
     <mat-menu #menu="matMenu">
       <div class="menu-item-container">
         <!-- do not close menu when menu is clicked-->
@@ -120,9 +151,13 @@ Quill.register({ "formats/internal_link": LinkBlot });
       </div>
     </mat-menu>
     <div id="editor-container"></div>
+  </div>
   `,
   styles: [
     `
+      .editor-container{
+        background-color: white
+      }
       .menu-item-container {
         width: 250px;
         height: auto;
@@ -132,6 +167,34 @@ Quill.register({ "formats/internal_link": LinkBlot });
   ],
 })
 export class EditorComponent implements OnInit {
+
+  toolbarOptions = [
+    ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+    ['blockquote', 'code-block'],
+
+    [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    [{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
+    [{ 'indent': '-1' }, { 'indent': '+1' }],          // outdent/indent
+    [{ 'direction': 'rtl' }],                         // text direction
+
+    [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+    [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+    [{ 'font': [] }],
+    [{ 'align': [] }],
+
+    ['clean']                                         // remove formatting button
+  ];
+
+  image: IImageMeta = {
+    type: '',
+    dataUrl: '',
+    blobUrl: '',
+    file: null,
+  };
+
   constructor(cardContentService: CardContentService) {
     cardContentService.cardContent.subscribe((content) => {
       if (content !== undefined) {
@@ -139,6 +202,26 @@ export class EditorComponent implements OnInit {
       }
     });
   }
+
+  imageHandler(dataUrl: string, type: string, imageData: QuillImageData) {
+    imageData
+      .minify({
+        maxWidth: 320,
+        maxHeight: 320,
+        quality: 0.7,
+      })
+      .then((miniImageData) => {
+        if (miniImageData instanceof QuillImageData) {
+          const blob = miniImageData.toBlob();
+
+          console.log(`blob: ${blob}`);
+          console.log(imageData)
+          console.log(`type: ${type}`);
+          this.quill.insertEmbed(this.quill.getSelection()?.index ?? 0, 'image', imageData.dataUrl, 'user');
+        }
+      });
+  }
+
   saveCarrotPosition() {
     this.carrotPosition = this.quill.getSelection();
   }
@@ -153,13 +236,17 @@ export class EditorComponent implements OnInit {
   carrotPosition?: RangeStatic | null;
 
   ngOnInit(): void {
+    Quill.register('modules/imageDropAndPaste', QuillImageDropAndPaste);
     this.quill = new Quill("#editor-container", {
       modules: {
         toolbar: "#toolbar",
         imageResize: {},
+        imageDropAndPaste: {
+          handler: this.imageHandler.bind(this),
+        },
       },
       placeholder: "noch kein text..",
-      theme: "snow", // or 'bubble'
+      theme: "snow",
     });
   }
   public setContents(delta: any): void {
@@ -171,12 +258,9 @@ export class EditorComponent implements OnInit {
   }
 
   onLink(id: number, title: string) {
-    let selection: RangeStatic | undefined;
-    if (this.carrotPosition) {
-      selection = this.carrotPosition;
-    }
+
     this.quill.insertText(
-      selection?.index ?? 0,
+      this.quill.getSelection()?.index ?? 0,
       title,
       "link",
       "/cards/details?id=" + id
