@@ -8,16 +8,18 @@ import {
   LatLngBoundsExpression,
   Layer,
   LayerGroup,
-  Map,
-  MapOptions,
+  Map as LeafletMap,
+  MapOptions as LeafletMapOptions,
   Marker,
   latLng,
   tileLayer,
 } from "leaflet";
 import { CardDB, MarkerDB } from "src/app/model/card";
+import { MarkerDiff } from "src/app/components/overview-map/overview-map.logic";
 import { CardService } from "src/app/services/card.service";
 import { SettingService } from "src/app/services/setting.service";
 import { CardMarkerLayer, MarkerService } from "../../services/marker.service";
+import { ICONS } from "src/app/services/icon.service";
 
 export interface mapCardMarker {
   card: CardDB;
@@ -27,174 +29,8 @@ export interface mapCardMarker {
 
 @Component({
   selector: "app-overview-map",
-  template: `
-    <div class="overview-map--container">
-      <div class="overview-map">
-        <div
-          class="map-container"
-          [style]="{ cursor: cursorStyle }"
-          leaflet
-          [leafletOptions]="options"
-          [leafletLayers]="layers"
-          (leafletMapReady)="onMapReady($event)"
-          (leafletMapMoveEnd)="mapMoveEnded()"
-        ></div>
-      </div>
-      @if(selectedMarkerMap) { @if(!updateCardVisible){
-      <div
-        class="round-button__add button"
-        (click)="updateCardVisible = !updateCardVisible"
-      >
-        <span color="accent" class="icon-add material-symbols-outlined">
-          update
-        </span>
-      </div>
-      } @else {
-      <div class="crud-card--container">
-        <div class="crud-card--container__toggle">
-          <button
-            mat-fab
-            color="primary"
-            aria-label="Example icon button with a delete icon"
-            (click)="selectedMarkerMap = undefined; updateCardVisible = false"
-          >
-            <mat-icon>arrow_forward_ios </mat-icon>
-          </button>
-        </div>
-        <div class="crud-card--container__update-card">
-          <app-card-input
-            [card]="selectedMarkerMap.card"
-            (cardChange)="updateSelectedCard($event)"
-          ></app-card-input>
-          <app-marker-input
-            [marker]="selectedMarkerMap.markerDB"
-            (markerChange)="updateSelectedMarker()"
-          ></app-marker-input>
-          <span class="marker-input__buttons">
-            <span class="marker-input__buttons--marker-options">
-              <button
-                mat-raised-button
-                color="accent"
-                (click)="onAddNewMarkerToCard()"
-              >
-                Neuer Marker
-              </button>
-
-              <button
-                mat-raised-button
-                color="accent"
-                (click)="onMoveExistingMarker()"
-              >
-                Marker bewegen
-              </button>
-              <button
-                mat-raised-button
-                color="warn"
-                (click)="onDeleteSelectedMarker()"
-              >
-                Marker Loeschen
-              </button>
-            </span>
-            <button
-              mat-raised-button
-              color="primary"
-              (click)="onGoToInfoPage()"
-            >
-              Info Seite
-            </button>
-            <button
-              mat-raised-button
-              color="warn"
-              (click)="onDeleteSelectedCard()"
-            >
-              Karte Löschen
-            </button>
-          </span>
-        </div>
-      </div>
-      } } @else {
-      <div class="round-button__add button" (click)="onAddNewCard()">
-        <span class="icon-add material-symbols-outlined"> add </span>
-      </div>
-      }
-    </div>
-  `,
-  styles: [
-    `
-      .button {
-        z-index: 1000;
-      }
-      .overview-map--container {
-        display: flex;
-        height: 100%;
-        width: 100%;
-        flex-direction: row;
-      }
-      .crud-card--container {
-        position: relative;
-        width: 400px;
-        border-left: 10px solid #f3f4f4;
-        &__update-card {
-          height: 100%;
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
-        &__toggle {
-          position: absolute;
-          width: 20px;
-          top: 50%;
-          z-index: 1000;
-          transform: translateX(-30px);
-        }
-      }
-      .overview-map {
-        flex-grow: 1;
-        overflow: hidden;
-      }
-      .fade-in {
-        animation: ease-in 1s;
-      }
-      .map-container {
-        width: 100%;
-        height: 100%;
-        // cursor: url("/assets/icons/misc_black_cursor.png"), pointer;
-      }
-      .marker-input {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 2rem;
-        &__buttons {
-          width: 70%;
-          &--marker-options {
-            display: flex;
-            // flex-wrap: wrap;
-            gap: 10px;
-          }
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-      }
-      .bounce2 {
-      }
-      @keyframes fade {
-        from {
-          opacity: 1;
-        }
-        to {
-          opacity: 0.5;
-        }
-      }
-
-      :host ::ng-deep .highlighted {
-        animation: fade 0.5s ease infinite alternate;
-      }
-    `,
-  ],
+  templateUrl: "overview-map.component.html",
+  styleUrl: "overview-map.component.scss",
 })
 export class OverviewMapComponent implements OnInit, AfterViewInit {
   layers: Layer[] = [];
@@ -208,7 +44,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   newCard?: CardDB;
   selectedMarkerMap?: CardMarkerLayer;
   cursorStyle?: String;
-  options: MapOptions = {
+  options: LeafletMapOptions = {
     layers: [
       tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         opacity: 0.7,
@@ -221,7 +57,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     zoom: 16,
     center: latLng(53.009325188114076, 13.160270365480752),
   };
-  public map!: Map;
+  public map!: LeafletMap;
   public zoom!: number;
   updateCardVisible: boolean = false;
 
@@ -431,13 +267,13 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     this.mapMoveEnded();
   }
 
-  onMapReady(map: Map) {
+  onMapReady(map: LeafletMap) {
     this.map = map;
     this.zoom = map.getZoom();
     this.map.addLayer(this.mainLayerGroup);
   }
 
-  mapChanged(emittedMap: Map) {
+  mapChanged(emittedMap: LeafletMap) {
     this.map = emittedMap;
   }
 
@@ -518,7 +354,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
         let currentMarkersInAreaIds = currentMarkersInArea.map(
           (marker: CardMarkerLayer) => marker.markerId
         );
-        let markerDiff = this.markerDiff(
+        let markerDiff = MarkerDiff(
           currentMarkersInAreaIds,
           this.previousMarkersInAreaIds
         );
@@ -559,30 +395,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
             }
           });
       });
-  }
-
-  markerDiff(
-    currentMarkerIds: number[],
-    previousMarkerIds?: number[]
-  ): { markerIdsToAdd: number[]; markerIdsToRemove: number[] } {
-    if (!previousMarkerIds) {
-      return {
-        markerIdsToAdd: currentMarkerIds,
-        markerIdsToRemove: [],
-      };
-    }
-
-    let markerIdsToRemove: number[] = previousMarkerIds.filter(
-      (lastMarker) => currentMarkerIds.indexOf(lastMarker) < 0
-    );
-    let markerIdsToAdd: number[] = currentMarkerIds.filter(
-      (newMarker) => previousMarkerIds.indexOf(newMarker) < 0
-    );
-
-    return {
-      markerIdsToAdd: markerIdsToAdd,
-      markerIdsToRemove: markerIdsToRemove,
-    };
   }
 
   ngAfterViewInit(): void {

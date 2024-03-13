@@ -1,0 +1,92 @@
+<div class="overview-map--container">
+  <div class="overview-map">
+    <div
+      class="map-container"
+      [style]="{ cursor: cursorStyle }"
+      leaflet
+      [leafletOptions]="options"
+      [leafletLayers]="layers"
+      (leafletMapReady)="onMapReady($event)"
+      (leafletMapMoveEnd)="mapMoveEnded()"
+    ></div>
+  </div>
+  @if (selectedMarkerMap) {
+    @if (!updateCardVisible) {
+      <div
+        class="round-button__add button"
+        (click)="updateCardVisible = !updateCardVisible"
+      >
+        <span color="accent" class="icon-add material-symbols-outlined">
+          update
+        </span>
+      </div>
+    } @else {
+      <div class="crud-card--container">
+        <div class="crud-card--container__toggle">
+          <button
+            mat-fab
+            color="primary"
+            aria-label="Example icon button with a delete icon"
+            (click)="selectedMarkerMap = undefined; updateCardVisible = false"
+          >
+            <mat-icon>arrow_forward_ios </mat-icon>
+          </button>
+        </div>
+        <div class="crud-card--container__update-card">
+          <app-card-input
+            [card]="selectedMarkerMap.card"
+            (cardChange)="updateSelectedCard($event)"
+          ></app-card-input>
+          <app-marker-input
+            [marker]="selectedMarkerMap.markerDB"
+            (markerChange)="updateSelectedMarker()"
+          ></app-marker-input>
+          <span class="marker-input__buttons">
+            <span class="marker-input__buttons--marker-options">
+              <button
+                mat-raised-button
+                color="accent"
+                (click)="onAddNewMarkerToCard()"
+              >
+                Neuer Marker
+              </button>
+
+              <button
+                mat-raised-button
+                color="accent"
+                (click)="onMoveExistingMarker()"
+              >
+                Marker bewegen
+              </button>
+              <button
+                mat-raised-button
+                color="warn"
+                (click)="onDeleteSelectedMarker()"
+              >
+                Marker Loeschen
+              </button>
+            </span>
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="onGoToInfoPage()"
+            >
+              Info Seite
+            </button>
+            <button
+              mat-raised-button
+              color="warn"
+              (click)="onDeleteSelectedCard()"
+            >
+              Karte Löschen
+            </button>
+          </span>
+        </div>
+      </div>
+    }
+  } @else {
+    <div class="round-button__add button" (click)="onAddNewCard()">
+      <span class="icon-add material-symbols-outlined"> add </span>
+    </div>
+  }
+</div>
