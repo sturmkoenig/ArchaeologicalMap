@@ -56,6 +56,7 @@ import { CardService } from "./services/card.service";
 import { ComponentStore } from "@ngrx/component-store";
 import { CardInputComponent } from "./components/cards/card-input/card-input.component";
 import { MarkerInputComponent } from "./components/markers/marker-input/marker-input.component";
+import { MarkerButtonToggleComponent } from "./components/markers/marker-button-toggle/marker-button-toggle.component";
 
 @NgModule({
   declarations: [
@@ -86,6 +87,7 @@ import { MarkerInputComponent } from "./components/markers/marker-input/marker-i
     BrowserAnimationsModule,
     MatListModule,
     MatGridListModule,
+    MarkerButtonToggleComponent,
     MatToolbarModule,
     ReactiveFormsModule,
     FormsModule,
