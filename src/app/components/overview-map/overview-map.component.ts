@@ -20,6 +20,7 @@ import { CardService } from "src/app/services/card.service";
 import { SettingService } from "src/app/services/setting.service";
 import { CardMarkerLayer, MarkerService } from "../../services/marker.service";
 import { ICONS } from "src/app/services/icon.service";
+import { RightSidebarComponent } from "src/app/layout/right-sidebar/right-sidebar.component";
 
 export interface mapCardMarker {
   card: CardDB;

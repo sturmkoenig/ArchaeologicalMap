@@ -21,18 +21,13 @@
         </span>
       </div>
     } @else {
-      <div class="crud-card--container">
-        <div class="crud-card--container__toggle">
-          <button
-            mat-fab
-            color="primary"
-            aria-label="Example icon button with a delete icon"
-            (click)="selectedMarkerMap = undefined; updateCardVisible = false"
-          >
-            <mat-icon>arrow_forward_ios </mat-icon>
-          </button>
-        </div>
-        <div class="crud-card--container__update-card">
+      <div class="appsidebar">
+        <app-right-sidebar
+          [visible]="updateCardVisible"
+          (visibleChange)="
+            updateCardVisible = false; selectedMarkerMap = undefined
+          "
+        >
           <app-card-input
             [card]="selectedMarkerMap.card"
             (cardChange)="updateSelectedCard($event)"
@@ -81,7 +76,7 @@
               Karte Löschen
             </button>
           </span>
-        </div>
+        </app-right-sidebar>
       </div>
     }
   } @else {

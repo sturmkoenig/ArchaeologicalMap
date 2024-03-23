@@ -56,6 +56,7 @@ import { CardService } from "./services/card.service";
 import { ComponentStore } from "@ngrx/component-store";
 import { CardInputComponent } from "./components/cards/card-input/card-input.component";
 import { MarkerInputComponent } from "./components/markers/marker-input/marker-input.component";
+import { RightSidebarComponent } from "./layout/right-sidebar/right-sidebar.component";
 import { MarkerButtonToggleComponent } from "./components/markers/marker-button-toggle/marker-button-toggle.component";
 
 @NgModule({
@@ -96,6 +97,7 @@ import { MarkerButtonToggleComponent } from "./components/markers/marker-button-
     MatSnackBarModule,
     MatSidenavModule,
     MatDividerModule,
+    RightSidebarComponent,
     HttpClientModule,
     MatButtonModule,
     MatButtonToggleModule,
