@@ -10,7 +10,7 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
-.round-button__add {
+.round-button {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -19,8 +19,5 @@ body {
   height: 80px;
   width: 80px;
   border-radius: 50%;
-  position: fixed;
-  bottom: 50px;
-  right: 50px;
   transition: all 1s ease;
 }

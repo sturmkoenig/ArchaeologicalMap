@@ -38,8 +38,15 @@ import { StackStore } from "src/app/state/stack.store";
           </mat-card>
         </div>
         <div>
-          <div class="round-button__add" (click)="onAddStack()">
-            <span class="icon-add material-symbols-outlined"> add </span>
+          <div class="example-button-container button-add">
+            <button
+              mat-fab
+              color="primary"
+              aria-label="Example icon button with a delete icon"
+              (click)="onAddStack()"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
           </div>
         </div>
       </div>
@@ -85,6 +92,12 @@ import { StackStore } from "src/app/state/stack.store";
       .drawer_container {
         height: 100%;
       }
+      .button-add {
+        width: 60px;
+        position: fixed;
+        bottom: 50px;
+        right: 50px;
+      }
     `,
   ],
 })
@@ -92,7 +105,10 @@ export class StackDisplayComponent {
   public stacks?: StackPost[];
   public stacks$: Observable<Stack[]>;
 
-  constructor(private dialog: MatDialog, private stackStore: StackStore) {
+  constructor(
+    private dialog: MatDialog,
+    private stackStore: StackStore,
+  ) {
     this.stacks$ = this.stackStore.stacks$;
   }
 

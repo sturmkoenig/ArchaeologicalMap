@@ -1,6 +1,21 @@
       .button {
         z-index: 1000;
       }
+      .round-button__add {
+        display: absolute;
+        position: fixed;
+        bottom: 50px;
+        right: 50px;
+      }
+
+      .round-button__settings {
+        display: absolute;
+        position: fixed;
+        bottom: 150px;
+        right: 50px;
+      }
+
+
       .overview-map--container {
         display: flex;
         height: 100%;

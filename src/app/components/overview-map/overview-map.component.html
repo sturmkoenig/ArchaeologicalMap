@@ -13,7 +13,7 @@
   @if (selectedMarkerMap) {
     @if (!updateCardVisible) {
       <div
-        class="round-button__add button"
+        class="round-button round-button__add button"
         (click)="updateCardVisible = !updateCardVisible"
       >
         <span color="accent" class="icon-add material-symbols-outlined">
@@ -85,7 +85,7 @@
       </div>
     }
   } @else {
-    <div class="round-button__add button" (click)="onAddNewCard()">
+    <div class="round-button round-button__add button" (click)="onAddNewCard()">
       <span class="icon-add material-symbols-outlined"> add </span>
     </div>
   }
