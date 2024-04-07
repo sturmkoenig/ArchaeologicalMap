@@ -1,13 +1,20 @@
-import { HttpClient } from "@angular/common/http";
-import { Injectable } from "@angular/core";
+import { ComponentFactoryResolver, Injectable, Injector } from "@angular/core";
 import { WebviewWindow } from "@tauri-apps/api/window";
-import { Circle, Icon, LatLng, LatLngBounds, Layer, Marker } from "leaflet";
+import {
+  Circle,
+  Icon,
+  LatLng,
+  LatLngBounds,
+  LatLngBoundsExpression,
+  Layer,
+  Marker,
+} from "leaflet";
 import { from, Observable, switchMap, zip } from "rxjs";
 import { CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
-import { v4 as uuidv4 } from "uuid";
 import { CardService } from "./card.service";
-import { IconService } from "./icon.service";
+import { ICONS, IconKeys, IconService } from "./icon.service";
 import { invoke } from "@tauri-apps/api";
+import { MarkerAM } from "../model/marker";
 
 export interface CardMarkerLayer {
   card?: CardDB;
@@ -16,6 +23,7 @@ export interface CardMarkerLayer {
   marker: Marker;
   radius: Layer | null;
 }
+
 interface CardTitleMapping {
   id: number;
   title: string;
@@ -25,19 +33,75 @@ interface CardTitleMapping {
   providedIn: "root",
 })
 export class MarkerService {
+  iconSizeMap: Map<IconKeys, number> = new Map();
   cardTitleMapping!: CardTitleMapping[];
   constructor(
     private cardService: CardService,
-    private http: HttpClient,
-    private iconService: IconService
+    private iconService: IconService,
   ) {
     this.cardService.readCardTitleMapping().then((ctm) => {
       this.cardTitleMapping = ctm;
     });
+    this.iconService
+      .getIconSizeSettings()
+      .then((iconSizeMap: Map<IconKeys, number>) => {
+        this.iconSizeMap = iconSizeMap;
+      });
   }
 
-  getMarkersInArea(
-    directions: CardinalDirection
+  async updateMarker(marker: MarkerDB): Promise<void> {
+    return await invoke("update_marker", { marker: marker });
+  }
+
+  async getMarker(markerId: number): Promise<MarkerAM> {
+    return this.getMarkerDB(markerId).then((m) => {
+      const newMarker = new MarkerAM(
+        [m.latitude, m.longitude],
+        {},
+        {
+          markerId: m.id!,
+          cardId: m.card_id!,
+          iconType: m.icon_name,
+          radius: m.radius,
+          iconSize: this.iconSizeMap.get(m.icon_name),
+        },
+      );
+      return newMarker;
+    });
+  }
+
+  getMarkerDB(id: number): Promise<MarkerDB> {
+    return invoke("read_marker", { id: id });
+  }
+
+  async getMarkerAMInArea(bounds: LatLngBounds): Promise<MarkerAM[]> {
+    const markersDB = await this.cardService.readMarkersInArea({
+      north: bounds.getNorth(),
+      east: bounds.getEast(),
+      south: bounds.getSouth(),
+      west: bounds.getWest(),
+    });
+    return markersDB.map((m) => {
+      const newMarker = new MarkerAM(
+        [m.latitude, m.longitude],
+        {},
+        {
+          markerId: m.id!,
+          cardId: m.card_id!,
+          iconType: m.icon_name,
+          radius: m.radius,
+          iconSize: this.iconSizeMap.get(m.icon_name),
+        },
+      );
+      return newMarker;
+    });
+  }
+
+  /**
+   * @deprecated
+   */
+  getCardMarkerLayersInArea(
+    directions: CardinalDirection,
   ): Observable<CardMarkerLayer[]> {
     return from(this.cardService.readMarkersInArea(directions)).pipe(
       switchMap((markersDB: MarkerDB[]) => {
@@ -50,10 +114,10 @@ export class MarkerService {
           markersDB.map((m) =>
             this.cardService
               .readCard(m.card_id!)
-              .then((c) => this.markerToMapLayer(m, c))
-          )
+              .then((c) => this.markerToMapLayer(m, c)),
+          ),
         );
-      })
+      }),
     );
   }
 
@@ -62,17 +126,21 @@ export class MarkerService {
   }
 
   markerToMapLayer(markerDB: MarkerDB, cardDB: CardDB): CardMarkerLayer {
-    let icon = new Icon({
-      iconUrl: this.iconService.getIconPath(markerDB.icon_name).toString(),
+    let icon: Icon = new Icon({
+      iconUrl: ICONS[markerDB.icon_name].toString(),
       iconSize: [20, 20],
       popupAnchor: [0, 0],
     });
-    let iconMarker = new Marker([markerDB.latitude, markerDB.longitude], {
-      icon,
-      interactive: true,
-    });
-    const div: HTMLDivElement = createPopupHTML(markerDB, cardDB);
-    iconMarker.bindPopup(div);
+    let iconMarker: Marker = new Marker(
+      [markerDB.latitude, markerDB.longitude],
+      {
+        icon,
+        interactive: true,
+      },
+    );
+
+    iconMarker.bindPopup(MarkerService.createPopupHTML(markerDB, cardDB));
+
     if (markerDB.radius !== 0.0) {
       let circle = new Circle([markerDB.latitude, markerDB.longitude], {
         className: "fade-in",
@@ -95,6 +163,7 @@ export class MarkerService {
       };
     }
   }
+
   getBounds(markers: MarkerDB[]): LatLngBounds {
     let min_lat = markers.reduce((x, y) => (x.latitude < y.latitude ? x : y));
     let min_lng = markers.reduce((x, y) => (x.longitude < y.longitude ? x : y));
@@ -105,23 +174,23 @@ export class MarkerService {
     let bounds: LatLngBounds = new LatLngBounds(southWest, northEast);
     return bounds;
   }
-}
 
-function createPopupHTML(marker: MarkerDB, card: CardDB): HTMLDivElement {
-  const div: HTMLDivElement = document.createElement("div");
-  div.innerHTML =
-    `<h4>` + card.title + `</h4>` + `<p>` + card.description + `</p>`;
-  const button = document.createElement("button");
-  button.innerHTML = "Info-Seite Zeigen";
-  button.onclick = () => {
-    const webview = new WebviewWindow(marker.card_id!.toString(), {
-      url: "cards/details?id=" + marker.card_id,
-    });
-    webview.once("tauri://error", function (e) {
-      console.error("window creation error: " + JSON.stringify(e));
-      webview.emit("set-focus-to");
-    });
-  };
-  div.appendChild(button);
-  return div;
+  static createPopupHTML(marker: MarkerDB, card: CardDB): HTMLDivElement {
+    const div: HTMLDivElement = document.createElement("div");
+    div.innerHTML =
+      `<h4>` + card.title + `</h4>` + `<p>` + card.description + `</p>`;
+    const button = document.createElement("button");
+    button.innerHTML = "Info-Seite Zeigen";
+    button.onclick = () => {
+      const webview = new WebviewWindow(marker.card_id!.toString(), {
+        url: "cards/details?id=" + marker.card_id,
+      });
+      webview.once("tauri://error", function (e) {
+        console.error("window creation error: " + JSON.stringify(e));
+        webview.emit("set-focus-to");
+      });
+    };
+    div.appendChild(button);
+    return div;
+  }
 }

@@ -27,7 +27,7 @@ export class CardContentService {
         }),
         switchMap((cardId) => {
           return this.loadCardContent(cardId);
-        })
+        }),
       )
       .subscribe();
   }
@@ -37,7 +37,6 @@ export class CardContentService {
       EMPTY;
       return firstValueFrom(of("hi from empty save"));
     }
-    console.log("content", this.cardContent.getValue());
     return invoke("write_card_content", {
       id: this.currentCardId.getValue().toString(),
       content: JSON.stringify(this.cardContent.getValue()),
@@ -60,7 +59,7 @@ export class CardContentService {
           this.cardContent.next("");
         }
         this.currentCardId.next(cardId);
-      }
+      },
     );
   }
 }

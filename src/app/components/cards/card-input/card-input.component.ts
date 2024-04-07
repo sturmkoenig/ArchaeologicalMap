@@ -18,47 +18,50 @@ import { NgForm } from "@angular/forms";
 @Component({
   selector: "app-card-input",
   template: `
-    @if(this.card){
-    <form class="card-input">
-      <mat-form-field>
-        <mat-label>Title:</mat-label>
-        <input
-          matInput
-          [ngModel]="card.title"
-          (ngModelChange)="onTitleChange($event)"
-          [ngModelOptions]="{ standalone: true }"
-        />
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>Beschreibung:</mat-label>
-        <input
-          matInput
-          [ngModel]="card.description"
-          (ngModelChange)="onDescriptionChange($event)"
-          [ngModelOptions]="{ standalone: true }"
-        />
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>Stapel:</mat-label>
-        <mat-select
-          [value]="card.stack_id"
-          (valueChange)="onStackIdChange($event)"
-          name="stack"
-        >
-          <mat-option *ngFor="let stack of stacks$ | async" [value]="stack.id">
-            {{ stack.name }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </form>
+    @if (this.card) {
+      <form class="card-input">
+        <mat-form-field>
+          <mat-label>Title:</mat-label>
+          <input
+            matInput
+            [ngModel]="card.title"
+            (ngModelChange)="onTitleChange($event)"
+            [ngModelOptions]="{ standalone: true }"
+          />
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Beschreibung:</mat-label>
+          <input
+            matInput
+            [ngModel]="card.description"
+            (ngModelChange)="onDescriptionChange($event)"
+            [ngModelOptions]="{ standalone: true }"
+          />
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Stapel:</mat-label>
+          <mat-select
+            [value]="card.stack_id"
+            (valueChange)="onStackIdChange($event)"
+            name="stack"
+          >
+            <mat-option
+              *ngFor="let stack of stacks$ | async"
+              [value]="stack.id"
+            >
+              {{ stack.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </form>
     }
   `,
   styles: `
-        .card-input {
-        display: flex;
-        flex-direction: column;
-        }
-      `,
+    .card-input {
+      display: flex;
+      flex-direction: column;
+    }
+  `,
 })
 export class CardInputComponent implements OnChanges {
   @Input()

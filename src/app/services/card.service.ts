@@ -56,12 +56,12 @@ export class CardService {
     return invoke("read_card", { id: cardId });
   }
 
-  readCardTitleMapping(): Promise<[{ id: number; title: string }]> {
+  async readCardTitleMapping(): Promise<[{ id: number; title: string }]> {
     let cacheDir = appCacheDir();
     invoke("cache_card_names", {});
-    return appCacheDir()
-      .then((cacheDir) => fs.readTextFile(cacheDir + "card_names.json"))
-      .then((res) => JSON.parse(res));
+    const cacheDir_1 = await appCacheDir();
+    const res = await fs.readTextFile(cacheDir_1 + "card_names.json");
+    return JSON.parse(res);
   }
 
   updateCard(updateCard: CardDB, markers?: MarkerDB[]): Promise<boolean> {
@@ -81,10 +81,11 @@ export class CardService {
     return invoke("count_cards", {});
   }
 
-  deleteCard(id: number): Promise<any> {
-    return invoke("delete_card", {
+  async deleteCard(id: number): Promise<any> {
+    await invoke("delete_card", {
       id: id,
-    }).then(() => console.log("card deleted"));
+    });
+    return;
   }
   deleteMarker(markerId: number): Promise<any> {
     return invoke("delete_marker", { markerId: markerId });

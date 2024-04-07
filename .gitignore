@@ -4,4 +4,3 @@ dist
 src-tauri/target
 .DS_Store*
 test.db
-Icon*

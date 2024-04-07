@@ -10,7 +10,8 @@
       (leafletMapMoveEnd)="mapMoveEnded()"
     ></div>
   </div>
-  @if (selectedMarkerMap) {
+
+  @if (selectedMarker()) {
     @if (!updateCardVisible) {
       <div
         class="round-button round-button__add button"
@@ -25,16 +26,17 @@
         <app-right-sidebar
           [visible]="updateCardVisible"
           (visibleChange)="
-            updateCardVisible = false; selectedMarkerMap = undefined
+            updateCardVisible = false;
+            this.overviewMapService.changeSelectedMarkerAM(undefined)
           "
         >
           <app-card-input
-            [card]="selectedMarkerMap.card"
+            [card]="editCard()"
             (cardChange)="updateSelectedCard($event)"
           ></app-card-input>
           <app-marker-input
-            [marker]="selectedMarkerMap.markerDB"
-            (markerChange)="updateSelectedMarker()"
+            [marker]="selectedMarker()!.toMarkerDB()"
+            (markerChange)="updateSelectedMarker($event)"
           ></app-marker-input>
           <span class="marker-input__buttons">
             <span class="marker-input__buttons--marker-options">
@@ -82,6 +84,23 @@
   } @else {
     <div class="round-button round-button__add button" (click)="onAddNewCard()">
       <span class="icon-add material-symbols-outlined"> add </span>
+    </div>
+
+    <app-right-sidebar
+      [visible]="settingsVisible"
+      (visibleChange)="settingsVisible = false"
+    >
+      <app-icon-size-settings
+        (iconSizeChange)="onUpdateIconSize($event)"
+      ></app-icon-size-settings>
+    </app-right-sidebar>
+    <div
+      class="round-button round-button__settings button"
+      (click)="settingsVisible = true"
+    >
+      <span color="accent" class="icon-add material-symbols-outlined">
+        settings
+      </span>
     </div>
   }
 </div>

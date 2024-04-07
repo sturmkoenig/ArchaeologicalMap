@@ -15,8 +15,12 @@ export class SettingService {
   mapSettingsFileName: string = "map-settings.json";
   constructor() {}
 
+  async setIconSizeSettings() {}
+
+  async getIconSizeSettings() {}
+
   async saveMapBoundingBox(latLngBounds: LatLngBoundsExpression) {
-    fs.writeFile(this.mapSettingsFileName, JSON.stringify(latLngBounds), {
+    await fs.writeFile(this.mapSettingsFileName, JSON.stringify(latLngBounds), {
       dir: BaseDirectory.AppData,
     });
   }

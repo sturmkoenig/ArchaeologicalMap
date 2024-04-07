@@ -1,6 +1,12 @@
-import { AfterViewInit, Component, NgZone, OnInit } from "@angular/core";
+import {
+  AfterViewInit,
+  Component,
+  NgZone,
+  OnInit,
+  WritableSignal,
+} from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
-import { emit, listen } from "@tauri-apps/api/event";
+import { listen } from "@tauri-apps/api/event";
 import { WebviewWindow, appWindow } from "@tauri-apps/api/window";
 import {
   LatLng,
@@ -10,17 +16,16 @@ import {
   LayerGroup,
   Map as LeafletMap,
   MapOptions as LeafletMapOptions,
-  Marker,
   latLng,
   tileLayer,
 } from "leaflet";
 import { CardDB, MarkerDB } from "src/app/model/card";
-import { MarkerDiff } from "src/app/components/overview-map/overview-map.logic";
 import { CardService } from "src/app/services/card.service";
 import { SettingService } from "src/app/services/setting.service";
-import { CardMarkerLayer, MarkerService } from "../../services/marker.service";
-import { ICONS } from "src/app/services/icon.service";
-import { RightSidebarComponent } from "src/app/layout/right-sidebar/right-sidebar.component";
+import { MarkerService } from "../../services/marker.service";
+import { MarkerAM } from "src/app/model/marker";
+import { IconSizeSetting } from "src/app/services/icon.service";
+import { OverviewMapService } from "src/app/services/overview-map.service";
 
 export interface mapCardMarker {
   card: CardDB;
@@ -37,13 +42,10 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   layers: Layer[] = [];
   position?: LatLng;
   highligtedMarkerIds?: number[];
-  previousMarkersInAreaIds?: number[];
-  mainLayerGroup: LayerGroup = new LayerGroup();
+  mainLayerGroup: LayerGroup;
   radiusLayerGroup: LayerGroup = new LayerGroup();
-  selectedLayerGroup: LayerGroup = new LayerGroup();
-  mapMarkerIdToLayer: { id: number; layer: Layer }[] = [];
+  selectedLayerGroup: LayerGroup;
   newCard?: CardDB;
-  selectedMarkerMap?: CardMarkerLayer;
   cursorStyle?: String;
   options: LeafletMapOptions = {
     layers: [
@@ -61,18 +63,22 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   public map!: LeafletMap;
   public zoom!: number;
   updateCardVisible: boolean = false;
+  settingsVisible: boolean = false;
+  selectedMarker: WritableSignal<MarkerAM | undefined>;
+  editCard: WritableSignal<CardDB | undefined>;
 
   constructor(
     private markerService: MarkerService,
     private route: ActivatedRoute,
     private ngZone: NgZone,
     private settingsService: SettingService,
-    private cardService: CardService
+    private cardService: CardService,
+    public overviewMapService: OverviewMapService,
   ) {
     listen("panTo", (panToEvent: any) => {
       let point: LatLng = new LatLng(
         panToEvent.payload.lat,
-        panToEvent.payload.lng
+        panToEvent.payload.lng,
       );
       this.highligtedMarkerIds = [panToEvent.payload.id];
       this.map.flyTo(point);
@@ -80,34 +86,32 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     listen("panToBounds", (panToBoundsEvent: any) => {
       let southWest: LatLng = new LatLng(
         panToBoundsEvent.payload.minLat,
-        panToBoundsEvent.payload.minLng
+        panToBoundsEvent.payload.minLng,
       );
       let northEast: LatLng = new LatLng(
         panToBoundsEvent.payload.maxLat,
-        panToBoundsEvent.payload.maxLng
+        panToBoundsEvent.payload.maxLng,
       );
       let bounds: LatLngBounds = new LatLngBounds(southWest, northEast);
       this.map.flyToBounds(bounds);
       this.highligtedMarkerIds = panToBoundsEvent.payload.markerIds;
     });
+    this.mainLayerGroup = this.overviewMapService.mainLayerGroup;
+    this.selectedLayerGroup = this.overviewMapService.selectedLayerGroup;
+    this.selectedMarker = this.overviewMapService.selectedMarker;
+    this.editCard = this.overviewMapService.editCard;
   }
 
   onGoToInfoPage() {
-    if (
-      !this.selectedMarkerMap ||
-      !this.selectedMarkerMap.card ||
-      !this.selectedMarkerMap.card.id
-    ) {
+    if (!this.overviewMapService.editCard()?.id) {
       return;
     }
-    console.log(
-      "creating window with id: " + this.selectedMarkerMap.card!.id!.toString()
-    );
+
     const webview = new WebviewWindow(
-      this.selectedMarkerMap.card!.id!.toString(),
+      this.overviewMapService.editCard()!.id!.toString(),
       {
-        url: "cards/details?id=" + this.selectedMarkerMap.card!.id!,
-      }
+        url: "cards/details?id=" + this.overviewMapService.editCard()?.id!,
+      },
     );
     webview.once("tauri://error", function (e) {
       console.error("window creation error: " + JSON.stringify(e));
@@ -118,82 +122,39 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   onAddNewCard() {
     this.cursorStyle = "crosshair";
     this.map.on("click", (e) => {
-      let newMarker: MarkerDB = {
-        icon_name: "iconMiscBlack",
-        latitude: e.latlng.lat,
-        longitude: e.latlng.lng,
-        radius: 0.0,
-      };
-      let newCard: CardDB = {
-        title: "",
-        description: "",
-        markers: [newMarker],
-      };
-      this.cardService.createCard(newCard).then((newCard: CardDB) => {
-        this.ngZone.run(() => {
-          if (!newCard || !newCard.markers || !newCard.markers[0]) {
-            console.error("error creating card");
-            this.map.off("click");
-            this.cursorStyle = undefined;
-            return;
-          }
-          let newMarker = newCard.markers[0];
-          this.selectedMarkerMap = this.markerService.markerToMapLayer(
-            newCard.markers[0],
-            newCard
-          );
-          this.mapMarkerIdToLayer.push({
-            id: newMarker.id!,
-            layer: new Layer(),
-          });
-          this.updateSelectedMarker();
-          this.map.off("click");
-          this.cursorStyle = undefined;
-        });
-        this.reloadMainLayerGroup();
-      });
+      this.overviewMapService.addNewCard(e.latlng);
     });
-    // this.selectedMarkerMap = {card: newCard, marker: }
   }
 
   async onDeleteSelectedCard() {
-    if (!this.selectedMarkerMap?.card || !this.selectedMarkerMap.card.id) {
-      throw new Error("no card exists");
-    }
-    await this.cardService
-      .deleteCard(this.selectedMarkerMap.card.id)
-      .then(() => {
-        this.reloadMainLayerGroup();
-      });
+    this.overviewMapService.deleteEditCard();
   }
 
   reloadMainLayerGroup() {
-    this.previousMarkersInAreaIds = [];
-    this.map.removeLayer(this.mainLayerGroup);
-    this.mainLayerGroup = new LayerGroup();
-    this.map.addLayer(this.mainLayerGroup);
+    this.overviewMapService.resetMainLayerGroup();
     this.mapMoveEnded();
   }
 
+  onUpdateIconSize(iconSetting: IconSizeSetting) {
+    this.overviewMapService.updateIconSize(
+      iconSetting.iconType,
+      iconSetting.iconSize,
+    );
+  }
+
   async onDeleteSelectedMarker() {
-    if (!this.selectedMarkerMap || !this.selectedMarkerMap.markerDB.id) {
+    if (!this.overviewMapService.selectedMarker()?.markerId) {
       throw new Error("marker does not exist");
     }
 
-    await this.cardService
-      .deleteMarker(this.selectedMarkerMap!.markerDB.id)
-      .then(() => {
-        this.reloadMainLayerGroup();
-      });
-    this.selectedMarkerMap = undefined;
+    this.overviewMapService.deleteSelectedMarker();
   }
 
-  async updateSelectedMarker() {
-    await this.cardService
-      .updateCard(this.selectedMarkerMap!.card!, [
-        this.selectedMarkerMap!.markerDB,
-      ])
-      .then(() => this.reloadMainLayerGroup());
+  async updateSelectedMarker(newMarker: MarkerDB) {
+    // TODO: implement
+    await this.markerService.updateMarker(newMarker).then(() => {
+      this.overviewMapService.reloadSelectedMarker();
+    });
   }
 
   onMoveExistingMarker() {
@@ -201,12 +162,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
       this.cursorStyle = "crosshair";
     });
     this.map.on("click", (e) => {
-      if (!this.selectedMarkerMap) {
-        return;
-      }
-      this.selectedMarkerMap.markerDB.latitude = e.latlng.lat;
-      this.selectedMarkerMap.markerDB.longitude = e.latlng.lng;
-      this.updateSelectedMarker();
+      this.overviewMapService.moveSelectedMarker(e.latlng);
       this.map.off("click");
       this.ngZone.run(() => {
         this.cursorStyle = undefined;
@@ -217,185 +173,48 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   onAddNewMarkerToCard() {
     this.cursorStyle = "crosshair";
     this.map.on("click", (e) => {
-      if (!this.selectedMarkerMap) {
+      if (!this.overviewMapService.selectedMarker()) {
         return;
       }
-      let newMarker: MarkerDB = {
-        icon_name: "iconMiscBlack",
-        latitude: e.latlng.lat,
-        longitude: e.latlng.lng,
-        radius: 0.0,
-      };
-      this.markerService
-        .createNewMarker(this.selectedMarkerMap!.card!.id!, newMarker)
-        .then((newMarker) => {
-          if (
-            !newMarker.id ||
-            !this.selectedMarkerMap ||
-            !this.selectedMarkerMap.card ||
-            this.selectedMarkerMap.card.id !== newMarker.card_id
-          ) {
-            console.error(
-              "new marker was not correctly created or selection changed"
-            );
-            return;
-          }
-          this.selectedMarkerMap!.markerDB = newMarker;
-          this.mapMarkerIdToLayer.push({
-            id: newMarker.id!,
-            layer: new Layer(),
-          });
-          this.updateSelectedMarker();
-          this.map.off("click");
-          this.cursorStyle = undefined;
-        });
+      this.overviewMapService.addMarkerToSelectedCard(e.latlng);
     });
   }
 
   updateRadiusLayerGroup(newRadius: Layer | null) {
-    this.map.removeLayer(this.radiusLayerGroup);
-    this.radiusLayerGroup = new LayerGroup();
+    this.radiusLayerGroup.clearLayers();
     if (newRadius !== null) {
       this.radiusLayerGroup.addLayer(newRadius);
     }
-    this.map.addLayer(this.radiusLayerGroup);
   }
 
   updateSelectedCard(newCard: CardDB) {
-    this.cardService.updateCard(newCard, []);
-    this.previousMarkersInAreaIds = [];
-    this.mapMarkerIdToLayer = [];
-    this.mapMoveEnded();
+    this.overviewMapService.updateEditCard(newCard);
+    // TODO refresh state
   }
 
   onMapReady(map: LeafletMap) {
     this.map = map;
     this.zoom = map.getZoom();
     this.map.addLayer(this.mainLayerGroup);
+    this.map.addLayer(this.selectedLayerGroup);
+    //this.map.addLayer(this.radiusLayerGroup);
+    this.map.addLayer(new MarkerAM([0, 0], {}, { iconType: "iconMiscBlack" }));
   }
 
   mapChanged(emittedMap: LeafletMap) {
     this.map = emittedMap;
   }
 
-  addRadiusLayer(radius: Layer | null) {
-    if (radius !== null) {
-      this.mainLayerGroup.addLayer(radius);
-    }
-  }
-
-  makeNewMapElement(cardMarkerLayer: CardMarkerLayer) {
-    this.mainLayerGroup.addLayer(cardMarkerLayer.marker);
-    cardMarkerLayer.marker.addEventListener("click", () => {
-      this.ngZone.run(() => this.changeSelectedMarkerMap(cardMarkerLayer));
-    });
-
-    this.mapMarkerIdToLayer.push({
-      id: cardMarkerLayer.markerId,
-      layer: cardMarkerLayer.marker,
-    });
-
-    this.createHoverCoordinateRadius(
-      cardMarkerLayer.marker,
-      cardMarkerLayer.radius
-    );
-  }
-
-  removeRadiuslayer(radius: Layer | null) {
-    if (radius !== null) {
-      this.mainLayerGroup.removeLayer(radius);
-    }
-  }
-
-  createHoverCoordinateRadius(marker: Marker, radius: Layer | null) {
-    marker.on("mouseover", (e) => this.addRadiusLayer(radius));
-    marker.on("mouseout", (e) => this.removeRadiuslayer(radius));
-  }
-
-  changeSelectedMarkerMap(selectedMarker: CardMarkerLayer) {
-    this.reloadMainLayerGroup();
-    // add special
-    this.map.removeLayer(this.selectedLayerGroup);
-    this.selectedLayerGroup = new LayerGroup();
-    this.map.addLayer(this.selectedLayerGroup);
-    selectedMarker.marker
-      .addTo(this.selectedLayerGroup)
-      .setOpacity(0)
-      .openPopup();
-
-    this.selectedMarkerMap = selectedMarker;
-    if (this.selectedMarkerMap?.radius) {
-      this.mainLayerGroup.removeLayer(this.selectedMarkerMap.radius);
-      this.selectedMarkerMap.marker.off("mouseover");
-      this.selectedMarkerMap.marker.off("mouseout");
-      this.updateRadiusLayerGroup(this.selectedMarkerMap?.radius);
-    }
-  }
-
   mapMoveEnded() {
     let bounds = this.map.getBounds();
 
     if (this.map.getZoom() < 7) {
-      this.map.removeLayer(this.mainLayerGroup);
-      this.mainLayerGroup = new LayerGroup();
-      this.map.addLayer(this.mainLayerGroup);
-      this.previousMarkersInAreaIds = [];
-      this.mapMarkerIdToLayer = [];
+      this.overviewMapService.resetMainLayerGroup();
+      this.map.off("click");
+      this.cursorStyle = "default";
       return;
     }
-
-    this.markerService
-      .getMarkersInArea({
-        north: bounds.getNorth(),
-        east: bounds.getEast(),
-        south: bounds.getSouth(),
-        west: bounds.getWest(),
-      })
-      .subscribe((currentMarkersInArea) => {
-        let currentMarkersInAreaIds = currentMarkersInArea.map(
-          (marker: CardMarkerLayer) => marker.markerId
-        );
-        let markerDiff = MarkerDiff(
-          currentMarkersInAreaIds,
-          this.previousMarkersInAreaIds
-        );
-        let markerIdsToAdd = markerDiff.markerIdsToAdd;
-        let markerIdsToRemove = markerDiff.markerIdsToRemove;
-
-        this.mapMarkerIdToLayer
-          .filter((markerMap) => markerIdsToRemove.indexOf(markerMap.id) > -1)
-          .forEach((markerMap) => {
-            this.mainLayerGroup.removeLayer(markerMap.layer);
-          });
-
-        this.mapMarkerIdToLayer = this.mapMarkerIdToLayer.filter(
-          (markerMap) => markerIdsToRemove.indexOf(markerMap.id) < 0
-        );
-
-        currentMarkersInArea
-          .filter((marker) => markerIdsToAdd.indexOf(marker.markerId) > -1)
-          .forEach((marker) => this.makeNewMapElement(marker));
-
-        this.previousMarkersInAreaIds = currentMarkersInAreaIds;
-        // reset marker highlights
-        this.mapMarkerIdToLayer.forEach(({ id, layer }) => {
-          if (layer instanceof Marker) {
-            let icon = layer.getIcon();
-            icon.options.className = "";
-            layer.setIcon(icon);
-          }
-        });
-
-        this.mapMarkerIdToLayer
-          .filter(({ id, layer }) => this.highligtedMarkerIds?.includes(id))
-          .forEach(({ id, layer }) => {
-            if (layer instanceof Marker) {
-              let icon = layer.getIcon();
-              icon.options.className = "highlighted";
-              layer.setIcon(icon);
-            }
-          });
-      });
+    this.overviewMapService.updateMapBounds(bounds);
   }
 
   ngAfterViewInit(): void {
@@ -405,7 +224,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     ) {
       this.position = new LatLng(
         this.route.snapshot.queryParams["latitude"],
-        this.route.snapshot.queryParams["longitude"]
+        this.route.snapshot.queryParams["longitude"],
       );
       this.map.panTo(this.position);
     }

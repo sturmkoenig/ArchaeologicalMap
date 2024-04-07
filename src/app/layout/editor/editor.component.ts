@@ -2,9 +2,10 @@ import { Component, Input, OnInit } from "@angular/core";
 import Quill, { RangeStatic } from "quill";
 import ImageResize from "quill-image-resize-module";
 import { CardContentService } from "src/app/services/card-content.service";
-import QuillImageDropAndPaste, { ImageData as QuillImageData } from 'quill-image-drop-and-paste';
+import QuillImageDropAndPaste, {
+  ImageData as QuillImageData,
+} from "quill-image-drop-and-paste";
 import { DomSanitizer, SafeUrl } from "@angular/platform-browser";
-
 
 interface IImageMeta {
   type: string;
@@ -15,13 +16,12 @@ interface IImageMeta {
 
 Quill.register("modules/imageResize", ImageResize);
 
-
 var BaseImageFormat = Quill.import("formats/image");
 const ImageFormatAttributesList = ["alt", "height", "width", "style"];
 
 class ImageFormat extends BaseImageFormat {
   static formats(domNode: any) {
-    return ImageFormatAttributesList.reduce(function(formats: any, attribute) {
+    return ImageFormatAttributesList.reduce(function (formats: any, attribute) {
       if (domNode.hasAttribute(attribute)) {
         formats[attribute] = domNode.getAttribute(attribute);
       }
@@ -84,9 +84,9 @@ Quill.register({ "formats/internal_link": LinkBlot });
 @Component({
   selector: "app-editor",
   template: `
-  <div class="editor-container">
-    <div id="toolbar">
-      <!-- Add font size dropdown -->
+    <div class="editor-container">
+      <div id="toolbar">
+        <!-- Add font size dropdown -->
         <span class="ql-formats">
           <button class="ql-bold"></button>
           <button class="ql-italic"></button>
@@ -98,10 +98,10 @@ Quill.register({ "formats/internal_link": LinkBlot });
           <button class="ql-list" value="ordered"></button>
           <button class="ql-list" value="bullet"></button>
           <select class="ql-size">
-          <option value="small"></option>
-          <option selected></option>
-          <option value="large"></option>
-          <option value="huge"></option>
+            <option value="small"></option>
+            <option selected></option>
+            <option value="large"></option>
+            <option value="huge"></option>
           </select>
         </span>
 
@@ -124,39 +124,38 @@ Quill.register({ "formats/internal_link": LinkBlot });
             ></mat-icon>
           </button>
         </span>
-
-    </div>
-    
-    <mat-menu #menu="matMenu">
-      <div class="menu-item-container">
-        <!-- do not close menu when menu is clicked-->
-        <form (click)="stopPropagation($event)">
-          <mat-form-field class="example-form-field">
-            <mat-label>Suche</mat-label>
-            <input
-              matInput
-              type="text"
-              [(ngModel)]="searchText"
-              name="searchTextInput"
-            />
-          </mat-form-field>
-        </form>
-        <ng-container
-          *ngFor="let opt of cardTitleMapping | filter : searchText"
-        >
-          <button mat-menu-item (click)="onLink(opt.id, opt.title)">
-            {{ opt.title }}
-          </button>
-        </ng-container>
       </div>
-    </mat-menu>
-    <div id="editor-container"></div>
-  </div>
+
+      <mat-menu #menu="matMenu">
+        <div class="menu-item-container">
+          <!-- do not close menu when menu is clicked-->
+          <form (click)="stopPropagation($event)">
+            <mat-form-field class="example-form-field">
+              <mat-label>Suche</mat-label>
+              <input
+                matInput
+                type="text"
+                [(ngModel)]="searchText"
+                name="searchTextInput"
+              />
+            </mat-form-field>
+          </form>
+          <ng-container
+            *ngFor="let opt of cardTitleMapping | filter : searchText"
+          >
+            <button mat-menu-item (click)="onLink(opt.id, opt.title)">
+              {{ opt.title }}
+            </button>
+          </ng-container>
+        </div>
+      </mat-menu>
+      <div id="editor-container"></div>
+    </div>
   `,
   styles: [
     `
-      .editor-container{
-        background-color: white
+      .editor-container {
+        background-color: white;
       }
       .menu-item-container {
         width: 250px;
@@ -167,31 +166,30 @@ Quill.register({ "formats/internal_link": LinkBlot });
   ],
 })
 export class EditorComponent implements OnInit {
-
   toolbarOptions = [
-    ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-    ['blockquote', 'code-block'],
+    ["bold", "italic", "underline", "strike"], // toggled buttons
+    ["blockquote", "code-block"],
 
-    [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-    [{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
-    [{ 'indent': '-1' }, { 'indent': '+1' }],          // outdent/indent
-    [{ 'direction': 'rtl' }],                         // text direction
+    [{ header: 1 }, { header: 2 }], // custom button values
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ script: "sub" }, { script: "super" }], // superscript/subscript
+    [{ indent: "-1" }, { indent: "+1" }], // outdent/indent
+    [{ direction: "rtl" }], // text direction
 
-    [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
-    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+    [{ size: ["small", false, "large", "huge"] }], // custom dropdown
+    [{ header: [1, 2, 3, 4, 5, 6, false] }],
 
-    [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
-    [{ 'font': [] }],
-    [{ 'align': [] }],
+    [{ color: [] }, { background: [] }], // dropdown with defaults from theme
+    [{ font: [] }],
+    [{ align: [] }],
 
-    ['clean']                                         // remove formatting button
+    ["clean"], // remove formatting button
   ];
 
   image: IImageMeta = {
-    type: '',
-    dataUrl: '',
-    blobUrl: '',
+    type: "",
+    dataUrl: "",
+    blobUrl: "",
     file: null,
   };
 
@@ -210,14 +208,16 @@ export class EditorComponent implements OnInit {
         maxHeight: 320,
         quality: 0.7,
       })
-      .then((miniImageData) => {
+      .then((miniImageData: any) => {
         if (miniImageData instanceof QuillImageData) {
           const blob = miniImageData.toBlob();
 
-          console.log(`blob: ${blob}`);
-          console.log(imageData)
-          console.log(`type: ${type}`);
-          this.quill.insertEmbed(this.quill.getSelection()?.index ?? 0, 'image', imageData.dataUrl, 'user');
+          this.quill.insertEmbed(
+            this.quill.getSelection()?.index ?? 0,
+            "image",
+            imageData.dataUrl,
+            "user"
+          );
         }
       });
   }
@@ -236,7 +236,7 @@ export class EditorComponent implements OnInit {
   carrotPosition?: RangeStatic | null;
 
   ngOnInit(): void {
-    Quill.register('modules/imageDropAndPaste', QuillImageDropAndPaste);
+    Quill.register("modules/imageDropAndPaste", QuillImageDropAndPaste);
     this.quill = new Quill("#editor-container", {
       modules: {
         toolbar: "#toolbar",
@@ -258,7 +258,6 @@ export class EditorComponent implements OnInit {
   }
 
   onLink(id: number, title: string) {
-
     this.quill.insertText(
       this.quill.getSelection()?.index ?? 0,
       title,

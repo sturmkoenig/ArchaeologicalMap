@@ -64,7 +64,6 @@ export class RightSidebarComponent {
 
   onCollapse() {
     this.visible = false;
-    console.log();
     this.visibleChange.emit();
   }
 }

@@ -1,4 +1,16 @@
 import { Injectable } from "@angular/core";
+import { fs } from "@tauri-apps/api";
+import { BaseDirectory, appDataDir } from "@tauri-apps/api/path";
+
+const ICON_SIZE_SETTINGS_FILE = "icon-size.settings.json";
+
+export type IconKeys = keyof typeof ICONS;
+export type IconCategoriesKeys = keyof typeof iconsSorted;
+
+export interface IconSizeSetting {
+  iconType: keyof typeof ICONS;
+  iconSize: number;
+}
 
 export enum ICONS {
   iconCaveBlack = "/assets/icons/cave_black.svg",
@@ -175,6 +187,67 @@ export class IconService {
   }
 
   static getIconNameByPath(iconPath: ICONS): keyof typeof ICONS {
-    return Object.keys(ICONS)[Object.values(ICONS).indexOf(iconPath)] as keyof typeof ICONS;
+    return Object.keys(ICONS)[
+      Object.values(ICONS).indexOf(iconPath)
+    ] as keyof typeof ICONS;
+  }
+
+  async readIconSizeSettings(): Promise<IconSizeSetting[]> {
+    let iconSizeSettings: IconSizeSetting[] = [];
+    const iconSizeSettingsExist: boolean = await fs.exists(
+      ICON_SIZE_SETTINGS_FILE,
+      {
+        dir: BaseDirectory.AppData,
+      },
+    );
+
+    if (iconSizeSettingsExist) {
+      await fs
+        .readTextFile(ICON_SIZE_SETTINGS_FILE, {
+          dir: BaseDirectory.AppData,
+        })
+        .then((iconSettings) => {
+          iconSizeSettings = JSON.parse(iconSettings);
+        });
+    }
+
+    return iconSizeSettings;
+  }
+
+  async writeIconSizeSetting(
+    iconKey: IconKeys,
+    iconSize: number,
+  ): Promise<void> {
+    // read existing settings
+    const iconSizeSettings: Map<IconKeys, number> =
+      await this.getIconSizeSettings();
+    // add new setting
+    iconSizeSettings.set(iconKey, iconSize);
+    const iconSizeSettingsArray: IconSizeSetting[] = [];
+    for (let [key, value] of iconSizeSettings) {
+      iconSizeSettingsArray.push({ iconType: key, iconSize: value });
+    }
+    const iconSettingString = JSON.stringify(iconSizeSettingsArray);
+    // write new settings
+    await fs
+      .writeFile(ICON_SIZE_SETTINGS_FILE, iconSettingString, {
+        dir: BaseDirectory.AppData,
+      })
+      .catch((e) => {
+        console.error("error writing icon size settings", e);
+      });
+  }
+
+  async getIconSizeSettings(): Promise<Map<IconKeys, number>> {
+    let iconSizeSettingMap: Map<IconKeys, number> = new Map();
+    const iconSizeSettings: IconSizeSetting[] =
+      await this.readIconSizeSettings();
+    iconSizeSettings.forEach((iconSizeSetting) => {
+      iconSizeSettingMap.set(
+        iconSizeSetting.iconType,
+        iconSizeSetting.iconSize,
+      );
+    });
+    return iconSizeSettingMap;
   }
 }

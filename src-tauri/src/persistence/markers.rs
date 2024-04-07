@@ -31,16 +31,10 @@ pub fn query_create_marker(
         .first(conn)
         .expect("error getting id of newly created marker");
 
-    let created_marker = marker::table
+    marker::table
         .filter(marker::id.eq(marker_id))
         .first::<Marker>(conn)
-        .expect("error reading newly created marker from db");
-
-    return created_marker;
-    // match created_marker {
-    // Ok(marker) => return Some(marker),
-    // Err(E) => return None;
-    // }
+        .expect("error reading newly created marker from db")
 }
 
 pub fn query_all_markers(conn: &mut SqliteConnection) -> Vec<Marker> {
@@ -79,6 +73,12 @@ pub fn query_markers_in_geological_area(
         .filter(longitude.ge(west))
         .load::<Marker>(conn)
         .expect("Error loading")
+}
+pub fn query_marker_by_id(conn: &mut SqliteConnection, marker_id: i32) -> Marker {
+    marker::table
+        .filter(schema::marker::id.eq(marker_id))
+        .first(conn)
+        .expect("Error loading marker")
 }
 
 pub fn query_join_markers(conn: &mut SqliteConnection, card_id: i32) -> Vec<Marker> {

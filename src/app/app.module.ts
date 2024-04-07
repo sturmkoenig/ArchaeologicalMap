@@ -57,7 +57,9 @@ import { ComponentStore } from "@ngrx/component-store";
 import { CardInputComponent } from "./components/cards/card-input/card-input.component";
 import { MarkerInputComponent } from "./components/markers/marker-input/marker-input.component";
 import { RightSidebarComponent } from "./layout/right-sidebar/right-sidebar.component";
+import { IconSizeSettingsComponent } from "./components/overview-map/map-settings/icon-size-settings/icon-size-settings.component";
 import { MarkerButtonToggleComponent } from "./components/markers/marker-button-toggle/marker-button-toggle.component";
+import { OverviewMapService } from "./services/overview-map.service";
 
 @NgModule({
   declarations: [
@@ -94,6 +96,7 @@ import { MarkerButtonToggleComponent } from "./components/markers/marker-button-
     FormsModule,
     MatIconModule,
     DragDropModule,
+    IconSizeSettingsComponent,
     MatSnackBarModule,
     MatSidenavModule,
     MatDividerModule,
@@ -115,7 +118,13 @@ import { MarkerButtonToggleComponent } from "./components/markers/marker-button-
     MatMenuModule,
     LeafletModule,
   ],
-  providers: [StackStore, CardDetailsStore, CardService, ComponentStore],
+  providers: [
+    StackStore,
+    CardDetailsStore,
+    CardService,
+    ComponentStore,
+    OverviewMapService,
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

@@ -19,18 +19,18 @@ import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal
   template: `
     <div class="card-details-component-container">
       <div class="card-details-side-nav">
-        @if(currentStackId$ | async){
-        <ng-container
-          *ngFor="let card of cardDetailsStore.allCardsInStack$ | async"
-        >
-          <span
-            class="card-details-side-nav--container"
-            [routerLink]="'/cards/details'"
-            [queryParams]="{ id: card.id }"
-            [ngClass]="{ 'current-card': card.id === this.cardId }"
-            >{{ card.title }}
-          </span>
-        </ng-container>
+        @if (currentStackId$ | async) {
+          <ng-container
+            *ngFor="let card of cardDetailsStore.allCardsInStack$ | async"
+          >
+            <span
+              class="card-details-side-nav--container"
+              [routerLink]="'/cards/details'"
+              [queryParams]="{ id: card.id }"
+              [ngClass]="{ 'current-card': card.id === this.cardId }"
+              >{{ card.title }}
+            </span>
+          </ng-container>
         }
       </div>
       <div class="card-details-container">
@@ -200,13 +200,12 @@ export class CardDetailsComponent implements OnInit {
     private _snackBar: MatSnackBar,
     private cardService: CardService,
     private cardContentService: CardContentService,
-    public cardDetailsStore: CardDetailsStore
+    public cardDetailsStore: CardDetailsStore,
   ) {
     this.allCardsInStack$ = this.cardDetailsStore.allCardsInStack$;
     this.currentStackId$ = this.cardDetailsStore.currentStackId$;
     this.card$ = this.cardDetailsStore.currentCard$;
     listen("tauri://focus", async () => {
-      console.log("Content saved");
       this.cardContentService.cardContent.next(this.editor.getContents());
       await this.cardContentService.saveCardContent();
     });

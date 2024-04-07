@@ -31,6 +31,7 @@ use persistence::markers::query_create_marker;
 use persistence::markers::query_delete_all_markers_for_card;
 use persistence::markers::query_delete_marker;
 use persistence::markers::query_join_markers;
+use persistence::markers::query_marker_by_id;
 use persistence::markers::query_markers_in_geological_area;
 use persistence::markers::query_update_marker;
 use persistence::stacks::query_all_stacks;
@@ -52,6 +53,7 @@ use app::{establish_connection, models::Card};
 // main.rs
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_store::Builder::default().build())
         .invoke_handler(tauri::generate_handler![
             create_card,
             read_card,
@@ -64,7 +66,9 @@ fn main() {
             cache_card_names,
             delete_card,
             create_marker,
+            read_marker,
             read_markers_in_area,
+            update_marker,
             delete_marker,
             create_stack,
             update_stack,
@@ -75,7 +79,7 @@ fn main() {
         .setup(|app| {
             let config = app.config();
 
-            let mut data_path = app_local_data_dir(&config).unwrap();
+            let data_path = app_local_data_dir(&config).unwrap();
             if !data_path.exists() {
                 std::fs::create_dir_all(data_path)?;
             }
@@ -265,7 +269,19 @@ fn read_markers_in_area(north: f32, east: f32, south: f32, west: f32) -> Vec<Mar
     let results = query_markers_in_geological_area(conn, north, east, south, west);
     results
 }
+
+#[tauri::command]
+fn read_marker(id: i32) -> Marker {
+    let conn = &mut establish_connection();
+    query_marker_by_id(conn, id)
+}
 // TODO Add mehtod that sends number of entries!
+
+#[tauri::command]
+fn update_marker(marker: Marker) {
+    let conn = &mut establish_connection();
+    query_update_marker(conn, marker);
+}
 
 #[tauri::command]
 fn read_all_stacks() -> Vec<StackDTO> {
@@ -275,7 +291,7 @@ fn read_all_stacks() -> Vec<StackDTO> {
     for stack in stacks.iter() {
         stackDTOs.push(StackDTO::from(stack.clone()))
     }
-    return stackDTOs;
+    stackDTOs
 }
 
 // TODO implement methods
