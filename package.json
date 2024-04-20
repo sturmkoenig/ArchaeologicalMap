@@ -8,6 +8,7 @@
     "web:build": "ng build --base-href ./",
     "web:dev": "npm run web:build",
     "web:prod": "npm run web:build -- -c production",
+    "tauri": "tauri",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
