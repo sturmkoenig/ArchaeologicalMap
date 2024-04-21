@@ -6,6 +6,16 @@ diesel::table! {
         title -> Text,
         description -> Text,
         stack_id -> Nullable<Integer>,
+        region_image_id -> Nullable<Integer>,
+    }
+}
+
+diesel::table! {
+    image (id) {
+        id -> Integer,
+        name -> Text,
+        description -> Nullable<Text>,
+        image_source -> Binary,
     }
 }
 
@@ -28,11 +38,13 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(cards -> image (region_image_id));
 diesel::joinable!(cards -> stack (stack_id));
 diesel::joinable!(marker -> cards (card_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     cards,
+    image,
     marker,
     stack,
 );

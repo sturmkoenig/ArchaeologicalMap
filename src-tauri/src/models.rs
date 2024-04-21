@@ -9,6 +9,7 @@ pub struct CardDTO {
     pub description: String,
     pub markers: Vec<MarkerDTO>,
     pub stack_id: Option<i32>,
+    pub region_image_id: Option<i32>,
 }
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MarkerDTO {
@@ -53,6 +54,7 @@ pub struct Card {
     pub title: String,
     pub description: String,
     pub stack_id: Option<i32>,
+    pub region_image_id: Option<i32>,
 }
 
 #[derive(Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]
@@ -106,6 +108,7 @@ impl From<Card> for CardDTO {
             description: c.description,
             markers: Vec::new(),
             stack_id: c.stack_id,
+            region_image_id: c.region_image_id,
         }
     }
 }

@@ -153,6 +153,7 @@ fn read_cards_paginated(page: i64, filter: String) -> Vec<CardDTO> {
             description: card.description.clone(),
             markers,
             stack_id: card.stack_id,
+            region_image_id: card.region_image_id,
         })
     }
     return card_dtos;
@@ -216,6 +217,7 @@ fn update_card(card: CardDTO) -> bool {
             title: card.title,
             description: card.description,
             stack_id: card.stack_id,
+            region_image_id: card.region_image_id,
         },
     );
     create_markers_from_marker_dtos(card.id.unwrap(), card.markers, conn);
@@ -341,4 +343,12 @@ fn delete_stack(stack_id: i32) -> Option<bool> {
     let conn = &mut establish_connection();
     query_delete_stack(conn, stack_id);
     Some(true)
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 5);
+    }
 }
