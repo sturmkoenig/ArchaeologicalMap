@@ -1,5 +1,5 @@
 use crate::schema::{cards, marker, stack};
-use diesel::{prelude::*, sql_types::Nullable};
+use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]

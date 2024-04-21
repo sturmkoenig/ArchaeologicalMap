@@ -10,12 +10,9 @@ use app::models::CardDTO;
 use app::models::CardTitleMapping;
 use app::models::Marker;
 use app::models::MarkerDTO;
-use app::models::NewMarker;
 use app::models::NewStack;
 use app::models::Stack;
 use app::models::StackDTO;
-use app::schema::marker;
-use app::schema::stack;
 use diesel::SqliteConnection;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use persistence::cards::query_all_cards;
@@ -86,18 +83,38 @@ fn main() {
 
             let conn = &mut establish_connection();
             // TODO handle error
-            conn.run_pending_migrations(MIGRATIONS);
+            let err = conn.run_pending_migrations(MIGRATIONS);
+
+            if let Err(e) = err {
+                println!("Error running migrations: {:?}", e);
+            }
 
             let mut app_dir = app_data_dir(&config).expect("error creating app data dir");
-            fs::create_dir(&app_dir);
+            let err = fs::create_dir(&app_dir);
+            if let Err(e) = err {
+                println!("Error creating app dir: {:?}", e);
+            }
+
             app_dir.push("content");
-            fs::create_dir(app_dir);
+            let err = fs::create_dir(app_dir);
+            if let Err(e) = err {
+                println!("Error creating content dir: {:?}", e);
+            }
+
             let cache_dir = app_cache_dir(&config).expect("error resolving cache dir");
-            fs::create_dir(cache_dir);
+
+            let err = fs::create_dir(cache_dir);
+            if let Err(e) = err {
+                println!("Error creating cache dir: {:?}", e);
+            }
+
             let mut images_dir = app_data_dir(&config).expect("error creating app data dir");
             images_dir.push("content");
             images_dir.push("images");
-            fs::create_dir(images_dir);
+            let err = fs::create_dir(images_dir);
+            if let Err(e) = err {
+                println!("Error creating images dir: {:?}", e);
+            }
 
             Ok(())
         })
@@ -134,7 +151,7 @@ fn read_cards_paginated(page: i64, filter: String) -> Vec<CardDTO> {
             id: Some(card.id),
             title: card.title.clone(),
             description: card.description.clone(),
-            markers: markers,
+            markers,
             stack_id: card.stack_id,
         })
     }
@@ -216,8 +233,8 @@ fn create_markers_from_marker_dtos(
             Some(id) => query_update_marker(
                 conn,
                 Marker {
-                    id: id,
-                    card_id: card_id,
+                    id,
+                    card_id,
                     latitude: marker.latitude,
                     longitude: marker.longitude,
                     radius: marker.radius,
@@ -287,11 +304,11 @@ fn update_marker(marker: Marker) {
 fn read_all_stacks() -> Vec<StackDTO> {
     let conn = &mut establish_connection();
     let stacks = query_all_stacks(conn);
-    let mut stackDTOs: Vec<StackDTO> = Vec::new();
+    let mut stack_dtos: Vec<StackDTO> = Vec::new();
     for stack in stacks.iter() {
-        stackDTOs.push(StackDTO::from(stack.clone()))
+        stack_dtos.push(StackDTO::from(stack.clone()))
     }
-    stackDTOs
+    stack_dtos
 }
 
 // TODO implement methods
@@ -318,8 +335,6 @@ fn create_marker(new_marker: MarkerDTO, card_id: i32) -> Marker {
     let conn = &mut establish_connection();
     query_create_marker(conn, card_id, &new_marker)
 }
-
-fn add_card_to_stack(card_id: i32, stack_id: i32) {}
 
 #[tauri::command]
 fn delete_stack(stack_id: i32) -> Option<bool> {

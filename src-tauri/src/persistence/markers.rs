@@ -15,7 +15,7 @@ pub fn query_create_marker(
     marker_dto: &MarkerDTO,
 ) -> Marker {
     let marker: NewMarker = NewMarker {
-        card_id: card_id,
+        card_id,
         latitude: marker_dto.latitude,
         longitude: marker_dto.longitude,
         radius: marker_dto.radius,
@@ -52,11 +52,25 @@ pub fn query_update_marker(conn: &mut SqliteConnection, updated_marker: Marker) 
 }
 
 pub fn query_delete_marker(conn: &mut SqliteConnection, marker_id: i32) {
-    diesel::delete(marker::table.filter(schema::marker::id.eq(marker_id))).execute(conn);
+    let result =
+        diesel::delete(marker::table.filter(schema::marker::id.eq(marker_id))).execute(conn);
+    if let Err(e) = result {
+        panic!(
+            "Error deleting marker with id: {}, produced error {}",
+            marker_id, e
+        )
+    }
 }
 
 pub fn query_delete_all_markers_for_card(conn: &mut SqliteConnection, card_id: i32) {
-    diesel::delete(marker::table.filter(schema::marker::card_id.eq(card_id))).execute(conn);
+    let result =
+        diesel::delete(marker::table.filter(schema::marker::card_id.eq(card_id))).execute(conn);
+    if let Err(e) = result {
+        panic!(
+            "Error deleting markers for card with id: {}, produced error {}",
+            card_id, e
+        )
+    }
 }
 
 pub fn query_markers_in_geological_area(

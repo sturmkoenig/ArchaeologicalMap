@@ -57,7 +57,11 @@ pub fn query_card_names(conn: &mut SqliteConnection) -> Vec<CardTitleMapping> {
     return card_mapping;
 }
 pub fn query_delete_card(conn: &mut SqliteConnection, card_id: i32) {
-    diesel::delete(cards::table.filter(id.eq(card_id))).execute(conn);
+    let result = diesel::delete(cards::table.filter(id.eq(card_id))).execute(conn);
+    match result {
+        Ok(_) => (),
+        Err(e) => panic!("Error deleting card: {}", e),
+    }
 }
 
 pub fn query_update_card(conn: &mut SqliteConnection, update_card: Card) {
@@ -93,7 +97,7 @@ pub fn query_create_card(card_dto: &CardDTO, conn: &mut SqliteConnection) -> i32
 }
 
 pub fn query_cards_in_stack(conn: &mut SqliteConnection, stack_id: i32) -> Vec<CardDTO> {
-    let mut cards = cards::table
+    let cards = cards::table
         .filter(schema::cards::stack_id.eq(stack_id))
         .order(schema::cards::stack_id)
         .load(conn)
