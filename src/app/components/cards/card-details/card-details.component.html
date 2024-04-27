@@ -17,12 +17,10 @@
   <div class="card-details-container">
     <ng-container *ngIf="card$ | async as card">
       <div class="card">
-        <span
-          *ngIf="cardDetailsStore.previousCardId$ | async as previousCardId"
-          class="card--nav"
-        >
+        <span class="card--nav">
           <button
             mat-icon-button
+            *ngIf="cardDetailsStore.previousCardId$ | async as previousCardId"
             [routerLink]="'/cards/details'"
             [queryParams]="{ id: previousCardId }"
           >
@@ -30,21 +28,8 @@
           </button>
         </span>
         <div class="card--properties">
-          <h1>{{ card.title }}</h1>
-          <div class="card-content">
-            <p>
-              {{ card.description }}
-            </p>
-          </div>
-          <span class="card--buttons">
-            <button
-              mat-raised-button
-              color="accent"
-              (click)="openUpdateDialog(this.card)"
-            >
-              Ändern
-            </button>
-            <ng-container *ngIf="card.markers">
+          <ng-container *ngIf="card.markers">
+            <div class="navigate-to-position-button">
               @if (regionImage$ | async) {
                 <button
                   class="region-image-button"
@@ -65,8 +50,15 @@
                   <mat-icon>pin_drop</mat-icon>
                 </button>
               }
-            </ng-container>
-          </span>
+            </div>
+          </ng-container>
+
+          <div class="card-content">
+            <h1>{{ card.title }}</h1>
+            <p>
+              {{ card.description }}
+            </p>
+          </div>
         </div>
         <span
           *ngIf="cardDetailsStore.nextCardId$ | async as nextCardId"
