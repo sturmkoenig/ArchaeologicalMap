@@ -40,7 +40,7 @@
     "@ngrx/store": "^17.0.0",
     "@ngrx/store-devtools": "^17.0.0",
     "@openapitools/openapi-generator-cli": "^2.5.2",
-    "@tauri-apps/api": "^1.2.0",
+    "@tauri-apps/api": "1.5.3",
     "@types/leaflet": "^1.9.0",
     "@types/uuid": "^9.0.1",
     "@xeger/quill-image-actions": "^0.7.1",
