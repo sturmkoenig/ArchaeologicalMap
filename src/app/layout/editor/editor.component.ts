@@ -83,87 +83,8 @@ Quill.register({ "formats/internal_link": LinkBlot });
 
 @Component({
   selector: "app-editor",
-  template: `
-    <div class="editor-container">
-      <div id="toolbar">
-        <!-- Add font size dropdown -->
-        <span class="ql-formats">
-          <button class="ql-bold"></button>
-          <button class="ql-italic"></button>
-          <button class="ql-underline"></button>
-          <button class="ql-strike"></button>
-        </span>
-
-        <span class="ql-formats">
-          <button class="ql-list" value="ordered"></button>
-          <button class="ql-list" value="bullet"></button>
-          <select class="ql-size">
-            <option value="small"></option>
-            <option selected></option>
-            <option value="large"></option>
-            <option value="huge"></option>
-          </select>
-        </span>
-
-        <span class="ql-formats">
-          <select class="ql-color"></select>
-          <select class="ql-background"></select>
-          <select class="ql-font"></select>
-        </span>
-
-        <span class="ql-formats">
-          <button class="ql-clean"></button>
-        </span>
-        <span class="ql-formats">
-          <button class="ql-image" value="super"></button>
-          <button [matMenuTriggerFor]="menu" (click)="saveCarrotPosition()">
-            <mat-icon
-              aria-hidden="false"
-              aria-label="Example home icon"
-              fontIcon="link"
-            ></mat-icon>
-          </button>
-        </span>
-      </div>
-
-      <mat-menu #menu="matMenu">
-        <div class="menu-item-container">
-          <!-- do not close menu when menu is clicked-->
-          <form (click)="stopPropagation($event)">
-            <mat-form-field class="example-form-field">
-              <mat-label>Suche</mat-label>
-              <input
-                matInput
-                type="text"
-                [(ngModel)]="searchText"
-                name="searchTextInput"
-              />
-            </mat-form-field>
-          </form>
-          <ng-container
-            *ngFor="let opt of cardTitleMapping | filter : searchText"
-          >
-            <button mat-menu-item (click)="onLink(opt.id, opt.title)">
-              {{ opt.title }}
-            </button>
-          </ng-container>
-        </div>
-      </mat-menu>
-      <div id="editor-container"></div>
-    </div>
-  `,
-  styles: [
-    `
-      .editor-container {
-        background-color: white;
-      }
-      .menu-item-container {
-        width: 250px;
-        height: auto;
-        padding: 10px;
-      }
-    `,
-  ],
+  templateUrl: "./editor.component.html",
+  styleUrls: ["./editor.component.scss"],
 })
 export class EditorComponent implements OnInit {
   toolbarOptions = [
@@ -216,7 +137,7 @@ export class EditorComponent implements OnInit {
             this.quill.getSelection()?.index ?? 0,
             "image",
             imageData.dataUrl,
-            "user"
+            "user",
           );
         }
       });
@@ -262,7 +183,7 @@ export class EditorComponent implements OnInit {
       this.quill.getSelection()?.index ?? 0,
       title,
       "link",
-      "/cards/details?id=" + id
+      "/cards/details?id=" + id,
     );
   }
 }

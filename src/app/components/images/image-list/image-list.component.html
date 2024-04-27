@@ -1,0 +1,49 @@
+<div class="image-list">
+  <mat-form-field class="example-form-field">
+    <mat-label>Clearable input</mat-label>
+    <input
+      matInput
+      type="text"
+      [ngModel]="titleFilter | async"
+      (ngModelChange)="titleFilter.next($event)"
+    />
+    @if (titleFilter) {
+      <button
+        matSuffix
+        mat-icon-button
+        aria-label="Clear"
+        (click)="titleFilter.next('')"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </mat-form-field>
+  <div class="gridbox">
+    <mat-card
+      *ngFor="let image of images"
+      class="gridbox_item"
+      (click)="onSelectImage(image)"
+    >
+      <div class="content-grid">
+        <h3>{{ image.name }}</h3>
+        <mat-card-content class="card-content">
+          <img
+            class="centered-image"
+            [src]="image.imageSource"
+            [alt]="image.description"
+          />
+          <p>{{ image.description }}</p>
+        </mat-card-content>
+      </div>
+    </mat-card>
+  </div>
+  <mat-paginator
+    [length]="numberOfImages"
+    [pageSize]="itemsPerPage"
+    [pageSizeOptions]="[5, 10, 25, 100]"
+    [pageIndex]="pageIndex"
+    (page)="changePage($event)"
+    aria-label="Select page"
+  >
+  </mat-paginator>
+</div>

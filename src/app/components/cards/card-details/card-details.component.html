@@ -1,0 +1,81 @@
+<div class="card-details-component-container">
+  <div class="card-details-side-nav">
+    @if (currentStackId$ | async) {
+      <ng-container
+        *ngFor="let card of cardDetailsStore.allCardsInStack$ | async"
+      >
+        <span
+          class="card-details-side-nav--container"
+          [routerLink]="'/cards/details'"
+          [queryParams]="{ id: card.id }"
+          [ngClass]="{ 'current-card': card.id === this.cardId }"
+          >{{ card.title }}
+        </span>
+      </ng-container>
+    }
+  </div>
+  <div class="card-details-container">
+    <ng-container *ngIf="card$ | async as card">
+      <div class="card">
+        <span class="card--nav">
+          <button
+            mat-icon-button
+            *ngIf="cardDetailsStore.previousCardId$ | async as previousCardId"
+            [routerLink]="'/cards/details'"
+            [queryParams]="{ id: previousCardId }"
+          >
+            <mat-icon>arrow_back_ios</mat-icon>
+          </button>
+        </span>
+        <div class="card--properties">
+          <ng-container *ngIf="card.markers">
+            <div class="navigate-to-position-button">
+              @if (regionImage$ | async) {
+                <button
+                  class="region-image-button"
+                  (click)="panToLatLng(card.markers)"
+                >
+                  <img
+                    [src]="(regionImage$ | async)?.imageSource"
+                    alt="arrow_forward_ios"
+                  />
+                </button>
+              } @else {
+                <button
+                  mat-mini-fab
+                  color="warn"
+                  (click)="panToLatLng(card.markers)"
+                  aria-label="Example icon button with a home icon"
+                >
+                  <mat-icon>pin_drop</mat-icon>
+                </button>
+              }
+            </div>
+          </ng-container>
+
+          <div class="card-content">
+            <h1>{{ card.title }}</h1>
+            <p>
+              {{ card.description }}
+            </p>
+          </div>
+        </div>
+        <span
+          *ngIf="cardDetailsStore.nextCardId$ | async as nextCardId"
+          class="card--nav"
+        >
+          <button
+            mat-icon-button
+            [routerLink]="'/cards/details'"
+            [queryParams]="{ id: nextCardId }"
+          >
+            <mat-icon>arrow_forward_ios</mat-icon>
+          </button>
+        </span>
+      </div>
+    </ng-container>
+  </div>
+</div>
+<div class="container">
+  <app-editor [cardTitleMapping]="cardTitleMapping"></app-editor>
+</div>

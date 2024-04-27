@@ -1,5 +1,5 @@
-use crate::schema::{cards, marker, stack};
-use diesel::{prelude::*, sql_types::Nullable};
+use crate::schema::{cards, image, marker, stack};
+use diesel::{deserialize::FromSqlRow, prelude::*};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -9,6 +9,7 @@ pub struct CardDTO {
     pub description: String,
     pub markers: Vec<MarkerDTO>,
     pub stack_id: Option<i32>,
+    pub region_image_id: Option<i32>,
 }
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MarkerDTO {
@@ -19,12 +20,29 @@ pub struct MarkerDTO {
     pub latitude: f32,
     pub icon_name: String,
 }
+#[derive(Serialize, Debug, AsChangeset)]
+#[table_name = "image"]
+pub struct ImageDTO {
+    pub id: i32,
+    pub name: String,
+    pub description: Option<String>,
+    pub image_source: Option<String>,
+}
+
 #[derive(Insertable)]
 #[diesel(table_name = cards)]
 pub struct NewCard<'a> {
     pub title: &'a str,
     pub description: &'a str,
     pub stack_id: Option<i32>,
+}
+
+#[derive(Insertable, Deserialize)]
+#[diesel(table_name = image)]
+pub struct NewImage<'a> {
+    pub name: &'a str,
+    pub description: Option<&'a str>,
+    pub image_source: Option<&'a str>,
 }
 
 #[derive(Insertable, Deserialize)]
@@ -47,12 +65,22 @@ impl std::fmt::Display for NewCard<'_> {
     }
 }
 
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(table_name = image)]
+pub struct Image {
+    pub id: i32,
+    pub name: String,
+    pub description: String,
+    pub image_source: String,
+}
+
 #[derive(Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]
 pub struct Card {
     pub id: i32,
     pub title: String,
     pub description: String,
     pub stack_id: Option<i32>,
+    pub region_image_id: Option<i32>,
 }
 
 #[derive(Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]
@@ -106,6 +134,7 @@ impl From<Card> for CardDTO {
             description: c.description,
             markers: Vec::new(),
             stack_id: c.stack_id,
+            region_image_id: c.region_image_id,
         }
     }
 }

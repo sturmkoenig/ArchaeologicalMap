@@ -1,0 +1,101 @@
+.card-details-component-container {
+  display: flex;
+  height: 15rem;
+  margin-bottom: 20px;
+  padding: 10px;
+  margin-top: 10px;
+}
+.navigate-to-postion-button {
+  position: absolute;
+}
+
+
+.region-image-button {
+  all: unset;
+  height: 67px;
+  width: 100px;
+  
+  img {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+  }
+}
+.card-details-container {
+  flex-grow: 1;
+}
+.card-details-side-nav {
+  width: 200px;
+  display: flex;
+  border: solid;
+  border-color: #cccccc;
+  border-width: 0;
+  border-radius: 5px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  margin-left: 5px;
+  margin-right: 5px;
+  flex-direction: column;
+  flex-grow: 0;
+  height: 100%;
+  overflow: auto;
+
+  span {
+    border-radius: 3px;
+    padding: 0.6rem;
+  }
+  span:nth-child(odd) {
+    background-color: #fdfefe;
+  }
+}
+.current-card {
+  background-color: #bf616a !important;
+  color: white;
+}
+
+.card {
+  height: 100%;
+  margin-left: 10px;
+  margin-right: 10px;
+  border: solid;
+  border-radius: 5px;
+  border-color: #cccccc;
+  border-width: 0;
+  background-color: #fdfefe;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  display: flex;
+
+  &--properties {
+    flex-grow: 1;
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    margin: 2rem;
+    margin-top: 4rem;
+  }
+  &--buttons {
+    display: flex;
+    margin-top: auto;
+  }
+  &--nav {
+    display: flex;
+    align-items: center;
+    width: 50px;
+  }
+  button:last-of-type {
+    margin-left: auto;
+  }
+}
+
+.marker-map {
+  top: 100px;
+  left: 100px;
+  margin-left: auto;
+}
+.card-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+}

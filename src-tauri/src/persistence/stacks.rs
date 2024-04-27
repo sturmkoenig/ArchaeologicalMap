@@ -1,10 +1,14 @@
 use crate::diesel::RunQueryDsl;
 use app::{
     last_insert_rowid,
-    models::{NewStack, Stack, StackDTO},
-    schema::{self, cards, marker::icon_name, stack},
+    models::{NewStack, Stack},
+    schema::{
+        self,
+        cards::{self},
+        stack,
+    },
 };
-use diesel::{expression_methods::ExpressionMethods, sql_types::Nullable};
+use diesel::expression_methods::ExpressionMethods;
 use diesel::{select, QueryDsl, SqliteConnection};
 
 pub fn query_create_stack(conn: &mut SqliteConnection, new_stack: &NewStack) -> Stack {
@@ -42,9 +46,21 @@ pub fn query_all_stacks(conn: &mut SqliteConnection) -> Vec<Stack> {
 }
 
 pub fn query_delete_stack(conn: &mut SqliteConnection, stack_id: i32) {
-    diesel::delete(stack::table.filter(stack::id.eq(stack_id))).execute(conn);
-    diesel::update(cards::table)
+    let result = diesel::delete(stack::table.filter(stack::id.eq(stack_id))).execute(conn);
+    if let Err(e) = result {
+        panic!(
+            "Error deleting stack with id: {}, produced error {}",
+            stack_id, e
+        )
+    }
+    let result = diesel::update(cards::table)
         .filter(schema::cards::stack_id.eq(stack_id))
         .set(cards::stack_id.eq(None::<i32>))
         .execute(conn);
+    if let Err(e) = result {
+        panic!(
+            "Error setting card stackId {} to None produced error: {}, ",
+            stack_id, e
+        )
+    }
 }
