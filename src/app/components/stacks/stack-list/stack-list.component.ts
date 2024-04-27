@@ -8,10 +8,6 @@ import { StackStore } from "src/app/state/stack.store";
 @Component({
   selector: "app-stack-display",
   template: `
-    <!-- <mat-drawer-container class="drawer_container"> -->
-    <!-- <mat-drawer #sideNav position="end"> -->
-    <!-- </mat-drawer> -->
-    <!-- <mat-drawer-content> -->
     <div class="stack-display__container">
       <div class="gridbox">
         <div *ngFor="let stack of stacks$ | async" class="card__container">

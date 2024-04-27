@@ -13,6 +13,7 @@ import { CardContentService } from "src/app/services/card-content.service";
 import { MarkerService } from "src/app/services/marker.service";
 import { CardDetailsStore } from "src/app/state/card-details.store";
 import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal.component";
+import { ImageEntity } from "src/app/model/image";
 
 @Component({
   selector: "app-card-details",
@@ -28,6 +29,7 @@ export class CardDetailsComponent implements OnInit {
   cardTitleMapping!: [{ id: number; title: string }];
   allCardsInStack$: Observable<CardDB[]>;
   currentStackId$: Observable<number | undefined>;
+  regionImage$: Observable<ImageEntity | undefined>;
 
   constructor(
     private route: ActivatedRoute,
@@ -41,6 +43,10 @@ export class CardDetailsComponent implements OnInit {
     this.allCardsInStack$ = this.cardDetailsStore.allCardsInStack$;
     this.currentStackId$ = this.cardDetailsStore.currentStackId$;
     this.card$ = this.cardDetailsStore.currentCard$;
+    this.regionImage$ = this.cardDetailsStore.currentImage$;
+    this.regionImage$.subscribe((image) => {
+      console.log(image);
+    });
     listen("tauri://focus", async () => {
       this.cardContentService.cardContent.next(this.editor.getContents());
       await this.cardContentService.saveCardContent();

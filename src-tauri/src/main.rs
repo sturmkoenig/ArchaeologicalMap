@@ -8,8 +8,10 @@ extern crate diesel_migrations;
 pub mod persistence;
 use app::models::CardDTO;
 use app::models::CardTitleMapping;
+use app::models::ImageDTO;
 use app::models::Marker;
 use app::models::MarkerDTO;
+use app::models::NewImage;
 use app::models::NewStack;
 use app::models::Stack;
 use app::models::StackDTO;
@@ -24,6 +26,7 @@ use persistence::cards::query_count_cards;
 use persistence::cards::query_create_card;
 use persistence::cards::query_delete_card;
 use persistence::cards::query_update_card;
+use persistence::images::query_create_image;
 use persistence::markers::query_create_marker;
 use persistence::markers::query_delete_all_markers_for_card;
 use persistence::markers::query_delete_marker;
@@ -44,8 +47,12 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use std::env;
 use std::fs;
+use std::path::Path;
+use tauri::AppHandle;
 
 use app::{establish_connection, models::Card};
+
+use crate::persistence::images::query_update_image;
 
 // main.rs
 fn main() {
@@ -71,7 +78,12 @@ fn main() {
             update_stack,
             delete_stack,
             read_all_stacks,
-            get_cards_in_stack
+            get_cards_in_stack,
+            create_image,
+            read_image,
+            read_images,
+            read_images_paginated,
+            delete_image,
         ])
         .setup(|app| {
             let config = app.config();
@@ -95,10 +107,17 @@ fn main() {
                 println!("Error creating app dir: {:?}", e);
             }
 
-            app_dir.push("content");
-            let err = fs::create_dir(app_dir);
+            let mut content_dir = app_dir.clone();
+            content_dir.push("content");
+            let mut images_dir = content_dir.clone();
+            images_dir.push("images");
+            let err = fs::create_dir(content_dir);
             if let Err(e) = err {
                 println!("Error creating content dir: {:?}", e);
+            }
+            let err = fs::create_dir(images_dir);
+            if let Err(e) = err {
+                println!("Error creating images dir: {:?}", e);
             }
 
             let cache_dir = app_cache_dir(&config).expect("error resolving cache dir");
@@ -106,14 +125,6 @@ fn main() {
             let err = fs::create_dir(cache_dir);
             if let Err(e) = err {
                 println!("Error creating cache dir: {:?}", e);
-            }
-
-            let mut images_dir = app_data_dir(&config).expect("error creating app data dir");
-            images_dir.push("content");
-            images_dir.push("images");
-            let err = fs::create_dir(images_dir);
-            if let Err(e) = err {
-                println!("Error creating images dir: {:?}", e);
             }
 
             Ok(())
@@ -343,6 +354,125 @@ fn delete_stack(stack_id: i32) -> Option<bool> {
     let conn = &mut establish_connection();
     query_delete_stack(conn, stack_id);
     Some(true)
+}
+
+#[tauri::command]
+fn create_image(
+    app_handle: AppHandle,
+    image_path: String,
+    image_name: String,
+    image_description: Option<String>,
+) {
+    let conn = &mut establish_connection();
+    let new_image: NewImage = NewImage {
+        name: &image_name,
+        description: image_description.as_deref(),
+        image_source: std::option::Option::None,
+    };
+    let image_id = query_create_image(conn, &new_image);
+    let config = app_handle.config();
+    let app_data_dir = app_data_dir(&config).expect("error creating app data dir");
+    println!("app_data_dir: {:?}", app_data_dir);
+    println!("image_path: {:?}", image_path);
+    println!("image_id: {}", image_id);
+
+    let file_name = Path::new(&image_path)
+        .file_name()
+        .and_then(|fname| fname.to_str())
+        .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid file name"))
+        .unwrap();
+
+    let file_stem = Path::new(&image_path)
+        .file_stem()
+        .and_then(|fname| fname.to_str())
+        .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid file stem"))
+        .unwrap();
+
+    let extension = Path::new(&image_path)
+        .extension()
+        .and_then(|fname| fname.to_str())
+        .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid extension"))
+        .unwrap();
+
+    println!("file_stem: {:?}", file_stem);
+    let new_image_name = format!("{}_{}.{}", image_id, file_stem, extension);
+    let app_image_dir = "content/images/";
+    println!("new_image_name: {:?}", new_image_name);
+    let dest_path = app_data_dir.join(format!("{}{}", app_image_dir, new_image_name));
+    let _ = fs::copy(image_path, dest_path).or_else(|e| {
+        println!("Error copying image: {:?}", e);
+        Err(e)
+    });
+    let image_source = Some(format!("{}{}", app_image_dir, new_image_name));
+    println!("image_source: {:?}", image_source);
+    let image_dto = ImageDTO {
+        id: image_id,
+        name: image_name,
+        description: image_description,
+        image_source,
+    };
+    query_update_image(conn, &image_dto);
+}
+
+#[tauri::command]
+fn read_image(image_id: i32) -> ImageDTO {
+    let conn = &mut establish_connection();
+    let image = persistence::images::query_read_image(conn, image_id);
+
+    ImageDTO {
+        id: image.id,
+        name: image.name,
+        description: Some(image.description),
+        image_source: Some(image.image_source),
+    }
+}
+
+#[tauri::command]
+fn delete_image(image_id: i32) {
+    let conn = &mut establish_connection();
+    persistence::images::query_delete_image(conn, image_id);
+}
+
+#[tauri::command]
+fn read_images() -> Vec<ImageDTO> {
+    let conn = &mut establish_connection();
+    let images = persistence::images::query_read_images(conn);
+    let mut image_dtos: Vec<ImageDTO> = Vec::new();
+    for image in images.iter() {
+        image_dtos.push(ImageDTO {
+            id: image.id,
+            name: image.name.clone(),
+            description: Some(image.description.clone()),
+            image_source: Some(image.image_source.clone()),
+        });
+    }
+    image_dtos
+}
+
+#[tauri::command]
+fn read_images_paginated(
+    entries_per_page: i64,
+    page_number: i64,
+    title_filter: Option<String>,
+) -> (Vec<ImageDTO>, i64) {
+    let conn = &mut establish_connection();
+    let images = persistence::images::query_read_images_paginated(
+        conn,
+        page_number,
+        entries_per_page,
+        title_filter.clone(),
+    );
+    let mut image_dtos: Vec<ImageDTO> = Vec::new();
+    for image in images.iter() {
+        image_dtos.push(ImageDTO {
+            id: image.id,
+            name: image.name.clone(),
+            description: Some(image.description.clone()),
+            image_source: Some(image.image_source.clone()),
+        });
+    }
+    let number_of_images = persistence::images::query_count_images(conn, title_filter.clone());
+    (image_dtos, number_of_images)
 }
 
 #[cfg(test)]

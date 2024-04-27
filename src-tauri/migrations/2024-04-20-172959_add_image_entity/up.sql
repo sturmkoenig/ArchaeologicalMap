@@ -2,9 +2,9 @@
 
 CREATE TABLE image (
     id INTEGER NOT NULL PRIMARY KEY,
-    name VARCHAR NOT NULL,
-    description VARCHAR,
-    image_source BLOB NOT NULL
+    name VARCHAR NOT NULL DEFAULT '',
+    description VARCHAR NOT NULL DEFAULT '',
+    image_source VARCHAR NOT NULL DEFAULT ''
 );
 
 ALTER TABLE cards RENAME TO cards_old;

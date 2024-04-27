@@ -1,0 +1,52 @@
+.example-form-field {
+  margin: 20px;
+}
+.gridbox {
+  display: flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.gridbox_item {
+  padding: 10px;
+  width: 200px;
+  height: 200px;
+
+  &:hover {
+    background-color: #f0f0f0;
+    transition: all 0.3s ease;
+
+    img {
+      transform: scale(1.1);
+    }
+  }
+
+  img {
+    transition: all 0.3s ease;
+  }
+}
+
+.card-content{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+.content-grid{
+  display: grid;
+  grid-template-rows: 30px 140px 30px;
+  gap: 10px;
+}
+
+.centered-image{
+  display: block;
+  width: 100%;
+  max-height: 120px;
+  object-fit: contain;
+}
+
+.image-list {
+  margin: 10px;
+  width: 80vw;
+  max-height: 90vh;
+}

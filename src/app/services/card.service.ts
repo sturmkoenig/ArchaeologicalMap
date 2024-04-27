@@ -1,13 +1,7 @@
 import { Injectable } from "@angular/core";
 import { fs, invoke } from "@tauri-apps/api";
 import { appCacheDir } from "@tauri-apps/api/path";
-import {
-  CardDB,
-  CardinalDirection,
-  MarkerDB,
-  MarkerLatLng,
-  NewCard,
-} from "src/app/model/card";
+import { CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
 
 @Injectable({
   providedIn: "root",
@@ -66,6 +60,7 @@ export class CardService {
 
   updateCard(updateCard: CardDB, markers?: MarkerDB[]): Promise<boolean> {
     // TODO update position
+    console.log("update card", updateCard);
     return invoke("update_card", {
       card: {
         id: updateCard.id,
@@ -73,6 +68,7 @@ export class CardService {
         description: updateCard.description,
         markers: markers,
         stack_id: updateCard.stack_id,
+        region_image_id: updateCard.region_image_id,
       },
     });
   }

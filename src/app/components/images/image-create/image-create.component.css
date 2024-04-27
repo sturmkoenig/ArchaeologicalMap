@@ -1,0 +1,39 @@
+.image-create {
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.image-drop-box {
+  border: 2px dashed #ccc;
+  border-radius: 5px;
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.image-props {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+.image-upload {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+}
+
+.image-preview {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+  border-radius: 5px;
+}

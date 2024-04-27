@@ -45,14 +45,26 @@
               Ändern
             </button>
             <ng-container *ngIf="card.markers">
-              <button
-                mat-mini-fab
-                color="warn"
-                (click)="panToLatLng(card.markers)"
-                aria-label="Example icon button with a home icon"
-              >
-                <mat-icon>pin_drop</mat-icon>
-              </button>
+              @if (regionImage$ | async) {
+                <button
+                  class="region-image-button"
+                  (click)="panToLatLng(card.markers)"
+                >
+                  <img
+                    [src]="(regionImage$ | async)?.imageSource"
+                    alt="arrow_forward_ios"
+                  />
+                </button>
+              } @else {
+                <button
+                  mat-mini-fab
+                  color="warn"
+                  (click)="panToLatLng(card.markers)"
+                  aria-label="Example icon button with a home icon"
+                >
+                  <mat-icon>pin_drop</mat-icon>
+                </button>
+              }
             </ng-container>
           </span>
         </div>

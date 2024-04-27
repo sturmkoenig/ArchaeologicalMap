@@ -14,8 +14,8 @@ diesel::table! {
     image (id) {
         id -> Integer,
         name -> Text,
-        description -> Nullable<Text>,
-        image_source -> Binary,
+        description -> Text,
+        image_source -> Text,
     }
 }
 
