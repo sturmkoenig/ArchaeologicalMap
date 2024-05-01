@@ -2,11 +2,9 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  HostListener,
   Output,
   ViewChild,
 } from "@angular/core";
-import { listen } from "@tauri-apps/api/event";
 
 @Component({
   selector: "app-file-dropzone",
@@ -178,7 +176,7 @@ export class FileDropzoneComponent {
     if (!files) {
       return;
     }
-    let fileList = Array.prototype.forEach.call(files, (file) => {
+    Array.prototype.forEach.call(files, (file) => {
       this.files.push(file);
     });
   }
@@ -192,20 +190,5 @@ export class FileDropzoneComponent {
       return;
     }
     this.files.splice(index, 1);
-  }
-  /**
-   * format bytes
-   * @param bytes (File size in bytes)
-   * @param decimals (Decimals point)
-   */
-  formatBytes(bytes: any, decimals = 2) {
-    if (bytes === 0) {
-      return "0 Bytes";
-    }
-    const k = 1024;
-    const dm = decimals <= 0 ? 0 : decimals;
-    const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
   }
 }

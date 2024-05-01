@@ -20,7 +20,6 @@ import {
   tileLayer,
 } from "leaflet";
 import { CardDB, MarkerDB } from "src/app/model/card";
-import { CardService } from "src/app/services/card.service";
 import { SettingService } from "src/app/services/setting.service";
 import { MarkerService } from "../../services/marker.service";
 import { MarkerAM } from "src/app/model/marker";
@@ -72,7 +71,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     private route: ActivatedRoute,
     private ngZone: NgZone,
     private settingsService: SettingService,
-    private cardService: CardService,
     public overviewMapService: OverviewMapService,
   ) {
     listen("panTo", (panToEvent: any) => {

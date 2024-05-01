@@ -1,14 +1,8 @@
 import { Component, Inject, Output, EventEmitter } from "@angular/core";
-import {
-  MAT_DIALOG_DATA,
-  MatDialog,
-  MatDialogRef,
-} from "@angular/material/dialog";
-import { LatLng } from "leaflet";
-import { CardDB, MarkerDB, MarkerLatLng } from "src/app/model/card";
+import { MAT_DIALOG_DATA, MatDialog } from "@angular/material/dialog";
+import { CardDB, MarkerLatLng } from "src/app/model/card";
 import { CardService } from "src/app/services/card.service";
 import { CardDeleteDialogComponent } from "./card-delete-dialog/card-delete-dialog.component";
-import { DialogRef } from "@angular/cdk/dialog";
 import { StackStore } from "src/app/state/stack.store";
 import { Observable } from "rxjs";
 import { Stack } from "src/app/model/stack";
@@ -95,7 +89,7 @@ export class CardUpdateModalComponent {
     @Inject(MAT_DIALOG_DATA) public card: { currentCard: CardDB },
     private cardService: CardService,
     public dialog: MatDialog,
-    private stackStore: StackStore
+    private stackStore: StackStore,
   ) {
     this.updatedCard = card.currentCard;
     this.updatedMarkers = this.updatedCard.markers;
@@ -105,7 +99,7 @@ export class CardUpdateModalComponent {
   onUpdate() {
     this.cardService.updateCard(this.updatedCard, this.updatedMarkers);
     let removedMarkers = this.updatedCard.markers.filter(
-      (originalMarker) => this.updatedMarkers.indexOf(originalMarker) === -1
+      (originalMarker) => this.updatedMarkers.indexOf(originalMarker) === -1,
     );
     this.cardService.deleteMarkers(removedMarkers);
     this.updated.emit(true);
@@ -120,10 +114,8 @@ export class CardUpdateModalComponent {
       enterAnimationDuration: "300ms",
       exitAnimationDuration: "300ms",
     });
-    const subscribeDialog = dialogRef.componentInstance.deleted.subscribe(
-      (data: boolean) => {
-        this.deleted.emit(true);
-      }
-    );
+    dialogRef.componentInstance.deleted.subscribe((_: boolean) => {
+      this.deleted.emit(true);
+    });
   }
 }

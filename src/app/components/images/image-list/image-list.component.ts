@@ -1,6 +1,6 @@
 import { AsyncPipe, NgForOf } from "@angular/common";
-import { Component, EventEmitter, Inject, OnInit, Output } from "@angular/core";
-import { FormsModule, NgModel } from "@angular/forms";
+import { Component, Inject, OnInit } from "@angular/core";
+import { FormsModule } from "@angular/forms";
 import { MatButton, MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
@@ -49,7 +49,6 @@ export class ImageListComponent implements OnInit {
     this.imageService
       .readImagesPaginated(this.pageIndex, this.itemsPerPage)
       .then((result) => {
-        console.log("result", result);
         this.images = result[0];
         this.numberOfImages = result[1];
       });
@@ -57,7 +56,6 @@ export class ImageListComponent implements OnInit {
       this.filter = filter;
       this.pageIndex = 0;
       this.updatePage();
-      console.log("filter", filter);
     });
   }
   updatePage() {

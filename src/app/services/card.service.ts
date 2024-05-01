@@ -59,8 +59,6 @@ export class CardService {
   }
 
   updateCard(updateCard: CardDB, markers?: MarkerDB[]): Promise<boolean> {
-    // TODO update position
-    console.log("update card", updateCard);
     return invoke("update_card", {
       card: {
         id: updateCard.id,

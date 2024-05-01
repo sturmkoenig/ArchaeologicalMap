@@ -58,7 +58,6 @@ export class ImageService {
   }
 
   async createImage(newImage: NewImage): Promise<void> {
-    console.log(newImage);
     return invoke("create_image", {
       imageName: newImage.name,
       imagePath: newImage.image,

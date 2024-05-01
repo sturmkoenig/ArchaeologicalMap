@@ -156,12 +156,11 @@ export class CardInputComponent implements OnChanges {
       this.imageService
         .readImage(newCard.region_image_id)
         .then((image: ImageEntity) => {
-          console.log("image", image);
           this.image = image;
         });
     }
     if (this.card && this.cardForm) {
-      this.cardForm.valueChanges?.subscribe((val) => {
+      this.cardForm.valueChanges?.subscribe((_) => {
         this.cardChange.emit(this.card);
         if (this.card!.region_image_id) {
         }

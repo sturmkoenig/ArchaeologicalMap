@@ -44,9 +44,6 @@ export class CardDetailsComponent implements OnInit {
     this.currentStackId$ = this.cardDetailsStore.currentStackId$;
     this.card$ = this.cardDetailsStore.currentCard$;
     this.regionImage$ = this.cardDetailsStore.currentImage$;
-    this.regionImage$.subscribe((image) => {
-      console.log(image);
-    });
     listen("tauri://focus", async () => {
       this.cardContentService.cardContent.next(this.editor.getContents());
       await this.cardContentService.saveCardContent();
@@ -105,18 +102,16 @@ export class CardDetailsComponent implements OnInit {
       enterAnimationDuration: "200ms",
       exitAnimationDuration: "150ms",
     });
-    const subscribeDialogDeleted =
-      dialogRef.componentInstance.deleted.subscribe((data: boolean) => {
-        if (data === true) {
-          this._snackBar.open("Seite gelöscht", "⌫");
-          dialogRef.close();
-        }
-      });
-    const subscribeDialogUpdated =
-      dialogRef.componentInstance.updated.subscribe((data: boolean) => {
-        if (data === true) {
-          this._snackBar.open("Änderungen gespeichert!", "💾");
-        }
-      });
+    dialogRef.componentInstance.deleted.subscribe((data: boolean) => {
+      if (data === true) {
+        this._snackBar.open("Seite gelöscht", "⌫");
+        dialogRef.close();
+      }
+    });
+    dialogRef.componentInstance.updated.subscribe((data: boolean) => {
+      if (data === true) {
+        this._snackBar.open("Änderungen gespeichert!", "💾");
+      }
+    });
   }
 }
