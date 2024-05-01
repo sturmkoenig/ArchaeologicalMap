@@ -271,8 +271,8 @@ fn count_cards() -> i64 {
 #[tauri::command]
 fn delete_card(id: i32) {
     let conn = &mut establish_connection();
-    query_delete_card(conn, id);
     query_delete_all_markers_for_card(conn, id);
+    query_delete_card(conn, id);
 }
 
 #[tauri::command]
