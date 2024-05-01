@@ -72,7 +72,6 @@ export class ImageCreateComponent implements OnInit {
     }
     await this.imageService.createImage({
       name: this.title,
-      description: this.description,
       image: this.image,
     });
   }

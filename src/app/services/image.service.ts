@@ -18,7 +18,6 @@ export class ImageService {
       images.push({
         id: image.id,
         name: image.name,
-        description: image.description,
         imageSource: convertFileSrc(imagePath),
       });
     }
@@ -41,7 +40,6 @@ export class ImageService {
       images.push({
         id: image.id,
         name: image.name,
-        description: image.description,
         imageSource: convertFileSrc(imagePath),
       });
     }
@@ -54,7 +52,6 @@ export class ImageService {
     let image = {
       id: imageDB.id,
       name: imageDB.name,
-      description: imageDB.description,
       imageSource: convertFileSrc(imageSoure),
     };
     return image;
@@ -64,7 +61,6 @@ export class ImageService {
     console.log(newImage);
     return invoke("create_image", {
       imageName: newImage.name,
-      imageDescription: newImage.description,
       imagePath: newImage.image,
     });
   }

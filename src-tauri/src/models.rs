@@ -1,5 +1,6 @@
 use crate::schema::{cards, image, marker, stack};
-use diesel::{deserialize::FromSqlRow, prelude::*};
+use diesel::deserialize::FromSqlRow;
+use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -25,7 +26,6 @@ pub struct MarkerDTO {
 pub struct ImageDTO {
     pub id: i32,
     pub name: String,
-    pub description: Option<String>,
     pub image_source: Option<String>,
 }
 
@@ -41,7 +41,6 @@ pub struct NewCard<'a> {
 #[diesel(table_name = image)]
 pub struct NewImage<'a> {
     pub name: &'a str,
-    pub description: Option<&'a str>,
     pub image_source: Option<&'a str>,
 }
 
@@ -70,7 +69,6 @@ impl std::fmt::Display for NewCard<'_> {
 pub struct Image {
     pub id: i32,
     pub name: String,
-    pub description: String,
     pub image_source: String,
 }
 

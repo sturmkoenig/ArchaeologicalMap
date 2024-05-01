@@ -25,11 +25,7 @@ import { ImageService } from "src/app/services/image.service";
       <form class="card-input">
         <div class="card-image-editor">
           @if (image) {
-            <img
-              class="card-image-editor__image"
-              [src]="image.imageSource"
-              [alt]="image.description"
-            />
+            <img class="card-image-editor__image" [src]="image.imageSource" />
           } @else {
             <div class="card-image-editor__placeholder"></div>
           }
