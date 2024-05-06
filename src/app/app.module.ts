@@ -16,7 +16,6 @@ import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app.component";
 import { OverviewMapComponent } from "./components/overview-map/overview-map.component";
-import { SidebarComponent } from "./layout/sidebar/sidebar.component";
 import { ToolbarComponent } from "./layout/toolbar/toolbar.component";
 
 import { MatCheckboxModule } from "@angular/material/checkbox";
@@ -42,11 +41,9 @@ import { CardDeleteDialogComponent } from "./components/cards/card-update-modal/
 import { CardUpdateModalComponent } from "./components/cards/card-update-modal/card-update-modal.component";
 import { PositionPickerComponent } from "./components/cards/card-wizzard/position-picker/position-picker.component";
 import { StackCreatorComponent } from "./components/stacks/stack-creator/stack-creator.component";
-import { StackDetailsComponent } from "./components/stacks/stack-details/stack-details.component";
 import { StackDisplayComponent } from "./components/stacks/stack-list/stack-list.component";
 import { EditorComponent } from "./layout/editor/editor.component";
 import { FilterPipe } from "./layout/editor/filter.pipe";
-import { CardListItemComponent } from "./layout/list/card-list-item/card-list-item.component";
 import { MapComponent } from "./layout/map/map.component";
 import { CardDetailsStore } from "./state/card-details.store";
 import { StackStore } from "./state/stack.store";
@@ -67,11 +64,9 @@ import { OverviewMapService } from "./services/overview-map.service";
     OverviewMapComponent,
     MapComponent,
     ToolbarComponent,
-    SidebarComponent,
     CardListComponent,
     CardDetailsComponent,
     CardInputComponent,
-    CardListItemComponent,
     PositionPickerComponent,
     CardUpdateModalComponent,
     EditorComponent,
@@ -82,7 +77,6 @@ import { OverviewMapService } from "./services/overview-map.service";
     FileDropzoneComponent,
     DndDirective,
     MarkerInputComponent,
-    StackDetailsComponent,
   ],
   imports: [
     BrowserModule,

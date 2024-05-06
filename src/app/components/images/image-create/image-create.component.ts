@@ -55,14 +55,12 @@ export class ImageCreateComponent implements OnInit {
       multiple: false,
       filters: [{ name: "Images", extensions: ["jpg", "png", "gif"] }],
     });
-    console.log(selected);
     if (typeof selected !== "string") {
       return;
     }
     if (selected !== null || selected !== undefined) {
       this.image = selected;
       this.imageDisplay = convertFileSrc(selected);
-      console.log(this.imageDisplay);
     }
   }
 
@@ -72,7 +70,6 @@ export class ImageCreateComponent implements OnInit {
     }
     await this.imageService.createImage({
       name: this.title,
-      description: this.description,
       image: this.image,
     });
   }
@@ -80,12 +77,10 @@ export class ImageCreateComponent implements OnInit {
   async fileBrowseHandler(arg0: any) {
     if (arg0.payload !== null || arg0.payload !== undefined) {
       // do something with the file
-      console.log(Array.isArray(arg0.payload));
       if (typeof arg0.payload === "string") {
         this.image = arg0.payload;
         this.imageDisplay = convertFileSrc(arg0.payload);
       } else if (Array.isArray(arg0.payload)) {
-        console.log(arg0.payload[0]);
         this.image = arg0.payload[0];
         this.imageDisplay = convertFileSrc(arg0.payload[0]);
       }

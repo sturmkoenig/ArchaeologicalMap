@@ -25,11 +25,7 @@ import { ImageService } from "src/app/services/image.service";
       <form class="card-input">
         <div class="card-image-editor">
           @if (image) {
-            <img
-              class="card-image-editor__image"
-              [src]="image.imageSource"
-              [alt]="image.description"
-            />
+            <img class="card-image-editor__image" [src]="image.imageSource" />
           } @else {
             <div class="card-image-editor__placeholder"></div>
           }
@@ -160,12 +156,11 @@ export class CardInputComponent implements OnChanges {
       this.imageService
         .readImage(newCard.region_image_id)
         .then((image: ImageEntity) => {
-          console.log("image", image);
           this.image = image;
         });
     }
     if (this.card && this.cardForm) {
-      this.cardForm.valueChanges?.subscribe((val) => {
+      this.cardForm.valueChanges?.subscribe((_) => {
         this.cardChange.emit(this.card);
         if (this.card!.region_image_id) {
         }

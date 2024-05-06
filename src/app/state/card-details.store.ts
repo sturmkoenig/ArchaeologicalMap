@@ -162,7 +162,6 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
     );
   });
   readonly setImage = this.updater((state, image: ImageEntity | undefined) => {
-    console.log("setImage");
     return {
       ...state,
       currentImage: image,

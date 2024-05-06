@@ -20,7 +20,6 @@ import {
   tileLayer,
 } from "leaflet";
 import { CardDB, MarkerDB } from "src/app/model/card";
-import { CardService } from "src/app/services/card.service";
 import { SettingService } from "src/app/services/setting.service";
 import { MarkerService } from "../../services/marker.service";
 import { MarkerAM } from "src/app/model/marker";
@@ -72,7 +71,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     private route: ActivatedRoute,
     private ngZone: NgZone,
     private settingsService: SettingService,
-    private cardService: CardService,
     public overviewMapService: OverviewMapService,
   ) {
     listen("panTo", (panToEvent: any) => {
@@ -121,8 +119,10 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
 
   onAddNewCard() {
     this.cursorStyle = "crosshair";
-    this.map.on("click", (e) => {
-      this.overviewMapService.addNewCard(e.latlng);
+    this.map.on("click", async (e) => {
+      await this.overviewMapService.addNewCard(e.latlng);
+      this.map.off("click");
+      this.cursorStyle = undefined;
     });
   }
 
@@ -151,7 +151,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   }
 
   async updateSelectedMarker(newMarker: MarkerDB) {
-    // TODO: implement
     await this.markerService.updateMarker(newMarker).then(() => {
       this.overviewMapService.reloadSelectedMarker();
     });
@@ -162,9 +161,9 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
       this.cursorStyle = "crosshair";
     });
     this.map.on("click", (e) => {
-      this.overviewMapService.moveSelectedMarker(e.latlng);
-      this.map.off("click");
       this.ngZone.run(() => {
+        this.overviewMapService.moveSelectedMarker(e.latlng);
+        this.map.off("click");
         this.cursorStyle = undefined;
       });
     });
@@ -172,11 +171,13 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
 
   onAddNewMarkerToCard() {
     this.cursorStyle = "crosshair";
-    this.map.on("click", (e) => {
+    this.map.on("click", async (e) => {
       if (!this.overviewMapService.selectedMarker()) {
         return;
       }
-      this.overviewMapService.addMarkerToSelectedCard(e.latlng);
+      await this.overviewMapService.addMarkerToSelectedCard(e.latlng);
+      this.map.off("click");
+      this.cursorStyle = undefined;
     });
   }
 
@@ -197,8 +198,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     this.zoom = map.getZoom();
     this.map.addLayer(this.mainLayerGroup);
     this.map.addLayer(this.selectedLayerGroup);
-    //this.map.addLayer(this.radiusLayerGroup);
-    this.map.addLayer(new MarkerAM([0, 0], {}, { iconType: "iconMiscBlack" }));
   }
 
   mapChanged(emittedMap: LeafletMap) {

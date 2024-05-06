@@ -1,11 +1,10 @@
-import { ChangeDetectorRef, Component, Inject, NgZone } from "@angular/core";
+import { Component, Inject, NgZone } from "@angular/core";
 import { MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { fs, path } from "@tauri-apps/api";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
 import { v4 as uuid } from "uuid";
-import { StackService } from "src/app/services/stack.service";
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject } from "rxjs";
 import { StackStore } from "src/app/state/stack.store";
 
 @Component({
@@ -68,8 +67,7 @@ export class StackCreatorComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
     private stackStore: StackStore,
-    private changeDetectorRef: ChangeDetectorRef,
-    private ngZone: NgZone
+    private ngZone: NgZone,
   ) {
     listen("tauri://file-drop", (event) => {
       this.ngZone.run(() => this.fileBrowseHandler(event));

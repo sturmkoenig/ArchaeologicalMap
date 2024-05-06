@@ -38,11 +38,7 @@
     "@ngrx/entity": "^17.2.0",
     "@ngrx/signals": "^17.2.0",
     "@ngrx/store": "^17.2.0",
-    "@ngrx/store-devtools": "^17.2.0",
-    "@openapitools/openapi-generator-cli": "^2.5.2",
     "@tauri-apps/api": "1.5.3",
-    "@types/leaflet": "^1.9.0",
-    "@types/uuid": "^9.0.1",
     "@xeger/quill-image-actions": "^0.7.1",
     "@xeger/quill-image-formats": "^0.7.1",
     "leaflet": "^1.9.3",
@@ -58,12 +54,14 @@
     "zone.js": "~0.14.2"
   },
   "devDependencies": {
+    "@types/leaflet": "^1.9.0",
     "@angular-devkit/build-angular": "^17.3.6",
     "@angular/cli": "~17.3.6",
     "@angular/compiler-cli": "^17.3.6",
     "@ngrx/schematics": "^17.2.0",
     "@tauri-apps/cli": "^1.2.3",
     "@types/jasmine": "~4.3.0",
+    "@types/uuid": "^9.0.1",
     "@types/node": "^18.11.18",
     "@types/quill": "^2.0.10",
     "jasmine-core": "~4.5.0",
@@ -73,7 +71,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
     "openapi-typescript-codegen": "^0.23.0",
-    "tailwindcss": "^3.2.4",
     "typescript": "~5.2.2"
   }
 }
+

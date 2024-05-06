@@ -1,13 +1,4 @@
-import {
-  Component,
-  Output,
-  EventEmitter,
-  Input,
-  OnInit,
-  SimpleChange,
-  SimpleChanges,
-  OnChanges,
-} from "@angular/core";
+import { Component, Output, EventEmitter, Input, OnInit } from "@angular/core";
 import { MatCheckboxChange } from "@angular/material/checkbox";
 import { MatSelectChange } from "@angular/material/select";
 import {
@@ -19,16 +10,10 @@ import {
   Map as LeafletMap,
   Marker,
   Layer,
-  marker,
-  LatLngBounds,
 } from "leaflet";
-import { Leaf } from "parchment/dist/typings/blot/abstract/blot";
-import { MarkerDB, MarkerLatLng } from "src/app/model/card";
+import { MarkerDB } from "src/app/model/card";
 import { ICONS, IconService } from "src/app/services/icon.service";
-import {
-  CardMarkerLayer,
-  MarkerService,
-} from "src/app/services/marker.service";
+import { MarkerService } from "src/app/services/marker.service";
 
 interface MarkerLayer {
   marker: Marker;
@@ -150,7 +135,7 @@ export class PositionPickerComponent implements OnInit {
 
   constructor(
     public iconService: IconService,
-    private markerService: MarkerService
+    private markerService: MarkerService,
   ) {}
 
   ngOnInit(): void {
@@ -170,7 +155,7 @@ export class PositionPickerComponent implements OnInit {
     this.icon = this.selectedMarker.icon_name;
   }
 
-  onExact(checked: MatCheckboxChange): void {
+  onExact(_: MatCheckboxChange): void {
     if (this.selectedMarker) {
       this.setRadius(0.0);
     } else {
@@ -196,12 +181,12 @@ export class PositionPickerComponent implements OnInit {
         },
         {
           radius: marker.radius,
-        }
+        },
       );
     }
     let markerLayers = new Marker(
       { lat: marker.latitude, lng: marker.longitude },
-      { icon }
+      { icon },
     ).on("click", () => {
       this.setSelectedMarker(marker);
     });

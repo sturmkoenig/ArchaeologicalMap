@@ -5,7 +5,7 @@ import { CardContentService } from "src/app/services/card-content.service";
 import QuillImageDropAndPaste, {
   ImageData as QuillImageData,
 } from "quill-image-drop-and-paste";
-import { DomSanitizer, SafeUrl } from "@angular/platform-browser";
+import { SafeUrl } from "@angular/platform-browser";
 
 interface IImageMeta {
   type: string;
@@ -131,8 +131,6 @@ export class EditorComponent implements OnInit {
       })
       .then((miniImageData: any) => {
         if (miniImageData instanceof QuillImageData) {
-          const blob = miniImageData.toBlob();
-
           this.quill.insertEmbed(
             this.quill.getSelection()?.index ?? 0,
             "image",

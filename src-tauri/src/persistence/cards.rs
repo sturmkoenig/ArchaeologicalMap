@@ -56,11 +56,11 @@ pub fn query_card_names(conn: &mut SqliteConnection) -> Vec<CardTitleMapping> {
     }
     return card_mapping;
 }
-pub fn query_delete_card(conn: &mut SqliteConnection, card_id: i32) {
+pub fn query_delete_card(conn: &mut SqliteConnection, card_id: i32) -> Result<(), String> {
     let result = diesel::delete(cards::table.filter(id.eq(card_id))).execute(conn);
     match result {
-        Ok(_) => (),
-        Err(e) => panic!("Error deleting card: {}", e),
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!("Error deleting card: {}", e)),
     }
 }
 

@@ -114,13 +114,6 @@ export class StackDisplayComponent {
       exitAnimationDuration: "150ms",
     });
   }
-  onUpdateStack(clickedStack: Stack) {
-    this.dialog.open(StackCreatorComponent, {
-      enterAnimationDuration: "200ms",
-      exitAnimationDuration: "150ms",
-    });
-  }
-
   onDeleteStack(stack: Stack) {
     this.stackStore.deleteStack(stack);
   }

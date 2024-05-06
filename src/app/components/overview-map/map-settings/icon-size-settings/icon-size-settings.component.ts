@@ -156,18 +156,6 @@ export class IconSizeSettingsComponent {
     });
   }
 
-  onSizeChange(arg0: any) {
-    throw new Error("Method not implemented.");
-  }
-
-  incrementSize() {
-    throw new Error("Method not implemented.");
-  }
-
-  decrementSize() {
-    throw new Error("Method not implemented.");
-  }
-
   getPixelSizeForIcon(x: IconKeys): number {
     return this.iconSizeMap.get(x) ?? 20;
   }

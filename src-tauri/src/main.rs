@@ -27,6 +27,7 @@ use persistence::cards::query_create_card;
 use persistence::cards::query_delete_card;
 use persistence::cards::query_update_card;
 use persistence::images::query_create_image;
+use persistence::images::query_delete_image;
 use persistence::markers::query_create_marker;
 use persistence::markers::query_delete_all_markers_for_card;
 use persistence::markers::query_delete_marker;
@@ -270,8 +271,8 @@ fn count_cards() -> i64 {
 #[tauri::command]
 fn delete_card(id: i32) {
     let conn = &mut establish_connection();
-    query_delete_card(conn, id);
     query_delete_all_markers_for_card(conn, id);
+    query_delete_card(conn, id);
 }
 
 #[tauri::command]
@@ -366,7 +367,6 @@ fn create_image(
     let conn = &mut establish_connection();
     let new_image: NewImage = NewImage {
         name: &image_name,
-        description: image_description.as_deref(),
         image_source: std::option::Option::None,
     };
     let image_id = query_create_image(conn, &new_image);
@@ -408,7 +408,6 @@ fn create_image(
     let image_dto = ImageDTO {
         id: image_id,
         name: image_name,
-        description: image_description,
         image_source,
     };
     query_update_image(conn, &image_dto);
@@ -422,7 +421,6 @@ fn read_image(image_id: i32) -> ImageDTO {
     ImageDTO {
         id: image.id,
         name: image.name,
-        description: Some(image.description),
         image_source: Some(image.image_source),
     }
 }
@@ -442,7 +440,6 @@ fn read_images() -> Vec<ImageDTO> {
         image_dtos.push(ImageDTO {
             id: image.id,
             name: image.name.clone(),
-            description: Some(image.description.clone()),
             image_source: Some(image.image_source.clone()),
         });
     }
@@ -467,7 +464,6 @@ fn read_images_paginated(
         image_dtos.push(ImageDTO {
             id: image.id,
             name: image.name.clone(),
-            description: Some(image.description.clone()),
             image_source: Some(image.image_source.clone()),
         });
     }

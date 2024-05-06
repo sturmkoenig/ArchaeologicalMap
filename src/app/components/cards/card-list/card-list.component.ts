@@ -64,9 +64,9 @@ import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal
               "
             >
               @if (expandedElement === element) {
-              <mat-icon>keyboard_arrow_up</mat-icon>
+                <mat-icon>keyboard_arrow_up</mat-icon>
               } @else {
-              <mat-icon>keyboard_arrow_down</mat-icon>
+                <mat-icon>keyboard_arrow_down</mat-icon>
               }
             </button>
           </td>
@@ -93,7 +93,7 @@ import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal
                 <button
                   mat-raised-button
                   color="accent"
-                  (click)="goToDetailsPage(element.id!, element.title)"
+                  (click)="goToDetailsPage(element.id!)"
                 >
                   Info-Seite öffnen
                 </button>
@@ -133,7 +133,7 @@ import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal
       state("expanded", style({ height: "*" })),
       transition(
         "expanded <=> collapsed",
-        animate("225ms cubic-bezier(0.4, 0.0, 0.2, 1)")
+        animate("225ms cubic-bezier(0.4, 0.0, 0.2, 1)"),
       ),
     ]),
   ],
@@ -193,7 +193,7 @@ export class CardListComponent implements OnInit {
     private cardService: CardService,
     public dialog: MatDialog,
     public iconService: IconService,
-    private _snackBar: MatSnackBar
+    private _snackBar: MatSnackBar,
   ) {
     this.cardService
       .getNumberOfCards()
@@ -207,7 +207,7 @@ export class CardListComponent implements OnInit {
       .pipe(debounceTime(this.debounceTime))
       .subscribe((filter) => {
         this.allCards = from(
-          this.cardService.readCardsPaginated(this.pageIndex, filter)
+          this.cardService.readCardsPaginated(this.pageIndex, filter),
         );
       });
   }
@@ -216,7 +216,7 @@ export class CardListComponent implements OnInit {
     this.modelChanged.next(this.filter);
   }
 
-  goToDetailsPage(cardId: number, cardTitle: string) {
+  goToDetailsPage(cardId: number) {
     const webview = new WebviewWindow(cardId.toString(), {
       url: "cards/details?id=" + cardId,
     });
@@ -228,7 +228,7 @@ export class CardListComponent implements OnInit {
 
   changePage($event: PageEvent) {
     this.allCards = from(
-      this.cardService.readCardsPaginated($event.pageIndex, "")
+      this.cardService.readCardsPaginated($event.pageIndex, ""),
     );
   }
 
@@ -240,19 +240,17 @@ export class CardListComponent implements OnInit {
       enterAnimationDuration: "200ms",
       exitAnimationDuration: "150ms",
     });
-    const subscribeDialogDeleted =
-      dialogRef.componentInstance.deleted.subscribe((data: boolean) => {
-        if (data === true) {
-          this._snackBar.open("Seite gelöscht", "⌫");
-          dialogRef.close();
-          this.inputChanged();
-        }
-      });
-    const subscribeDialogUpdated =
-      dialogRef.componentInstance.updated.subscribe((data: boolean) => {
-        if (data === true) {
-          this._snackBar.open("Änderungen gespeichert!", "💾");
-        }
-      });
+    dialogRef.componentInstance.deleted.subscribe((data: boolean) => {
+      if (data === true) {
+        this._snackBar.open("Seite gelöscht", "⌫");
+        dialogRef.close();
+        this.inputChanged();
+      }
+    });
+    dialogRef.componentInstance.updated.subscribe((data: boolean) => {
+      if (data === true) {
+        this._snackBar.open("Änderungen gespeichert!", "💾");
+      }
+    });
   }
 }
