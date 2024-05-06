@@ -158,6 +158,8 @@ export class CardInputComponent implements OnChanges {
         .then((image: ImageEntity) => {
           this.image = image;
         });
+    } else {
+      this.image = undefined;
     }
     if (this.card && this.cardForm) {
       this.cardForm.valueChanges?.subscribe((_) => {
