@@ -7,7 +7,8 @@ import {
 } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { listen } from "@tauri-apps/api/event";
-import { WebviewWindow, appWindow } from "@tauri-apps/api/window";
+import { appWindow } from "@tauri-apps/api/window";
+import { createCardDetailsWindow } from "src/app/util/window-util";
 import {
   LatLng,
   LatLngBounds,
@@ -101,20 +102,11 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   }
 
   onGoToInfoPage() {
-    if (!this.overviewMapService.editCard()?.id) {
+    const cardId = this.overviewMapService.editCard()?.id;
+    if (!cardId) {
       return;
     }
-
-    const webview = new WebviewWindow(
-      this.overviewMapService.editCard()!.id!.toString(),
-      {
-        url: "cards/details?id=" + this.overviewMapService.editCard()?.id!,
-      },
-    );
-    webview.once("tauri://error", function (e) {
-      console.error("window creation error: " + JSON.stringify(e));
-      webview.emit("set-focus-to");
-    });
+    createCardDetailsWindow(cardId);
   }
 
   onAddNewCard() {

@@ -15,6 +15,7 @@ import { CardService } from "./card.service";
 import { ICONS, IconKeys, IconService } from "./icon.service";
 import { invoke } from "@tauri-apps/api";
 import { MarkerAM } from "../model/marker";
+import { createCardDetailsWindow } from "../util/window-util";
 
 export interface CardMarkerLayer {
   card?: CardDB;
@@ -182,13 +183,7 @@ export class MarkerService {
     const button = document.createElement("button");
     button.innerHTML = "Info-Seite Zeigen";
     button.onclick = () => {
-      const webview = new WebviewWindow(marker.card_id!.toString(), {
-        url: "cards/details?id=" + marker.card_id,
-      });
-      webview.once("tauri://error", function (e) {
-        console.error("window creation error: " + JSON.stringify(e));
-        webview.emit("set-focus-to");
-      });
+      createCardDetailsWindow(marker.card_id!);
     };
     div.appendChild(button);
     return div;
