@@ -27,7 +27,6 @@ use persistence::cards::query_create_card;
 use persistence::cards::query_delete_card;
 use persistence::cards::query_update_card;
 use persistence::images::query_create_image;
-use persistence::images::query_delete_image;
 use persistence::markers::query_create_marker;
 use persistence::markers::query_delete_all_markers_for_card;
 use persistence::markers::query_delete_marker;
@@ -428,6 +427,7 @@ fn read_image(image_id: i32) -> ImageDTO {
 #[tauri::command]
 fn delete_image(image_id: i32) {
     let conn = &mut establish_connection();
+    persistence::cards::query_set_image_to_null(conn, image_id);
     persistence::images::query_delete_image(conn, image_id);
 }
 

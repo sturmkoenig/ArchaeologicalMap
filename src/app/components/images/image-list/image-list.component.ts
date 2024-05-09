@@ -75,4 +75,15 @@ export class ImageListComponent implements OnInit {
     this.itemsPerPage = event.pageSize;
     this.updatePage();
   }
+
+  onDeleteImage(image: ImageEntity) {
+    this.imageService.deleteImage(image.id).then(() => {
+      this.imageService
+        .readImagesPaginated(this.pageIndex, this.itemsPerPage)
+        .then((result) => {
+          this.images = result[0];
+          this.numberOfImages = result[1];
+        });
+    });
+  }
 }

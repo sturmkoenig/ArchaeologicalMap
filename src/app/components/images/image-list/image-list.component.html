@@ -19,15 +19,22 @@
     }
   </mat-form-field>
   <div class="gridbox">
-    <mat-card
-      *ngFor="let image of images"
-      class="gridbox_item"
-      (click)="onSelectImage(image)"
-    >
+    <mat-card *ngFor="let image of images" class="gridbox_item">
       <div class="content-grid">
         <h3>{{ image.name }}</h3>
         <mat-card-content class="card-content">
-          <img class="centered-image" [src]="image.imageSource" />
+          <img
+            class="centered-image"
+            (click)="onSelectImage(image)"
+            [src]="image.imageSource"
+          />
+          <button
+            mat-icon-button
+            (click)="onDeleteImage(image)"
+            class="delete-button"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
         </mat-card-content>
       </div>
     </mat-card>
