@@ -8,6 +8,7 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatPaginatorModule } from "@angular/material/paginator";
+import { MatSnackBar } from "@angular/material/snack-bar";
 import { Subject, debounceTime } from "rxjs";
 import { ImageEntity } from "src/app/model/image";
 import { ImageService } from "src/app/services/image.service";
@@ -43,6 +44,7 @@ export class ImageListComponent implements OnInit {
     public dialogRef: MatDialogRef<ImageListComponent>,
     private imageService: ImageService,
     @Inject(MAT_DIALOG_DATA) public data: any,
+    private _snackBar: MatSnackBar,
   ) {}
 
   ngOnInit() {
@@ -74,5 +76,28 @@ export class ImageListComponent implements OnInit {
     this.pageIndex = event.pageIndex;
     this.itemsPerPage = event.pageSize;
     this.updatePage();
+  }
+
+  onDeleteImage(image: ImageEntity) {
+    this.imageService
+      .deleteImage(image)
+      .then(() => {
+        this.imageService
+          .readImagesPaginated(this.pageIndex, this.itemsPerPage)
+          .then((result) => {
+            this.images = result[0];
+            this.numberOfImages = result[1];
+          });
+      })
+      .catch((error) => {
+        console.error(error);
+        this._snackBar.open("Fehler beim Löschen des Bildes", "OK", {
+          duration: 4000,
+        });
+      });
+  }
+
+  changeImageName(image: ImageEntity, newName: any) {
+    this.imageService.updateImageName(image.id, newName);
   }
 }

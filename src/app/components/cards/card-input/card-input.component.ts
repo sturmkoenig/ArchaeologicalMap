@@ -134,8 +134,13 @@ export class CardInputComponent implements OnChanges {
   }
 
   openNewImageDialog() {
-    this.dialog.open(ImageCreateComponent, {
+    const dialogRef = this.dialog.open(ImageCreateComponent, {
       width: "520px",
+    });
+    dialogRef.afterClosed().subscribe((result: ImageEntity) => {
+      this.image = result;
+      this.card!.region_image_id = result.id;
+      this.cardChange.emit(this.card);
     });
   }
 

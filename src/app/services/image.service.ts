@@ -57,14 +57,18 @@ export class ImageService {
     return image;
   }
 
-  async createImage(newImage: NewImage): Promise<void> {
+  async createImage(newImage: NewImage): Promise<number> {
     return invoke("create_image", {
       imageName: newImage.name,
       imagePath: newImage.image,
     });
   }
 
-  async deleteImage(imageId: number): Promise<void> {
-    return invoke("delete_image", { imageId: imageId });
+  updateImageName(id: number, newName: any) {
+    return invoke("update_image_name", { imageId: id, newName: newName });
+  }
+
+  async deleteImage(image: ImageEntity): Promise<void> {
+    return invoke("delete_image", { imageName: image.name, imageId: image.id });
   }
 }

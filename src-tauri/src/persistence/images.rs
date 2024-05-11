@@ -3,6 +3,7 @@ use app::{
     models::{Image, ImageDTO, NewImage},
     schema::image,
 };
+use diesel::expression_methods::ExpressionMethods;
 use diesel::{select, sql_function, QueryDsl, TextExpressionMethods};
 use diesel::{sql_query, SqliteConnection};
 
@@ -19,10 +20,11 @@ pub fn query_create_image(conn: &mut SqliteConnection, new_image: &NewImage) -> 
         .expect("error getting id")
 }
 
-pub fn query_delete_image(conn: &mut SqliteConnection, image_id: i32) {
-    diesel::delete(image::table.find(image_id))
-        .execute(conn)
-        .expect("Error deleting image");
+pub fn query_delete_image(conn: &mut SqliteConnection, image_id: i32) -> Result<(), String> {
+    match diesel::delete(image::table.find(image_id)).execute(conn) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!("Error deleting image, {}", e).to_string()),
+    }
 }
 
 pub fn query_read_image(conn: &mut SqliteConnection, image_id: i32) -> Image {
@@ -36,6 +38,13 @@ pub fn query_update_image(conn: &mut SqliteConnection, image_dto: &ImageDTO) {
         .set(image_dto)
         .execute(conn)
         .expect("Error updating image");
+}
+
+pub fn query_update_image_name(conn: &mut SqliteConnection, image_id: i32, new_name: String) {
+    diesel::update(image::table.find(image_id))
+        .set(image::name.eq(new_name))
+        .execute(conn)
+        .expect("Error updating image name");
 }
 
 pub fn query_read_images(conn: &mut SqliteConnection) -> Vec<Image> {
