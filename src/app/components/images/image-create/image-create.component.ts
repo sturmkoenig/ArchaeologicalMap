@@ -1,4 +1,4 @@
-import { Component, NgZone, OnInit } from "@angular/core";
+import { Component, Inject, NgZone, OnInit } from "@angular/core";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/dialog";
 import { MatIconModule } from "@angular/material/icon";
@@ -9,12 +9,15 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatInputModule } from "@angular/material/input";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import {
+  MAT_DIALOG_DATA,
   MatDialogActions,
   MatDialogClose,
   MatDialogContent,
+  MatDialogRef,
   MatDialogTitle,
 } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: "app-image-create",
@@ -43,6 +46,8 @@ export class ImageCreateComponent implements OnInit {
   constructor(
     private ngZone: NgZone,
     private imageService: ImageService,
+    public dialogRef: MatDialogRef<ImageCreateComponent>,
+    private _snackBar: MatSnackBar,
   ) {
     listen("tauri://file-drop", (event) => {
       this.ngZone.run(() => this.fileBrowseHandler(event));
@@ -68,10 +73,21 @@ export class ImageCreateComponent implements OnInit {
     if (this.image === null || this.image === undefined) {
       return;
     }
-    await this.imageService.createImage({
-      name: this.title,
-      image: this.image,
-    });
+    await this.imageService
+      .createImage({
+        name: this.title,
+        image: this.image,
+      })
+      .then((imageId) => {
+        this.imageService.readImage(imageId).then((image) => {
+          this.dialogRef.close(image);
+        });
+      })
+      .catch((error) => {
+        this._snackBar.open("Fehler beim Bild Anlegen", "Close", {
+          duration: 4000,
+        });
+      });
   }
 
   async fileBrowseHandler(arg0: any) {

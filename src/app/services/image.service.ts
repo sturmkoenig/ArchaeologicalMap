@@ -57,7 +57,7 @@ export class ImageService {
     return image;
   }
 
-  async createImage(newImage: NewImage): Promise<void> {
+  async createImage(newImage: NewImage): Promise<number> {
     return invoke("create_image", {
       imageName: newImage.name,
       imagePath: newImage.image,
