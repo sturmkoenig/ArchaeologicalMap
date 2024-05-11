@@ -101,7 +101,7 @@ fn main() {
                 println!("Error running migrations: {:?}", e);
             }
 
-            let mut app_dir = app_data_dir(&config).expect("error creating app data dir");
+            let app_dir = app_data_dir(&config).expect("error creating app data dir");
             let err = fs::create_dir(&app_dir);
             if let Err(e) = err {
                 println!("Error creating app dir: {:?}", e);
@@ -271,7 +271,7 @@ fn count_cards() -> i64 {
 fn delete_card(id: i32) {
     let conn = &mut establish_connection();
     query_delete_all_markers_for_card(conn, id);
-    query_delete_card(conn, id);
+    let _ = query_delete_card(conn, id);
 }
 
 #[tauri::command]
@@ -361,8 +361,7 @@ fn create_image(
     app_handle: AppHandle,
     image_path: String,
     image_name: String,
-    image_description: Option<String>,
-) {
+) -> Result<i32, String> {
     let conn = &mut establish_connection();
     let new_image: NewImage = NewImage {
         name: &image_name,
@@ -371,45 +370,32 @@ fn create_image(
     let image_id = query_create_image(conn, &new_image);
     let config = app_handle.config();
     let app_data_dir = app_data_dir(&config).expect("error creating app data dir");
-    println!("app_data_dir: {:?}", app_data_dir);
-    println!("image_path: {:?}", image_path);
-    println!("image_id: {}", image_id);
-
-    let file_name = Path::new(&image_path)
-        .file_name()
-        .and_then(|fname| fname.to_str())
-        .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid file name"))
-        .unwrap();
 
     let file_stem = Path::new(&image_path)
         .file_stem()
         .and_then(|fname| fname.to_str())
-        .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid file stem"))
-        .unwrap();
+        .ok_or_else(|| "Invalid file path")?;
 
     let extension = Path::new(&image_path)
         .extension()
         .and_then(|fname| fname.to_str())
-        .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid extension"))
-        .unwrap();
+        .ok_or_else(|| "Invalid image extension")?;
 
-    println!("file_stem: {:?}", file_stem);
     let new_image_name = format!("{}_{}.{}", image_id, file_stem, extension);
     let app_image_dir = "content/images/";
-    println!("new_image_name: {:?}", new_image_name);
     let dest_path = app_data_dir.join(format!("{}{}", app_image_dir, new_image_name));
     let _ = fs::copy(image_path, dest_path).or_else(|e| {
         println!("Error copying image: {:?}", e);
-        Err(e)
+        return Err(e);
     });
     let image_source = Some(format!("{}{}", app_image_dir, new_image_name));
-    println!("image_source: {:?}", image_source);
     let image_dto = ImageDTO {
         id: image_id,
         name: image_name,
         image_source,
     };
     query_update_image(conn, &image_dto);
+    Ok(image_id)
 }
 
 #[tauri::command]
@@ -425,10 +411,27 @@ fn read_image(image_id: i32) -> ImageDTO {
 }
 
 #[tauri::command]
-fn delete_image(image_id: i32) {
+fn delete_image(app_handle: AppHandle, image_name: &str, image_id: i32) -> Result<(), String> {
     let conn = &mut establish_connection();
-    persistence::cards::query_set_image_to_null(conn, image_id);
-    persistence::images::query_delete_image(conn, image_id);
+    let image = persistence::images::query_read_image(conn, image_id);
+    persistence::cards::query_set_image_to_null(conn, image_id)?;
+    persistence::images::query_delete_image(conn, image_id)?;
+    let delete_path = app_handle
+        .path_resolver()
+        .app_data_dir()
+        .expect("error getting app data dir")
+        .join(image.image_source);
+    match fs::remove_file(delete_path.clone()) {
+        Ok(_) => println!("Image (id: {image_id}, name: {image_name}) deleted"),
+        Err(e) => {
+            println!(
+                "Error deleting image (id: {image_id}, name: {image_name}, path: {:?}): {:?}",
+                delete_path, e
+            );
+            return Err(e.to_string());
+        }
+    };
+    return Ok(());
 }
 
 #[tauri::command]

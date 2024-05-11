@@ -64,7 +64,7 @@ export class ImageService {
     });
   }
 
-  async deleteImage(imageId: number): Promise<void> {
-    return invoke("delete_image", { imageId: imageId });
+  async deleteImage(image: ImageEntity): Promise<void> {
+    return invoke("delete_image", { imageName: image.name, imageId: image.id });
   }
 }

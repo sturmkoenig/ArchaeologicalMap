@@ -120,9 +120,12 @@ pub fn query_cards_in_stack(conn: &mut SqliteConnection, stack_id: i32) -> Vec<C
     return card_dtos;
 }
 
-pub fn query_set_image_to_null(conn: &mut SqliteConnection, image_id: i32) {
-    diesel::update(cards::table.filter(cards::region_image_id.eq(Some(image_id))))
+pub fn query_set_image_to_null(conn: &mut SqliteConnection, image_id: i32) -> Result<(), String> {
+    let resutl = diesel::update(cards::table.filter(cards::region_image_id.eq(Some(image_id))))
         .set(cards::region_image_id.eq(None::<i32>))
-        .execute(conn)
-        .expect("Error setting image to null");
+        .execute(conn);
+    return match resutl {
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!("Error errasing image from cards: {}", e)),
+    };
 }

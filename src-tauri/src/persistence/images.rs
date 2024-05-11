@@ -19,10 +19,11 @@ pub fn query_create_image(conn: &mut SqliteConnection, new_image: &NewImage) -> 
         .expect("error getting id")
 }
 
-pub fn query_delete_image(conn: &mut SqliteConnection, image_id: i32) {
-    diesel::delete(image::table.find(image_id))
-        .execute(conn)
-        .expect("Error deleting image");
+pub fn query_delete_image(conn: &mut SqliteConnection, image_id: i32) -> Result<(), String> {
+    match diesel::delete(image::table.find(image_id)).execute(conn) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!("Error deleting image, {}", e).to_string()),
+    }
 }
 
 pub fn query_read_image(conn: &mut SqliteConnection, image_id: i32) -> Image {
