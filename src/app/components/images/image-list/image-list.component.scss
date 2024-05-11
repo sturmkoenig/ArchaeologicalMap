@@ -1,4 +1,4 @@
-.example-form-field {
+.name-input-field .name-filter-input{
   margin: 20px;
 }
 .gridbox {
@@ -10,7 +10,7 @@
 .gridbox_item {
   padding: 10px;
   width: 200px;
-  height: 200px;
+  height: 250px;
 
   &:hover {
     background-color: #f0f0f0;
@@ -29,16 +29,10 @@
 .delete-button{
   margin-left: auto;
 }
-.card-content{
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-}
+
 .content-grid{
   display: grid;
-  grid-template-rows: 30px 140px 30px;
-  gap: 10px;
+  grid-template-rows: 80px 120px 30px;
 }
 
 .centered-image{

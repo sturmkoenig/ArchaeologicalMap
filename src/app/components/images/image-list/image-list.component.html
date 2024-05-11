@@ -1,6 +1,6 @@
 <div class="image-list">
-  <mat-form-field class="example-form-field">
-    <mat-label>Clearable input</mat-label>
+  <mat-form-field class="name-filter-input">
+    <mat-label>Namens Filter</mat-label>
     <input
       matInput
       type="text"
@@ -21,21 +21,27 @@
   <div class="gridbox">
     <mat-card *ngFor="let image of images" class="gridbox_item">
       <div class="content-grid">
-        <h3>{{ image.name }}</h3>
-        <mat-card-content class="card-content">
-          <img
-            class="centered-image"
-            (click)="onSelectImage(image)"
-            [src]="image.imageSource"
+        <mat-form-field class="name-input-field">
+          <mat-label>Bild Name</mat-label>
+          <input
+            matInput
+            type="text"
+            [ngModel]="image.name"
+            (ngModelChange)="changeImageName(image, $event)"
           />
-          <button
-            mat-icon-button
-            (click)="onDeleteImage(image)"
-            class="delete-button"
-          >
-            <mat-icon>delete</mat-icon>
-          </button>
-        </mat-card-content>
+        </mat-form-field>
+        <img
+          class="centered-image"
+          (click)="onSelectImage(image)"
+          [src]="image.imageSource"
+        />
+        <button
+          mat-icon-button
+          (click)="onDeleteImage(image)"
+          class="delete-button"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
       </div>
     </mat-card>
   </div>

@@ -83,6 +83,7 @@ fn main() {
             read_image,
             read_images,
             read_images_paginated,
+            update_image_name,
             delete_image,
         ])
         .setup(|app| {
@@ -472,6 +473,11 @@ fn read_images_paginated(
     }
     let number_of_images = persistence::images::query_count_images(conn, title_filter.clone());
     (image_dtos, number_of_images)
+}
+#[tauri::command]
+fn update_image_name(image_id: i32, new_name: String) {
+    let conn = &mut establish_connection();
+    persistence::images::query_update_image_name(conn, image_id, new_name);
 }
 
 #[cfg(test)]

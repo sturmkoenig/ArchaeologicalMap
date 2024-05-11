@@ -64,6 +64,10 @@ export class ImageService {
     });
   }
 
+  updateImageName(id: number, newName: any) {
+    return invoke("update_image_name", { imageId: id, newName: newName });
+  }
+
   async deleteImage(image: ImageEntity): Promise<void> {
     return invoke("delete_image", { imageName: image.name, imageId: image.id });
   }
