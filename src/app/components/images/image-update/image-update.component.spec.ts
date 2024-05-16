@@ -1,23 +1,22 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 
-import { ImageUpdateComponent } from './image-update.component';
+import { ImageUpdateComponent } from "./image-update.component";
 
-describe('ImageUpdateComponent', () => {
+describe("ImageUpdateComponent", () => {
   let component: ImageUpdateComponent;
   let fixture: ComponentFixture<ImageUpdateComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ImageUpdateComponent]
-    })
-    .compileComponents();
-    
+      imports: [ImageUpdateComponent],
+    }).compileComponents();
+
     fixture = TestBed.createComponent(ImageUpdateComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it("should create", () => {
     expect(component).toBeTruthy();
   });
 });

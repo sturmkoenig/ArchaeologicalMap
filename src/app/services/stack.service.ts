@@ -20,7 +20,7 @@ export class StackService {
   }
   async deleteStack(
     stackIdToDelete: number,
-    stackHeaderImage: string
+    stackHeaderImage: string,
   ): Promise<void> {
     return invoke("delete_stack", { stackId: stackIdToDelete });
   }

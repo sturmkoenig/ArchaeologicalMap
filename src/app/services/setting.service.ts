@@ -38,11 +38,11 @@ export class SettingService {
         let response = JSON.parse(mapSettings);
         let southWest: LatLng = new LatLng(
           response._southWest.lat,
-          response._southWest.lng
+          response._southWest.lng,
         );
         let northEast: LatLng = new LatLng(
           response._northEast.lat,
-          response._northEast.lng
+          response._northEast.lng,
         );
         let latLngBounds: LatLngBounds = new LatLngBounds(southWest, northEast);
         return latLngBounds;

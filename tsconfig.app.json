@@ -3,13 +3,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/app",
-    "types": [],
+    "types": []
   },
-  "files": [
-    "src/main.ts"
-  ],
-  "include": [
-    "src/**/*.d.ts",
-    "types/quill-image-resize-module/index.d.ts"
-  ]
+  "files": ["src/main.ts"],
+  "include": ["src/**/*.d.ts", "types/quill-image-resize-module/index.d.ts"]
 }

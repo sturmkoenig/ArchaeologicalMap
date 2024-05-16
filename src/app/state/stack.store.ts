@@ -37,8 +37,8 @@ export class StackStore extends ComponentStore<StackState> {
           });
         }
         this.setAllStacks(stacks);
-      })
-    )
+      }),
+    ),
   );
   readonly deleteStack = this.effect((deleteStack$: Observable<Stack>) => {
     return deleteStack$.pipe(
@@ -47,9 +47,9 @@ export class StackStore extends ComponentStore<StackState> {
       }),
       switchMap((deleteStack: Stack) => {
         return from(
-          this.stackService.deleteStack(deleteStack.id, deleteStack.image_name)
+          this.stackService.deleteStack(deleteStack.id, deleteStack.image_name),
         );
-      })
+      }),
     );
   });
 
@@ -65,14 +65,14 @@ export class StackStore extends ComponentStore<StackState> {
                     stack.image_name = imageUrl.toString();
                   }
                   this.addStack(stack);
-                }
+                },
               );
             },
             error: (e) => console.error(e),
           }),
-          catchError(() => EMPTY)
-        )
-      )
+          catchError(() => EMPTY),
+        ),
+      ),
     );
   });
 

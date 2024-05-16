@@ -46,7 +46,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   radiusLayerGroup: LayerGroup = new LayerGroup();
   selectedLayerGroup: LayerGroup;
   newCard?: CardDB;
-  cursorStyle?: String;
+  cursorStyle?: string;
   options: LeafletMapOptions = {
     layers: [
       tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -74,27 +74,41 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     private settingsService: SettingService,
     public overviewMapService: OverviewMapService,
   ) {
-    listen("panTo", (panToEvent: any) => {
-      let point: LatLng = new LatLng(
-        panToEvent.payload.lat,
-        panToEvent.payload.lng,
-      );
-      this.highligtedMarkerIds = [panToEvent.payload.id];
-      this.map.flyTo(point);
-    });
-    listen("panToBounds", (panToBoundsEvent: any) => {
-      let southWest: LatLng = new LatLng(
-        panToBoundsEvent.payload.minLat,
-        panToBoundsEvent.payload.minLng,
-      );
-      let northEast: LatLng = new LatLng(
-        panToBoundsEvent.payload.maxLat,
-        panToBoundsEvent.payload.maxLng,
-      );
-      let bounds: LatLngBounds = new LatLngBounds(southWest, northEast);
-      this.map.flyToBounds(bounds);
-      this.highligtedMarkerIds = panToBoundsEvent.payload.markerIds;
-    });
+    listen(
+      "panTo",
+      (panToEvent: { payload: { lat: number; lng: number; id: number } }) => {
+        const point: LatLng = new LatLng(
+          panToEvent.payload.lat,
+          panToEvent.payload.lng,
+        );
+        this.highligtedMarkerIds = [panToEvent.payload.id];
+        this.map.flyTo(point);
+      },
+    );
+    listen(
+      "panToBounds",
+      (panToBoundsEvent: {
+        payload: {
+          minLat: number;
+          minLng: number;
+          maxLat: number;
+          maxLng: number;
+          markerIds: number[];
+        };
+      }) => {
+        const southWest: LatLng = new LatLng(
+          panToBoundsEvent.payload.minLat,
+          panToBoundsEvent.payload.minLng,
+        );
+        const northEast: LatLng = new LatLng(
+          panToBoundsEvent.payload.maxLat,
+          panToBoundsEvent.payload.maxLng,
+        );
+        const bounds: LatLngBounds = new LatLngBounds(southWest, northEast);
+        this.map.flyToBounds(bounds);
+        this.highligtedMarkerIds = panToBoundsEvent.payload.markerIds;
+      },
+    );
     this.mainLayerGroup = this.overviewMapService.mainLayerGroup;
     this.selectedLayerGroup = this.overviewMapService.selectedLayerGroup;
     this.selectedMarker = this.overviewMapService.selectedMarker;
@@ -197,7 +211,8 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   }
 
   mapMoveEnded() {
-    let bounds = this.map.getBounds();
+    if (this.map == null) return;
+    const bounds = this.map.getBounds();
 
     if (this.map.getZoom() < 7) {
       this.overviewMapService.resetMainLayerGroup();

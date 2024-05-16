@@ -1,15 +1,15 @@
 import { Injectable, WritableSignal, effect, signal } from "@angular/core";
 import { LatLng, LatLngBounds, LatLngExpression, LayerGroup } from "leaflet";
-import { MarkerService } from "../services/marker.service";
+import { MarkerService } from "./marker.service";
 import { MarkerAM, RadiusVisibility } from "../model/marker";
 import { CardDB } from "../model/card";
-import { CardService } from "../services/card.service";
-import { IconKeys, IconService } from "../services/icon.service";
+import { CardService } from "./card.service";
+import { IconKeys, IconService } from "./icon.service";
 
 @Injectable()
 export class OverviewMapService {
-  mainLayerGroup: LayerGroup;
-  selectedLayerGroup: LayerGroup;
+  public readonly mainLayerGroup: LayerGroup;
+  public readonly selectedLayerGroup: LayerGroup;
   iconSizeMap: Map<IconKeys, number> = new Map();
   selectedMarker: WritableSignal<MarkerAM | undefined>;
   editCard: WritableSignal<CardDB | undefined>;
@@ -67,7 +67,7 @@ export class OverviewMapService {
 
   async addNewCard(latlng: LatLngExpression): Promise<void> {
     let newMarker = new MarkerAM(latlng, {}, { iconType: "iconMiscRed" });
-    let newCard = {
+    const newCard = {
       title: "",
       description: "",
       markers: [newMarker.toMarkerDB()],
@@ -188,7 +188,7 @@ export class OverviewMapService {
       // remove markers that are not in the new bounds
       this.mainLayerGroup.getLayers().map((l) => {
         if (l instanceof MarkerAM) {
-          let wasRemoved = !markers.some((m) => m.markerId === l.markerId);
+          const wasRemoved = !markers.some((m) => m.markerId === l.markerId);
           if (wasRemoved) {
             this.removeLayerFromMainLayerGroup(l);
           }
@@ -196,7 +196,7 @@ export class OverviewMapService {
       });
       // add new markers
       markers.filter((m) => {
-        let wasAdded = !this.mainLayerGroup
+        const wasAdded = !this.mainLayerGroup
           .getLayers()
           .some((l) => l instanceof MarkerAM && l.markerId === m.markerId);
         if (wasAdded && m.markerId !== this.selectedMarker()?.markerId) {
