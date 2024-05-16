@@ -20,7 +20,6 @@ import { ImageService } from "src/app/services/image.service";
     MatCardModule,
     AsyncPipe,
     NgForOf,
-    MatButton,
     MatPaginatorModule,
     MatInputModule,
     MatFormFieldModule,
