@@ -23,7 +23,10 @@ describe("OverviewMapComponent", () => {
 
   beforeEach(async () => {
     markerServiceSpy = jasmine.createSpyObj("MarkerService", ["updateMarker"]);
-    cardServiceSpy = jasmine.createSpyObj("CardService", ["deleteMarker"]);
+    cardServiceSpy = jasmine.createSpyObj("CardService", [
+      "deleteMarker",
+      "createCard",
+    ]);
     iconServiceSpy = jasmine.createSpyObj("IconService", [
       "getIconSizeSettings",
     ]);
@@ -47,9 +50,7 @@ describe("OverviewMapComponent", () => {
         { provide: ActivatedRoute, useValue: activatedRouteStub },
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(OverviewMapComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -61,9 +62,26 @@ describe("OverviewMapComponent", () => {
     ).nativeElement;
     button.click();
     fixture.detectChanges();
-    expect(button).toBeTruthy();
-    // expect(component.overviewMapService.mainLayerGroup).toEqual(
-    //   new LayerGroup(),
-    // );
+    const map = fixture.debugElement.query(
+      By.css(".map-container"),
+    ).nativeElement;
+    map.click();
+    fixture.detectChanges();
+    TestBed.flushEffects();
+    expect(cardServiceSpy.createCard).toHaveBeenCalledWith({
+      title: "",
+      description: "",
+      markers: [
+        {
+          id: undefined,
+          card_id: undefined,
+          longitude: jasmine.any(Number),
+          latitude: jasmine.any(Number),
+          radius: 0,
+          icon_name: "iconMiscRed",
+        },
+      ],
+    });
+    expect(component.mainLayerGroup.getLayers().length).toBe(1);
   });
 });
