@@ -13,6 +13,7 @@ import { IconSizeSettingsComponent } from "./map-settings/icon-size-settings/ico
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { By } from "@angular/platform-browser";
 import { MatButton } from "@angular/material/button";
+import { CardDB } from "src/app/model/card";
 
 describe("OverviewMapComponent", () => {
   let component: OverviewMapComponent;
@@ -26,6 +27,7 @@ describe("OverviewMapComponent", () => {
     cardServiceSpy = jasmine.createSpyObj("CardService", [
       "deleteMarker",
       "createCard",
+      "readCard",
     ]);
     iconServiceSpy = jasmine.createSpyObj("IconService", [
       "getIconSizeSettings",
@@ -56,18 +58,14 @@ describe("OverviewMapComponent", () => {
     fixture.detectChanges();
   });
 
-  it("should have mainLayerGroup property with mocked value", () => {
-    const button = fixture.debugElement.query(
-      By.css('[data-testid="add-new-card"]'),
-    ).nativeElement;
-    button.click();
-    fixture.detectChanges();
-    const map = fixture.debugElement.query(
-      By.css(".map-container"),
-    ).nativeElement;
-    map.click();
-    fixture.detectChanges();
+  it("should have mainLayerGroup property with mocked value", async () => {
+    givenADefaultCard();
+    whenIClickAButton("add-new-card");
+    whenIClickTheMap();
+
+    await fixture.whenStable();
     TestBed.flushEffects();
+
     expect(cardServiceSpy.createCard).toHaveBeenCalledWith({
       title: "",
       description: "",
@@ -82,6 +80,39 @@ describe("OverviewMapComponent", () => {
         },
       ],
     });
-    expect(component.mainLayerGroup.getLayers().length).toBe(1);
+    expect(component.selectedLayerGroup.getLayers().length).toBe(1);
   });
+
+  const givenADefaultCard = () => {
+    const card: CardDB = {
+      id: 1,
+      title: "a",
+      description: "a",
+      markers: [
+        {
+          latitude: 1,
+          longitude: 1,
+          id: 1,
+          radius: 0,
+          icon_name: "iconMiscRed",
+        },
+      ],
+    };
+    cardServiceSpy.createCard.and.resolveTo(card);
+    cardServiceSpy.readCard.withArgs(jasmine.any(Number)).and.resolveTo(card);
+  };
+
+  const whenIClickAButton = (testId: string) => {
+    const button = fixture.debugElement.query(
+      By.css(`[data-testid="${testId}"]`),
+    ).nativeElement;
+    button.click();
+  };
+
+  const whenIClickTheMap = () => {
+    const map = fixture.debugElement.query(
+      By.css(".map-container"),
+    ).nativeElement;
+    map.click();
+  };
 });
