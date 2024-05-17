@@ -31,7 +31,6 @@ export class OverviewMapService {
 
     effect(() => {
       this.selectedLayerGroup.clearLayers();
-      console.log("in effect");
       if (this.selectedMarker()) {
         this.removeLayerFromMainLayerGroup(this.selectedMarker()!);
         this.selectedMarker()!.addTo(this.selectedLayerGroup);
@@ -74,7 +73,6 @@ export class OverviewMapService {
       markers: [newMarker.toMarkerDB()],
     };
     await this.cardService.createCard(newCard).then((c) => {
-      console.log("in create card return");
       this.editCard.set(c);
       newMarker = new MarkerAM(
         latlng,
