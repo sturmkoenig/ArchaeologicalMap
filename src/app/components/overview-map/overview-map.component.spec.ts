@@ -2,9 +2,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { OverviewMapComponent } from "./overview-map.component";
 import { OverviewMapService } from "../../services/overview-map.service";
 import { ActivatedRoute } from "@angular/router";
-import { of } from "rxjs";
 import { LeafletModule } from "@asymmetrik/ngx-leaflet";
-import { LayerGroup } from "leaflet";
 import { MarkerService } from "../../services/marker.service";
 import { CardService } from "../../services/card.service";
 import { IconService } from "../../services/icon.service";
@@ -12,8 +10,8 @@ import { RightSidebarComponent } from "../../layout/right-sidebar/right-sidebar.
 import { IconSizeSettingsComponent } from "./map-settings/icon-size-settings/icon-size-settings.component";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { By } from "@angular/platform-browser";
-import { MatButton } from "@angular/material/button";
 import { CardDB } from "src/app/model/card";
+import { MarkerAM } from "src/app/model/marker";
 
 describe("OverviewMapComponent", () => {
   let component: OverviewMapComponent;
@@ -28,6 +26,7 @@ describe("OverviewMapComponent", () => {
       "deleteMarker",
       "createCard",
       "readCard",
+      "deleteCard",
     ]);
     iconServiceSpy = jasmine.createSpyObj("IconService", [
       "getIconSizeSettings",
@@ -59,10 +58,9 @@ describe("OverviewMapComponent", () => {
   });
 
   it("should have mainLayerGroup property with mocked value", async () => {
-    givenADefaultCard();
+    givenTheCard(testCard);
     whenIClickAButton("add-new-card");
     whenIClickTheMap();
-
     await fixture.whenStable();
     TestBed.flushEffects();
 
@@ -83,21 +81,104 @@ describe("OverviewMapComponent", () => {
     expect(component.selectedLayerGroup.getLayers().length).toBe(1);
   });
 
-  const givenADefaultCard = () => {
-    const card: CardDB = {
-      id: 1,
-      title: "a",
-      description: "a",
-      markers: [
-        {
-          latitude: 1,
-          longitude: 1,
-          id: 1,
-          radius: 0,
-          icon_name: "iconMiscRed",
-        },
-      ],
-    };
+  it("should delete selected card", async () => {
+    givenTheCard(testCard);
+    whenIClickAButton("add-new-card");
+    whenIClickTheMap();
+    await fixture.whenStable();
+    TestBed.flushEffects();
+
+    component.onDeleteSelectedCard();
+    await fixture.whenStable();
+    TestBed.flushEffects();
+
+    expect(cardServiceSpy.deleteCard).toHaveBeenCalledWith(testCard.id!);
+    expect(component.selectedLayerGroup.getLayers()).toHaveSize(0);
+    expect(component.mainLayerGroup.getLayers()).toHaveSize(0);
+  });
+
+  it("should delete marker", async () => {
+    givenTheCard(testCard);
+    whenIClickAButton("add-new-card");
+    whenIClickTheMap();
+    await fixture.whenStable();
+    TestBed.flushEffects();
+
+    component.onDeleteSelectedMarker();
+    await fixture.whenStable();
+    TestBed.flushEffects();
+
+    expect(cardServiceSpy.deleteMarker).toHaveBeenCalledWith(testCard.id!);
+    expect(component.selectedLayerGroup.getLayers()).toHaveSize(0);
+    expect(component.mainLayerGroup.getLayers()).toHaveSize(0);
+  });
+
+  it("should move existing marker", async () => {
+    givenTheCard(testCard);
+    whenIClickAButton("add-new-card");
+    whenIClickTheMap();
+    await fixture.whenStable();
+    TestBed.flushEffects();
+
+    component.onMoveExistingMarker();
+    whenIClickTheMap();
+    await fixture.whenStable();
+    TestBed.flushEffects();
+
+    expect(markerServiceSpy.updateMarker).toHaveBeenCalled();
+  });
+
+  it("should update icon size of selected layer correctly", async () => {
+    givenTheCard(testCard);
+    whenIClickAButton("add-new-card");
+    whenIClickTheMap();
+    await fixture.whenStable();
+    TestBed.flushEffects();
+
+    component.onUpdateIconSize({ iconType: "iconMiscRed", iconSize: 40 });
+    const layer: MarkerAM =
+      component.selectedLayerGroup.getLayers()[0] as MarkerAM;
+    expect(layer.getIcon().options.iconSize).toEqual([40, 40]);
+  });
+
+  it("should update icon size of main layer correctly", async () => {
+    givenTheCard(testCard);
+    whenIClickAButton("add-new-card");
+    whenIClickTheMap();
+    await fixture.whenStable();
+    TestBed.flushEffects();
+
+    givenTheCard({ id: 2, ...testCard });
+    whenIClickAButton("add-new-card");
+    whenIClickTheMap();
+    await fixture.whenStable();
+    TestBed.flushEffects();
+
+    expect(component.selectedLayerGroup.getLayers()).toHaveSize(1);
+    expect(component.mainLayerGroup.getLayers()).toHaveSize(0);
+
+    component.onUpdateIconSize({ iconType: "iconMiscRed", iconSize: 40 });
+    const layer: MarkerAM =
+      component.selectedLayerGroup.getLayers()[0] as MarkerAM;
+    expect(layer.getIcon().options.iconSize).toEqual([40, 40]);
+  });
+
+  const testCard: CardDB = {
+    id: 1,
+    title: "a",
+    description: "a",
+    markers: [
+      {
+        latitude: 1,
+        longitude: 1,
+        id: 1,
+        radius: 0,
+        icon_name: "iconMiscRed",
+      },
+    ],
+  };
+
+  const givenTheCard = (card: CardDB) => {
     cardServiceSpy.createCard.and.resolveTo(card);
     cardServiceSpy.readCard.withArgs(jasmine.any(Number)).and.resolveTo(card);
   };
@@ -109,7 +190,7 @@ describe("OverviewMapComponent", () => {
     button.click();
   };
 
-  const whenIClickTheMap = () => {
+  const whenIClickTheMap = async () => {
     const map = fixture.debugElement.query(
       By.css(".map-container"),
     ).nativeElement;
