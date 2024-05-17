@@ -63,7 +63,7 @@ class MockNgZone extends NgZone {
   }
 }
 
-describe("OverviewMapStore", () => {
+describe("OverviewMapService", () => {
   function createTestMarkerAM(marker: Partial<MarkerDB>): MarkerAM {
     return new MarkerAM(
       [0, 0],
@@ -125,12 +125,12 @@ describe("OverviewMapStore", () => {
       createTestMarkerAM({ id: 0, card_id: 0 }),
     ]);
     await service.updateMapBounds(testLatLngBounds);
-    expect(service._mainLayerGroup.getLayers().length).toBe(1);
+    expect(service.mainLayerGroup.getLayers().length).toBe(1);
     markerService.getMarkerAMInArea.and.resolveTo([
       createTestMarkerAM({ id: 0, card_id: 0 }),
     ]);
     await service.updateMapBounds(testLatLngBounds);
-    expect(service._mainLayerGroup.getLayers().length).toBe(1);
+    expect(service.mainLayerGroup.getLayers().length).toBe(1);
   });
 
   it("should remove layer when not in bounds", async () => {
@@ -138,35 +138,35 @@ describe("OverviewMapStore", () => {
       createTestMarkerAM({ id: 0, card_id: 0 }),
     ]);
     await service.updateMapBounds(testLatLngBounds);
-    expect(service._mainLayerGroup.getLayers().length).toBe(1);
+    expect(service.mainLayerGroup.getLayers().length).toBe(1);
     markerService.getMarkerAMInArea.and.resolveTo([
       createTestMarkerAM({ id: 1, card_id: 0 }),
     ]);
     await service.updateMapBounds(testLatLngBounds);
-    expect(service._mainLayerGroup.getLayers().length).toBe(1);
+    expect(service.mainLayerGroup.getLayers().length).toBe(1);
     // @ts-ignore
-    expect(service._mainLayerGroup.getLayers()[0].markerId === 1).toBeTrue();
+    expect(service.mainLayerGroup.getLayers()[0].markerId === 1).toBeTrue();
   });
 
   it("should do nothing if the same marker is selected twice", async () => {
     const testMarker = createTestMarkerAM({ id: 0, card_id: 0 });
     markerService.getMarkerAMInArea.and.resolveTo([testMarker]);
     await service.updateMapBounds(testLatLngBounds);
-    expect(service._mainLayerGroup.getLayers().length).toBe(1);
+    expect(service.mainLayerGroup.getLayers().length).toBe(1);
     service.changeSelectedMarkerAM(testMarker);
     TestBed.flushEffects();
-    expect(service._selectedLayerGroup.getLayers().length)
+    expect(service.selectedLayerGroup.getLayers().length)
       .withContext("after selection 1 layer is in selected group")
       .toBe(1);
-    expect(service._mainLayerGroup.getLayers().length)
+    expect(service.mainLayerGroup.getLayers().length)
       .withContext("after selection main group is empty")
       .toBe(0);
     service.changeSelectedMarkerAM(testMarker);
     TestBed.flushEffects();
-    expect(service._selectedLayerGroup.getLayers().length)
+    expect(service.selectedLayerGroup.getLayers().length)
       .withContext("marker was previously selected, still 1 layer in selected")
       .toBe(1);
-    expect(service._mainLayerGroup.getLayers().length)
+    expect(service.mainLayerGroup.getLayers().length)
       .withContext("marker was previously selected, still 0 layer in main")
       .toBe(0);
   });
@@ -175,22 +175,22 @@ describe("OverviewMapStore", () => {
     const testMarker = createTestMarkerAM({ id: 0, card_id: 0 });
     markerService.getMarkerAMInArea.and.resolveTo([testMarker]);
     await service.updateMapBounds(testLatLngBounds);
-    expect(service._mainLayerGroup.getLayers().length).toBe(1);
+    expect(service.mainLayerGroup.getLayers().length).toBe(1);
 
     service.changeSelectedMarkerAM(testMarker);
     TestBed.flushEffects();
-    expect(service._selectedLayerGroup.getLayers().length).toBe(1);
-    expect(service._mainLayerGroup.getLayers().length).toBe(0);
+    expect(service.selectedLayerGroup.getLayers().length).toBe(1);
+    expect(service.mainLayerGroup.getLayers().length).toBe(0);
 
     markerService.getMarkerAMInArea.and.resolveTo([testMarker]);
     service.resetMainLayerGroup();
     await service.updateMapBounds(testLatLngBounds);
-    expect(service._mainLayerGroup.getLayers().length)
+    expect(service.mainLayerGroup.getLayers().length)
       .withContext(
         "expect the main layer to be empty since layer is already in selecte layer",
       )
       .toBe(0);
-    expect(service._selectedLayerGroup.getLayers().length).toBe(1);
+    expect(service.selectedLayerGroup.getLayers().length).toBe(1);
   });
 
   it("should add new layers", async () => {
@@ -198,18 +198,18 @@ describe("OverviewMapStore", () => {
       createTestMarkerAM({ id: 0, card_id: 0 }),
     ]);
     await service.updateMapBounds(testLatLngBounds);
-    expect(service._mainLayerGroup.getLayers().length).toBe(1);
+    expect(service.mainLayerGroup.getLayers().length).toBe(1);
     markerService.getMarkerAMInArea.and.resolveTo([
       createTestMarkerAM({ id: 0, card_id: 0 }),
       createTestMarkerAM({ id: 1, card_id: 0 }),
     ]);
     await service.updateMapBounds(testLatLngBounds);
 
-    expect(service._mainLayerGroup.getLayers().length).toBe(2);
+    expect(service.mainLayerGroup.getLayers().length).toBe(2);
     // @ts-ignore
-    expect(service._mainLayerGroup.getLayers()[0].markerId === 0).toBeTrue();
+    expect(service.mainLayerGroup.getLayers()[0].markerId === 0).toBeTrue();
     // @ts-ignore
-    expect(service._mainLayerGroup.getLayers()[1].markerId === 1).toBeTrue();
+    expect(service.mainLayerGroup.getLayers()[1].markerId === 1).toBeTrue();
   });
   it("should load card after marker was selected", async () => {
     cardService.readCard.and.resolveTo({
@@ -229,8 +229,8 @@ describe("OverviewMapStore", () => {
     await service.updateMapBounds(testLatLngBounds);
     service.changeSelectedMarkerAM(testMarker);
     TestBed.flushEffects();
-    expect(service._selectedLayerGroup.getLayers().length).toBe(2);
-    expect(service._mainLayerGroup.getLayers().length).toBe(0);
+    expect(service.selectedLayerGroup.getLayers().length).toBe(2);
+    expect(service.mainLayerGroup.getLayers().length).toBe(0);
   });
 
   it("should create new marker+card and select it", async () => {
@@ -242,9 +242,9 @@ describe("OverviewMapStore", () => {
     };
     cardService.createCard.and.resolveTo(cardMock);
     await service.addNewCard([0, 0]);
-    expect(service._selectedLayerGroup.getLayers().length).toBe(1);
-    expect(cardService.createCard).toHaveBeenCalled();
     TestBed.flushEffects();
+    expect(service.selectedLayerGroup.getLayers().length).toBe(1);
+    expect(cardService.createCard).toHaveBeenCalled();
     expect(service.editCard()).toEqual(cardMock);
   });
 
@@ -255,10 +255,10 @@ describe("OverviewMapStore", () => {
     await service.updateMapBounds(testLatLngBounds);
     service.changeSelectedMarkerAM(testMarker);
     TestBed.flushEffects();
-    expect(service._selectedLayerGroup.getLayers().length).toBe(2);
+    expect(service.selectedLayerGroup.getLayers().length).toBe(2);
     service.deleteSelectedMarker();
     TestBed.flushEffects();
-    expect(service._selectedLayerGroup.getLayers().length).toBe(0);
+    expect(service.selectedLayerGroup.getLayers().length).toBe(0);
     expect(cardService.deleteMarker).toHaveBeenCalled();
   });
 
@@ -270,15 +270,15 @@ describe("OverviewMapStore", () => {
     const testMarker = createTestMarkerAM({ id: 0, card_id: 0 });
     markerService.getMarkerAMInArea.and.resolveTo([testMarker]);
     await service.updateMapBounds(testLatLngBounds);
-    expect(service._mainLayerGroup.getLayers().length).toBe(1);
+    expect(service.mainLayerGroup.getLayers().length).toBe(1);
     service.changeSelectedMarkerAM(testMarker);
     TestBed.flushEffects();
-    expect(service._mainLayerGroup.getLayers().length).toBe(0);
-    expect(service._selectedLayerGroup.getLayers().length).toBe(1);
+    expect(service.mainLayerGroup.getLayers().length).toBe(0);
+    expect(service.selectedLayerGroup.getLayers().length).toBe(1);
     await service.addMarkerToSelectedCard([0, 0]);
     TestBed.flushEffects();
-    expect(service._selectedLayerGroup.getLayers().length).toBe(1);
-    expect(service._mainLayerGroup.getLayers().length).toBe(1);
+    expect(service.selectedLayerGroup.getLayers().length).toBe(1);
+    expect(service.mainLayerGroup.getLayers().length).toBe(1);
     expect(service.selectedMarker()?.cardId).toBe(10);
     expect(service.selectedMarker()?.markerId).toBe(11);
   });
@@ -302,7 +302,7 @@ describe("OverviewMapStore", () => {
       testMarker3,
     ]);
     await service.updateMapBounds(testLatLngBounds);
-    expect(service._mainLayerGroup.getLayers().length)
+    expect(service.mainLayerGroup.getLayers().length)
       .withContext("expected 4 layers to be in mainLayerGroup")
       .toBe(4);
 
@@ -310,7 +310,7 @@ describe("OverviewMapStore", () => {
     cardService.readCard.and.resolveTo(testCard);
     service.changeSelectedMarkerAM(testMarker1);
     TestBed.flushEffects();
-    expect(service._selectedLayerGroup.getLayers().length)
+    expect(service.selectedLayerGroup.getLayers().length)
       .withContext("expected 1 layers to be in selectedLayerGroup")
       .toBe(1);
 
@@ -320,19 +320,19 @@ describe("OverviewMapStore", () => {
     expect(cardService.deleteCard).toHaveBeenCalled();
 
     //selectd should be empty
-    expect(service._selectedLayerGroup.getLayers().length)
+    expect(service.selectedLayerGroup.getLayers().length)
       .withContext("expect the selectedLayerGroup to be empty after deletion")
       .toBe(0);
     // all markers with card_id should have been removed
-    expect(service._mainLayerGroup.getLayers().length)
+    expect(service.mainLayerGroup.getLayers().length)
       .withContext(
         "expect after deletion to have removed all markers with cardId",
       )
       .toBe(1);
-    expect(service._mainLayerGroup.getLayers()[0].markerId)
+    expect(service.mainLayerGroup.getLayers()[0].markerId)
       .withContext("expect to only have a marker with markerId 2")
       .toBe(2);
-    expect(service._mainLayerGroup.getLayers()[0].cardId)
+    expect(service.mainLayerGroup.getLayers()[0].cardId)
       .withContext("should also only have the non deleted card id 1")
       .toBe(testCard.id! + 1);
   });
