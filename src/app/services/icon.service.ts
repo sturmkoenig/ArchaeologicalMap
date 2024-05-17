@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { fs } from "@tauri-apps/api";
-import { BaseDirectory, appDataDir } from "@tauri-apps/api/path";
+import { BaseDirectory } from "@tauri-apps/api/path";
 
 const ICON_SIZE_SETTINGS_FILE = "icon-size.settings.json";
 
@@ -179,7 +179,7 @@ export const iconsSorted = {
 export class IconService {
   constructor() {}
 
-  getIconPath(iconType: keyof typeof ICONS): String {
+  getIconPath(iconType: keyof typeof ICONS): string {
     if (ICONS[iconType]) {
       return ICONS[iconType];
     }
@@ -224,7 +224,7 @@ export class IconService {
     // add new setting
     iconSizeSettings.set(iconKey, iconSize);
     const iconSizeSettingsArray: IconSizeSetting[] = [];
-    for (let [key, value] of iconSizeSettings) {
+    for (const [key, value] of iconSizeSettings) {
       iconSizeSettingsArray.push({ iconType: key, iconSize: value });
     }
     const iconSettingString = JSON.stringify(iconSizeSettingsArray);
@@ -239,7 +239,7 @@ export class IconService {
   }
 
   async getIconSizeSettings(): Promise<Map<IconKeys, number>> {
-    let iconSizeSettingMap: Map<IconKeys, number> = new Map();
+    const iconSizeSettingMap: Map<IconKeys, number> = new Map();
     const iconSizeSettings: IconSizeSetting[] =
       await this.readIconSizeSettings();
     iconSizeSettings.forEach((iconSizeSetting) => {

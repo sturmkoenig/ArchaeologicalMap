@@ -13,14 +13,14 @@
 
   @if (selectedMarker()) {
     @if (!updateCardVisible) {
-      <div
+      <button
+        mat-fab
+        color="primary"
         class="round-button round-button__add button"
         (click)="updateCardVisible = !updateCardVisible"
       >
-        <span color="accent" class="icon-add material-symbols-outlined">
-          update
-        </span>
-      </div>
+        <span class="icon-add material-symbols-outlined"> update </span>
+      </button>
     } @else {
       <div class="appsidebar">
         <app-right-sidebar
@@ -82,9 +82,15 @@
       </div>
     }
   } @else {
-    <div class="round-button round-button__add button" (click)="onAddNewCard()">
+    <button
+      mat-fab
+      data-testid="add-new-card"
+      color="primary"
+      class="round-button round-button__add button"
+      (click)="onAddNewCard()"
+    >
       <span class="icon-add material-symbols-outlined"> add </span>
-    </div>
+    </button>
 
     <app-right-sidebar
       [visible]="settingsVisible"
@@ -94,13 +100,15 @@
         (iconSizeChange)="onUpdateIconSize($event)"
       ></app-icon-size-settings>
     </app-right-sidebar>
-    <div
-      class="round-button round-button__settings button"
+    <button
+      mat-fab
+      color="primary"
       (click)="settingsVisible = true"
+      class="round-button round-button__settings button"
     >
       <span color="accent" class="icon-add material-symbols-outlined">
         settings
       </span>
-    </div>
+    </button>
   }
 </div>
