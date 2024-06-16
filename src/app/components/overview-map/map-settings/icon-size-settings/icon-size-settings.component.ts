@@ -7,8 +7,8 @@ import {
   IconCategoriesKeys,
   IconKeys,
   IconSizeSetting,
-} from "src/app/services/icon.service";
-import { MarkerButtonToggleComponent } from "src/app/components/markers/marker-button-toggle/marker-button-toggle.component";
+} from "../../../../services/icon.service";
+import { MarkerButtonToggleComponent } from "../../../../components/markers/marker-button-toggle/marker-button-toggle.component";
 import { MatIconModule } from "@angular/material/icon";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";

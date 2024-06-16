@@ -8,7 +8,7 @@ import {
 import { ActivatedRoute } from "@angular/router";
 import { listen } from "@tauri-apps/api/event";
 import { appWindow } from "@tauri-apps/api/window";
-import { createCardDetailsWindow } from "src/app/util/window-util";
+import { createCardDetailsWindow } from "../../util/window-util";
 import {
   LatLng,
   LatLngBounds,
@@ -21,11 +21,11 @@ import {
   tileLayer,
 } from "leaflet";
 import { CardDB, MarkerDB } from "src/app/model/card";
-import { SettingService } from "src/app/services/setting.service";
+import { SettingService } from "../../services/setting.service";
 import { MarkerService } from "../../services/marker.service";
-import { MarkerAM } from "src/app/model/marker";
-import { IconSizeSetting } from "src/app/services/icon.service";
-import { OverviewMapService } from "src/app/services/overview-map.service";
+import { MarkerAM } from "../../model/marker";
+import { IconSizeSetting } from "../../services/icon.service";
+import { OverviewMapService } from "../../services/overview-map.service";
 
 export interface mapCardMarker {
   card: CardDB;
@@ -249,5 +249,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
       // persist card postion here
       await this.settingsService.saveMapBoundingBox(this.map.getBounds());
     });
+    fetch;
   }
 }
