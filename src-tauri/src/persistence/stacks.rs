@@ -46,13 +46,6 @@ pub fn query_all_stacks(conn: &mut SqliteConnection) -> Vec<Stack> {
 }
 
 pub fn query_delete_stack(conn: &mut SqliteConnection, stack_id: i32) {
-    let result = diesel::delete(stack::table.filter(stack::id.eq(stack_id))).execute(conn);
-    if let Err(e) = result {
-        panic!(
-            "Error deleting stack with id: {}, produced error {}",
-            stack_id, e
-        )
-    }
     let result = diesel::update(cards::table)
         .filter(schema::cards::stack_id.eq(stack_id))
         .set(cards::stack_id.eq(None::<i32>))
@@ -60,6 +53,14 @@ pub fn query_delete_stack(conn: &mut SqliteConnection, stack_id: i32) {
     if let Err(e) = result {
         panic!(
             "Error setting card stackId {} to None produced error: {}, ",
+            stack_id, e
+        )
+    }
+
+    let result = diesel::delete(stack::table.filter(stack::id.eq(stack_id))).execute(conn);
+    if let Err(e) = result {
+        panic!(
+            "Error deleting stack with id: {}, produced error {}",
             stack_id, e
         )
     }
