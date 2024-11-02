@@ -1,4 +1,4 @@
-import { Component, Inject, NgZone, OnInit } from "@angular/core";
+import { Component, NgZone, OnInit } from "@angular/core";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
 import { MatIconModule } from "@angular/material/icon";
@@ -9,7 +9,6 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatInputModule } from "@angular/material/input";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import {
-  MAT_DIALOG_DATA,
   MatDialogActions,
   MatDialogClose,
   MatDialogContent,

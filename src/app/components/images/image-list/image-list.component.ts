@@ -95,7 +95,7 @@ export class ImageListComponent implements OnInit {
       });
   }
 
-  changeImageName(image: ImageEntity, newName: any) {
+  changeImageName(image: ImageEntity, newName: string) {
     this.imageService.updateImageName(image.id, newName);
   }
 }

@@ -29,7 +29,7 @@ export class StackStore extends ComponentStore<StackState> {
   readonly loadStacks = this.effect<void>(() =>
     from(this.stackService.getAll()).pipe(
       tap((stacks: Stack[]) => {
-        for (let stack of stacks) {
+        for (const stack of stacks) {
           this.getImageUrl(stack.image_name).then((imageUrl) => {
             if (imageUrl !== undefined) {
               stack.image_name = imageUrl.toString();
@@ -59,14 +59,12 @@ export class StackStore extends ComponentStore<StackState> {
         from(this.stackService.createStack(newStack)).pipe(
           tap({
             next: (stack: Stack) => {
-              let imageUrl = this.getImageUrl(stack.image_name).then(
-                (imageUrl) => {
-                  if (imageUrl !== undefined) {
-                    stack.image_name = imageUrl.toString();
-                  }
-                  this.addStack(stack);
-                },
-              );
+              this.getImageUrl(stack.image_name).then((imageUrl) => {
+                if (imageUrl !== undefined) {
+                  stack.image_name = imageUrl.toString();
+                }
+                this.addStack(stack);
+              });
             },
             error: (e) => console.error(e),
           }),
@@ -76,14 +74,10 @@ export class StackStore extends ComponentStore<StackState> {
     );
   });
 
-  private getImageUrl(image_name: string): Promise<void | String> {
-    return path.appDataDir().then((dataDir) => {
-      return path
-        .join(dataDir, "content", "images", image_name)
-        .then((imagePath) => {
-          return convertFileSrc(imagePath);
-        });
-    });
+  private async getImageUrl(image_name: string): Promise<void | string> {
+    const dataDir = await path.appDataDir();
+    const imagePath = await path.join(dataDir, "content", "images", image_name);
+    return convertFileSrc(imagePath);
   }
 
   constructor(private stackService: StackService) {

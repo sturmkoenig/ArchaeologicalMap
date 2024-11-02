@@ -106,13 +106,13 @@ export class CardDetailsComponent implements OnInit {
       exitAnimationDuration: "150ms",
     });
     dialogRef.componentInstance.deleted.subscribe((data: boolean) => {
-      if (data === true) {
+      if (data) {
         this._snackBar.open("Seite gelöscht", "⌫");
         dialogRef.close();
       }
     });
     dialogRef.componentInstance.updated.subscribe((data: boolean) => {
-      if (data === true) {
+      if (data) {
         this._snackBar.open("Änderungen gespeichert!", "💾");
       }
     });

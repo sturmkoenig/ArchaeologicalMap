@@ -1,5 +1,4 @@
 import { Injectable } from "@angular/core";
-import {} from "@tauri-apps/api";
 import { BaseDirectory } from "@tauri-apps/api/path";
 import { LatLng, LatLngBounds, LatLngBoundsExpression } from "leaflet";
 import * as fs from "@tauri-apps/plugin-fs";

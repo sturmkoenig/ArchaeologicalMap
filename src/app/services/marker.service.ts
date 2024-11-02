@@ -1,18 +1,8 @@
-import { ComponentFactoryResolver, Injectable, Injector } from "@angular/core";
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import {
-  Circle,
-  Icon,
-  LatLng,
-  LatLngBounds,
-  LatLngBoundsExpression,
-  Layer,
-  Marker,
-} from "leaflet";
-import { from, Observable, switchMap, zip } from "rxjs";
-import { CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
+import { Injectable } from "@angular/core";
+import { Circle, Icon, LatLng, LatLngBounds, Layer, Marker } from "leaflet";
+import { CardDB, MarkerDB } from "src/app/model/card";
 import { CardService } from "./card.service";
-import { ICONS, IconKeys, IconService } from "./icon.service";
+import { IconKeys, ICONS, IconService } from "./icon.service";
 import { invoke } from "@tauri-apps/api/core";
 import { MarkerAM } from "../model/marker";
 import { createCardDetailsWindow } from "../util/window-util";
@@ -56,7 +46,7 @@ export class MarkerService {
 
   async getMarker(markerId: number): Promise<MarkerAM> {
     return this.getMarkerDB(markerId).then((m) => {
-      const newMarker = new MarkerAM(
+      return new MarkerAM(
         [m.latitude, m.longitude],
         {},
         {
@@ -67,7 +57,6 @@ export class MarkerService {
           iconSize: this.iconSizeMap.get(m.icon_name),
         },
       );
-      return newMarker;
     });
   }
 
@@ -83,7 +72,7 @@ export class MarkerService {
       west: bounds.getWest(),
     });
     return markersDB.map((m) => {
-      const newMarker = new MarkerAM(
+      return new MarkerAM(
         [m.latitude, m.longitude],
         {},
         {
@@ -94,32 +83,7 @@ export class MarkerService {
           iconSize: this.iconSizeMap.get(m.icon_name),
         },
       );
-      return newMarker;
     });
-  }
-
-  /**
-   * @deprecated
-   */
-  getCardMarkerLayersInArea(
-    directions: CardinalDirection,
-  ): Observable<CardMarkerLayer[]> {
-    return from(this.cardService.readMarkersInArea(directions)).pipe(
-      switchMap((markersDB: MarkerDB[]) => {
-        return zip(
-          /* TODO refactor: 
-            1. filter unique marker.card_id
-            2. fetch all cards
-            3. set  m.card_i==card.id 
-            */
-          markersDB.map((m) =>
-            this.cardService
-              .readCard(m.card_id!)
-              .then((c) => this.markerToMapLayer(m, c)),
-          ),
-        );
-      }),
-    );
   }
 
   createNewMarker(cardId: number, newMarker: MarkerDB): Promise<MarkerDB> {
@@ -176,8 +140,7 @@ export class MarkerService {
     );
     const southWest = new LatLng(min_lat.latitude, min_lng.longitude);
     const northEast = new LatLng(max_lat.latitude, max_lng.longitude);
-    const bounds: LatLngBounds = new LatLngBounds(southWest, northEast);
-    return bounds;
+    return new LatLngBounds(southWest, northEast);
   }
 
   static createPopupHTML(marker: MarkerDB, card: CardDB): HTMLDivElement {

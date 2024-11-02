@@ -375,7 +375,6 @@ fn create_image(
         image_source: std::option::Option::None,
     };
     let image_id = query_create_image(conn, &new_image);
-    let config = app_handle.config();
     let app_data_dir = data_dir().expect("error creating app data dir");
 
     let file_stem = Path::new(&image_path)

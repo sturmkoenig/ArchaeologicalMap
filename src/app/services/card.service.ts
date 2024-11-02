@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { invoke } from "@tauri-apps/api/core";
-import { appCacheDir, appDataDir } from "@tauri-apps/api/path";
+import { appDataDir } from "@tauri-apps/api/path";
 import { CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
 import * as fs from "@tauri-apps/plugin-fs";
 

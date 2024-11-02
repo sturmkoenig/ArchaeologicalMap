@@ -80,7 +80,7 @@ import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal
               <div
                 class="expanded-card--actions"
                 [@detailExpand]="
-                  element == expandedElement ? 'expanded' : 'collapsed'
+                  element === expandedElement ? 'expanded' : 'collapsed'
                 "
               >
                 <button
@@ -183,7 +183,7 @@ export class CardListComponent implements OnInit {
   filter: string = "";
   modelChanged: Subject<string> = new Subject<string>();
   subscription!: Subscription;
-  displayedColumns: String[] = ["title", "description"];
+  displayedColumns = ["title", "description"];
   columnsToDisplayWithExpand = [...this.displayedColumns, "expand"];
   expandedElement: CardDB | null;
   debounceTime = 500;
@@ -241,14 +241,14 @@ export class CardListComponent implements OnInit {
       exitAnimationDuration: "150ms",
     });
     dialogRef.componentInstance.deleted.subscribe((data: boolean) => {
-      if (data === true) {
+      if (data) {
         this._snackBar.open("Seite gelöscht", "⌫");
         dialogRef.close();
         this.inputChanged();
       }
     });
     dialogRef.componentInstance.updated.subscribe((data: boolean) => {
-      if (data === true) {
+      if (data) {
         this._snackBar.open("Änderungen gespeichert!", "💾");
       }
     });

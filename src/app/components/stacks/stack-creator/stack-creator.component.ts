@@ -1,12 +1,12 @@
 import { Component, Inject, NgZone } from "@angular/core";
 import { MAT_DIALOG_DATA } from "@angular/material/dialog";
-import {  path } from "@tauri-apps/api";
+import { path } from "@tauri-apps/api";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { v4 as uuid } from "uuid";
 import { BehaviorSubject } from "rxjs";
 import { StackStore } from "src/app/state/stack.store";
-import * as fs from "@tauri-apps/plugin-fs"
+import * as fs from "@tauri-apps/plugin-fs";
 
 @Component({
   selector: "app-stack-creator",
@@ -77,14 +77,19 @@ export class StackCreatorComponent {
 
   async fileBrowseHandler(arg0: any) {
     if (arg0.payload !== null || arg0.payload !== undefined) {
-      let dataDir = await path.appDataDir();
-      let filePath: string = arg0.payload[0];
-      let fileEnding = filePath.substring(filePath.lastIndexOf(".") + 1);
-      let newFileName = uuid() + "." + fileEnding;
+      const dataDir = await path.appDataDir();
+      const filePath: string = arg0.payload[0];
+      const fileEnding = filePath.substring(filePath.lastIndexOf(".") + 1);
+      const newFileName = uuid() + "." + fileEnding;
 
-      let copyPath = await path.join(dataDir, "content", "images", newFileName);
+      const copyPath = await path.join(
+        dataDir,
+        "content",
+        "images",
+        newFileName,
+      );
       await fs.copyFile(arg0.payload[0], copyPath);
-      let fileUrl = convertFileSrc(copyPath);
+      const fileUrl = convertFileSrc(copyPath);
       this.fileUrl.next(fileUrl);
       this.fileName = newFileName;
     }

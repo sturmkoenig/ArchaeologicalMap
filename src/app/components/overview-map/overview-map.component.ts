@@ -26,7 +26,7 @@ import { MarkerService } from "../../services/marker.service";
 import { MarkerAM } from "src/app/model/marker";
 import { IconSizeSetting } from "src/app/services/icon.service";
 import { OverviewMapService } from "src/app/services/overview-map.service";
-const appWindow = getCurrentWebviewWindow()
+const appWindow = getCurrentWebviewWindow();
 
 export interface mapCardMarker {
   card: CardDB;

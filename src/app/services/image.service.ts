@@ -1,8 +1,7 @@
 import { Injectable } from "@angular/core";
 import { path } from "@tauri-apps/api";
-import { invoke } from "@tauri-apps/api/core";
+import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { ImageDB, ImageEntity, NewImage } from "../model/image";
-import { convertFileSrc } from "@tauri-apps/api/core";
 import { appDataDir } from "@tauri-apps/api/path";
 
 @Injectable({
@@ -53,12 +52,11 @@ export class ImageService {
       await appDataDir(),
       imageDB.image_source,
     );
-    const image = {
+    return {
       id: imageDB.id,
       name: imageDB.name,
       imageSource: convertFileSrc(imageSoure),
     };
-    return image;
   }
 
   async createImage(newImage: NewImage): Promise<number> {
@@ -68,7 +66,7 @@ export class ImageService {
     });
   }
 
-  updateImageName(id: number, newName: any) {
+  updateImageName(id: number, newName: string) {
     return invoke("update_image_name", { imageId: id, newName: newName });
   }
 
