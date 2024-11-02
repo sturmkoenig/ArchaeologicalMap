@@ -25,7 +25,7 @@ export class SettingService {
     );
   }
 
-  async loadMapBoundingBox(): Promise<any> {
+  async loadMapBoundingBox(): Promise<LatLngBounds | undefined> {
     const mapSettingsExist: boolean = await fs.exists(
       this.mapSettingsFileName,
       {
@@ -49,11 +49,7 @@ export class SettingService {
           response._northEast.lat,
           response._northEast.lng,
         );
-        const latLngBounds: LatLngBounds = new LatLngBounds(
-          southWest,
-          northEast,
-        );
-        return latLngBounds;
+        return new LatLngBounds(southWest, northEast);
       });
   }
 }

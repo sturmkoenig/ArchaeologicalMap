@@ -5,7 +5,7 @@ export function createCardDetailsWindow(cardId: number) {
     url: "cards/details?id=" + cardId,
     height: 800,
   });
-  webview.once("tauri://error", function (e: any) {
+  webview.once("tauri://error", function (e: unknown) {
     console.error("window creation error: " + JSON.stringify(e));
     webview.emit("set-focus-to");
   });

@@ -38,7 +38,7 @@ use persistence::stacks::query_all_stacks;
 use persistence::stacks::query_create_stack;
 use persistence::stacks::query_delete_stack;
 use persistence::stacks::query_update_stack;
-use tauri_api::path::{app_dir, data_dir};
+use tauri_api::path::{app_dir, data_dir, local_data_dir, resolve_path, resource_dir};
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
@@ -46,8 +46,8 @@ use std::env;
 use std::fs;
 use std::path::Path;
 use tauri::{AppHandle, Manager};
-
 use app::{establish_connection, models::Card};
+use tauri_api::path::BaseDirectory;
 
 use crate::persistence::images::query_update_image;
 
@@ -375,12 +375,12 @@ fn create_image(
         image_source: std::option::Option::None,
     };
     let image_id = query_create_image(conn, &new_image);
-    let app_data_dir = data_dir().expect("error creating app data dir");
+    let app_data_dir = app_handle.path().app_data_dir().expect("couldn't get app data dir");
 
     let file_stem = Path::new(&image_path)
         .file_stem()
-        .and_then(|fname| fname.to_str())
-        .ok_or_else(|| "Invalid file path")?;
+        .and_then(|fname| fname.to_str()).expect("Panic! No such filename ");
+
 
     let extension = Path::new(&image_path)
         .extension()
@@ -393,7 +393,7 @@ fn create_image(
     let _ = fs::copy(image_path, dest_path).or_else(|e| {
         println!("Error copying image: {:?}", e);
         return Err(e);
-    });
+    }).expect("couldn't copy image");
     let image_source = Some(format!("{}{}", app_image_dir, new_image_name));
     let image_dto = ImageDTO {
         id: image_id,

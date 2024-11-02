@@ -75,13 +75,13 @@ export class CardService {
     return invoke("count_cards", {});
   }
 
-  async deleteCard(id: number): Promise<any> {
+  async deleteCard(id: number): Promise<void> {
     await invoke("delete_card", {
       id: id,
     });
     return;
   }
-  deleteMarker(markerId: number): Promise<any> {
+  deleteMarker(markerId: number): Promise<void> {
     return invoke("delete_marker", { markerId: markerId });
   }
 

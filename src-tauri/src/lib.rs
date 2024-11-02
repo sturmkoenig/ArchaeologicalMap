@@ -4,7 +4,7 @@ use diesel::sqlite::SqliteConnection;
 use std::path::PathBuf;
 use tauri_api::path::data_dir;
 
-diesel::sql_function! (fn last_insert_rowid() -> diesel::sql_types::Integer);
+diesel::define_sql_function! (fn last_insert_rowid() -> diesel::sql_types::Integer);
 
 // TODO find a way to set this path using the tauri api
 pub fn get_local_dir() -> PathBuf {
