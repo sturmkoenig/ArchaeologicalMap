@@ -1,7 +1,8 @@
 import { Injectable } from "@angular/core";
-import { invoke, path } from "@tauri-apps/api";
+import { path } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 import { ImageDB, ImageEntity, NewImage } from "../model/image";
-import { convertFileSrc } from "@tauri-apps/api/tauri";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { appDataDir } from "@tauri-apps/api/path";
 
 @Injectable({
@@ -11,10 +12,10 @@ export class ImageService {
   constructor() {}
 
   async readImages(): Promise<ImageEntity[]> {
-    let imagesDB: ImageDB[] = await invoke("read_images", {});
-    let images: ImageEntity[] = [];
-    for (let image of imagesDB) {
-      let imagePath = await path.join(await appDataDir(), image.image_source);
+    const imagesDB: ImageDB[] = await invoke("read_images", {});
+    const images: ImageEntity[] = [];
+    for (const image of imagesDB) {
+      const imagePath = await path.join(await appDataDir(), image.image_source);
       images.push({
         id: image.id,
         name: image.name,
@@ -29,14 +30,14 @@ export class ImageService {
     pageSize: number,
     titleFilter?: string,
   ): Promise<[ImageEntity[], number]> {
-    let [imagesDB, numberOfImages] = (await invoke("read_images_paginated", {
+    const [imagesDB, numberOfImages] = (await invoke("read_images_paginated", {
       pageNumber: pageIndex,
       entriesPerPage: pageSize,
       titleFilter: titleFilter,
     })) as [ImageDB[], number];
-    let images: ImageEntity[] = [];
-    for (let image of imagesDB) {
-      let imagePath = await path.join(await appDataDir(), image.image_source);
+    const images: ImageEntity[] = [];
+    for (const image of imagesDB) {
+      const imagePath = await path.join(await appDataDir(), image.image_source);
       images.push({
         id: image.id,
         name: image.name,
@@ -47,9 +48,12 @@ export class ImageService {
   }
 
   async readImage(imageId: number): Promise<ImageEntity> {
-    let imageDB: ImageDB = await invoke("read_image", { imageId: imageId });
-    let imageSoure = await path.join(await appDataDir(), imageDB.image_source);
-    let image = {
+    const imageDB: ImageDB = await invoke("read_image", { imageId: imageId });
+    const imageSoure = await path.join(
+      await appDataDir(),
+      imageDB.image_source,
+    );
+    const image = {
       id: imageDB.id,
       name: imageDB.name,
       imageSource: convertFileSrc(imageSoure),

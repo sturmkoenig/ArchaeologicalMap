@@ -2,7 +2,7 @@ use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
 use std::path::PathBuf;
-use tauri::api::path::data_dir;
+use tauri_api::path::data_dir;
 
 diesel::sql_function! (fn last_insert_rowid() -> diesel::sql_types::Integer);
 

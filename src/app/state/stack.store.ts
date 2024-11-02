@@ -4,7 +4,7 @@ import { Stack, StackPost } from "../model/stack";
 import { EMPTY, Observable, catchError, from, switchMap, tap } from "rxjs";
 import { StackService } from "../services/stack.service";
 import { path } from "@tauri-apps/api";
-import { convertFileSrc } from "@tauri-apps/api/tauri";
+import { convertFileSrc } from "@tauri-apps/api/core";
 
 export interface StackState {
   stacks: Stack[];

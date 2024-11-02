@@ -1,13 +1,13 @@
 import { Component, Inject, NgZone, OnInit } from "@angular/core";
 import { listen } from "@tauri-apps/api/event";
-import { open } from "@tauri-apps/api/dialog";
+import { open } from "@tauri-apps/plugin-dialog";
 import { MatIconModule } from "@angular/material/icon";
 import { NgIf } from "@angular/common";
 import { ImageService } from "src/app/services/image.service";
 import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatInputModule } from "@angular/material/input";
-import { convertFileSrc } from "@tauri-apps/api/tauri";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,

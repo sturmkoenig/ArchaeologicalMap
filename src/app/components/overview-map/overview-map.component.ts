@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { listen } from "@tauri-apps/api/event";
-import { appWindow } from "@tauri-apps/api/window";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { createCardDetailsWindow } from "src/app/util/window-util";
 import {
   LatLng,
@@ -26,6 +26,7 @@ import { MarkerService } from "../../services/marker.service";
 import { MarkerAM } from "src/app/model/marker";
 import { IconSizeSetting } from "src/app/services/icon.service";
 import { OverviewMapService } from "src/app/services/overview-map.service";
+const appWindow = getCurrentWebviewWindow()
 
 export interface mapCardMarker {
   card: CardDB;

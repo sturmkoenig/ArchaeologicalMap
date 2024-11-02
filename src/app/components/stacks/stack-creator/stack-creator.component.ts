@@ -1,11 +1,12 @@
 import { Component, Inject, NgZone } from "@angular/core";
 import { MAT_DIALOG_DATA } from "@angular/material/dialog";
-import { fs, path } from "@tauri-apps/api";
-import { convertFileSrc } from "@tauri-apps/api/tauri";
+import {  path } from "@tauri-apps/api";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { v4 as uuid } from "uuid";
 import { BehaviorSubject } from "rxjs";
 import { StackStore } from "src/app/state/stack.store";
+import * as fs from "@tauri-apps/plugin-fs"
 
 @Component({
   selector: "app-stack-creator",

@@ -1,5 +1,5 @@
 import { ComponentFactoryResolver, Injectable, Injector } from "@angular/core";
-import { WebviewWindow } from "@tauri-apps/api/window";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import {
   Circle,
   Icon,
@@ -13,7 +13,7 @@ import { from, Observable, switchMap, zip } from "rxjs";
 import { CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
 import { CardService } from "./card.service";
 import { ICONS, IconKeys, IconService } from "./icon.service";
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 import { MarkerAM } from "../model/marker";
 import { createCardDetailsWindow } from "../util/window-util";
 
@@ -127,12 +127,12 @@ export class MarkerService {
   }
 
   markerToMapLayer(markerDB: MarkerDB, cardDB: CardDB): CardMarkerLayer {
-    let icon: Icon = new Icon({
+    const icon: Icon = new Icon({
       iconUrl: ICONS[markerDB.icon_name].toString(),
       iconSize: [20, 20],
       popupAnchor: [0, 0],
     });
-    let iconMarker: Marker = new Marker(
+    const iconMarker: Marker = new Marker(
       [markerDB.latitude, markerDB.longitude],
       {
         icon,
@@ -143,7 +143,7 @@ export class MarkerService {
     iconMarker.bindPopup(MarkerService.createPopupHTML(markerDB, cardDB));
 
     if (markerDB.radius !== 0.0) {
-      let circle = new Circle([markerDB.latitude, markerDB.longitude], {
+      const circle = new Circle([markerDB.latitude, markerDB.longitude], {
         className: "fade-in",
         radius: markerDB.radius,
       });
@@ -166,13 +166,17 @@ export class MarkerService {
   }
 
   getBounds(markers: MarkerDB[]): LatLngBounds {
-    let min_lat = markers.reduce((x, y) => (x.latitude < y.latitude ? x : y));
-    let min_lng = markers.reduce((x, y) => (x.longitude < y.longitude ? x : y));
-    let max_lat = markers.reduce((x, y) => (x.latitude > y.latitude ? x : y));
-    let max_lng = markers.reduce((x, y) => (x.longitude > y.longitude ? x : y));
-    let southWest = new LatLng(min_lat.latitude, min_lng.longitude);
-    let northEast = new LatLng(max_lat.latitude, max_lng.longitude);
-    let bounds: LatLngBounds = new LatLngBounds(southWest, northEast);
+    const min_lat = markers.reduce((x, y) => (x.latitude < y.latitude ? x : y));
+    const min_lng = markers.reduce((x, y) =>
+      x.longitude < y.longitude ? x : y,
+    );
+    const max_lat = markers.reduce((x, y) => (x.latitude > y.latitude ? x : y));
+    const max_lng = markers.reduce((x, y) =>
+      x.longitude > y.longitude ? x : y,
+    );
+    const southWest = new LatLng(min_lat.latitude, min_lng.longitude);
+    const northEast = new LatLng(max_lat.latitude, max_lng.longitude);
+    const bounds: LatLngBounds = new LatLngBounds(southWest, northEast);
     return bounds;
   }
 

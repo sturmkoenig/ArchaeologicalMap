@@ -9,7 +9,7 @@ import { Component, OnInit } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { WebviewWindow } from "@tauri-apps/api/window";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { Observable, Subject, Subscription, debounceTime, from } from "rxjs";
 import { CardDB } from "src/app/model/card";
 import { CardService } from "src/app/services/card.service";

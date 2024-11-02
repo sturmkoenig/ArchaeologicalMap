@@ -1,4 +1,4 @@
-import { WebviewWindow } from "@tauri-apps/api/window";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 export function createCardDetailsWindow(cardId: number) {
   const webview = new WebviewWindow(cardId.toString(), {

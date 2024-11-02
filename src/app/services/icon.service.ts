@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
-import { fs } from "@tauri-apps/api";
+import {} from "@tauri-apps/api";
 import { BaseDirectory } from "@tauri-apps/api/path";
+import * as fs from "@tauri-apps/plugin-fs";
 
 const ICON_SIZE_SETTINGS_FILE = "icon-size.settings.json";
 
@@ -197,14 +198,14 @@ export class IconService {
     const iconSizeSettingsExist: boolean = await fs.exists(
       ICON_SIZE_SETTINGS_FILE,
       {
-        dir: BaseDirectory.AppData,
+        baseDir: BaseDirectory.AppData,
       },
     );
 
     if (iconSizeSettingsExist) {
       await fs
         .readTextFile(ICON_SIZE_SETTINGS_FILE, {
-          dir: BaseDirectory.AppData,
+          baseDir: BaseDirectory.AppData,
         })
         .then((iconSettings) => {
           iconSizeSettings = JSON.parse(iconSettings);
@@ -229,9 +230,10 @@ export class IconService {
     }
     const iconSettingString = JSON.stringify(iconSizeSettingsArray);
     // write new settings
+    const enc = new TextEncoder(); // always utf-8
     await fs
-      .writeFile(ICON_SIZE_SETTINGS_FILE, iconSettingString, {
-        dir: BaseDirectory.AppData,
+      .writeFile(ICON_SIZE_SETTINGS_FILE, enc.encode(iconSettingString), {
+        baseDir: BaseDirectory.AppData,
       })
       .catch((e) => {
         console.error("error writing icon size settings", e);

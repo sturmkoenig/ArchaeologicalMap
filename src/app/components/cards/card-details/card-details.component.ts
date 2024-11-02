@@ -5,7 +5,7 @@ import { CardService } from "src/app/services/card.service";
 
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { appWindow } from "@tauri-apps/api/window";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { Observable } from "rxjs";
 import { EditorComponent } from "src/app/layout/editor/editor.component";
 import { CardDB, MarkerDB } from "src/app/model/card";
@@ -14,6 +14,8 @@ import { MarkerService } from "src/app/services/marker.service";
 import { CardDetailsStore } from "src/app/state/card-details.store";
 import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal.component";
 import { ImageEntity } from "src/app/model/image";
+
+const appWindow = getCurrentWebviewWindow();
 
 @Component({
   selector: "app-card-details",
@@ -84,7 +86,7 @@ export class CardDetailsComponent implements OnInit {
         id: marker[0].id ?? 0,
       });
     } else {
-      let bounds = this.markerService.getBounds(marker);
+      const bounds = this.markerService.getBounds(marker);
       emit("panToBounds", {
         minLat: bounds.getSouthWest().lat,
         minLng: bounds.getSouthWest().lng,
