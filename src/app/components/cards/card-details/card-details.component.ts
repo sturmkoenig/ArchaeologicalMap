@@ -59,6 +59,7 @@ export class CardDetailsComponent implements OnInit {
       this.cardDetailsStore.loadStackOfCards(this.cardId);
       this.cardContentService.setCardId(this.cardId);
       listen("set-focus-to", async () => {
+        console.log("set-focus-to");
         await appWindow.setFocus();
       });
     });
