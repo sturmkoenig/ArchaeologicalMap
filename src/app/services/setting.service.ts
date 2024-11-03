@@ -35,14 +35,16 @@ export class SettingService {
       .readTextFile(this.mapSettingsFileName, {
         baseDir: BaseDirectory.AppData,
       })
-      .then((mapSettings) => {
-        const response: any = JSON.parse(mapSettings);
+      .then((content) => {
+        const settings: any = JSON.parse(content);
         return {
-          initialMapBounds: new LatLngBounds(
-            response.initialMapBounds!._southWest,
-            response.initialMapBounds!._northEast,
-          ),
-          maxClusterSize: response.maxClusterSize ?? 80,
+          initialMapBounds: settings.initialMapBounds
+            ? new LatLngBounds(
+                settings.initialMapBounds!._southWest,
+                settings.initialMapBounds!._northEast,
+              )
+            : undefined,
+          maxClusterSize: settings.maxClusterSize,
         };
       });
   }
