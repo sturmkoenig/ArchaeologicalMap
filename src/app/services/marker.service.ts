@@ -1,13 +1,5 @@
 import { Injectable } from "@angular/core";
-import {
-  Circle,
-  Icon,
-  LatLng,
-  LatLngBounds,
-  Layer,
-  LayerGroup,
-  Marker,
-} from "leaflet";
+import { Circle, Icon, LatLng, LatLngBounds, Layer, Marker } from "leaflet";
 import { CardDB, MarkerDB } from "src/app/model/card";
 import { CardService } from "./card.service";
 import { IconKeys, ICONS, IconService } from "./icon.service";
@@ -23,24 +15,15 @@ export interface CardMarkerLayer {
   radius: Layer | null;
 }
 
-interface CardTitleMapping {
-  id: number;
-  title: string;
-}
-
 @Injectable({
   providedIn: "root",
 })
 export class MarkerService {
   iconSizeMap: Map<IconKeys, number> = new Map();
-  cardTitleMapping!: CardTitleMapping[];
   constructor(
     private cardService: CardService,
     private iconService: IconService,
   ) {
-    this.cardService.readCardTitleMapping().then((ctm) => {
-      this.cardTitleMapping = ctm;
-    });
     this.iconService
       .getIconSizeSettings()
       .then((iconSizeMap: Map<IconKeys, number>) => {
@@ -52,9 +35,10 @@ export class MarkerService {
     return await invoke("update_marker", { marker: marker });
   }
 
-  async getMarker(markerId: number): Promise<MarkerAM> {
+  async getMarker(markerId: number, loadCard: boolean): Promise<MarkerAM> {
     return this.getMarkerDB(markerId).then((m) => {
       return new MarkerAM(
+        (id: number) => this.cardService.readCard(id),
         [m.latitude, m.longitude],
         {},
         {
@@ -63,6 +47,7 @@ export class MarkerService {
           iconType: m.icon_name,
           radius: m.radius,
           iconSize: this.iconSizeMap.get(m.icon_name),
+          loadCard,
         },
       );
     });
@@ -72,7 +57,10 @@ export class MarkerService {
     return invoke("read_marker", { id: id });
   }
 
-  async getMarkerAMInArea(bounds: LatLngBounds): Promise<MarkerAM[]> {
+  async getMarkerAMInArea(
+    bounds: LatLngBounds,
+    loadCard: boolean,
+  ): Promise<MarkerAM[]> {
     const markersDB = await this.cardService.readMarkersInArea({
       north: bounds.getNorth(),
       east: bounds.getEast(),
@@ -81,6 +69,7 @@ export class MarkerService {
     });
     return markersDB.map((m) => {
       return new MarkerAM(
+        (id: number) => this.cardService.readCard(id),
         [m.latitude, m.longitude],
         {},
         {
@@ -89,6 +78,7 @@ export class MarkerService {
           iconType: m.icon_name,
           radius: m.radius,
           iconSize: this.iconSizeMap.get(m.icon_name),
+          loadCard,
         },
       );
     });

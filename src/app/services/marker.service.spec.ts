@@ -6,7 +6,6 @@ import { MarkerAM } from "../model/marker";
 import { LatLngBounds } from "leaflet";
 
 const MockCardService = {
-  readCardTitleMapping: () => Promise.resolve([]),
   readCard: () => {},
   readMarkersInArea: () => {
     return Promise.resolve([]);
@@ -16,7 +15,7 @@ const MockCardService = {
 describe("MarkerService", () => {
   let service: MarkerService;
 
-  let testMarkerDB: MarkerDB = {
+  const testMarkerDB: MarkerDB = {
     id: 1,
     card_id: 1,
     latitude: 1,

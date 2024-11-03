@@ -1,8 +1,6 @@
 import { Injectable } from "@angular/core";
 import { invoke } from "@tauri-apps/api/core";
-import { appDataDir } from "@tauri-apps/api/path";
 import { CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
-import * as fs from "@tauri-apps/plugin-fs";
 
 @Injectable({
   providedIn: "root",
@@ -49,13 +47,6 @@ export class CardService {
 
   readCard(cardId: number): Promise<CardDB> {
     return invoke("read_card", { id: cardId });
-  }
-
-  async readCardTitleMapping(): Promise<[{ id: number; title: string }]> {
-    invoke("cache_card_names", {});
-    const cacheDir = await appDataDir();
-    const res = await fs.readTextFile(cacheDir + "/card_names.json");
-    return JSON.parse(res);
   }
 
   updateCard(updateCard: CardDB, markers?: MarkerDB[]): Promise<boolean> {

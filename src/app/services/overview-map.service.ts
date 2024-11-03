@@ -12,7 +12,6 @@ import { MarkerAM, RadiusVisibility } from "../model/marker";
 import { CardDB } from "../model/card";
 import { CardService } from "./card.service";
 import { IconKeys, IconService } from "./icon.service";
-import { mark } from "@angular/compiler-cli/src/ngtsc/perf/src/clock";
 
 @Injectable()
 export class OverviewMapService {
@@ -20,6 +19,7 @@ export class OverviewMapService {
   public clusterGroup!: MarkerClusterGroup;
   public readonly selectedLayerGroup: LayerGroup;
   public readonly radiusLayerGroup: LayerGroup;
+  public showLabels?: boolean;
   iconSizeMap: Map<IconKeys, number> = new Map();
   selectedMarker: WritableSignal<MarkerAM | undefined>;
   editCard: WritableSignal<CardDB | undefined>;
@@ -81,7 +81,12 @@ export class OverviewMapService {
   }
 
   async addNewCard(latlng: LatLngExpression): Promise<void> {
-    let newMarker = new MarkerAM(latlng, {}, { iconType: "iconMiscRed" });
+    let newMarker = new MarkerAM(
+      (id: number) => this.cardService.readCard(id),
+      latlng,
+      {},
+      { iconType: "iconMiscRed", loadCard: false },
+    );
     const newCard = {
       title: "",
       description: "",
@@ -90,9 +95,14 @@ export class OverviewMapService {
     await this.cardService.createCard(newCard).then((c) => {
       this.editCard.set(c);
       newMarker = new MarkerAM(
+        (id: number) => this.cardService.readCard(id),
         latlng,
         {},
-        { cardId: c.id, iconType: "iconMiscRed", markerId: c.markers[0].id },
+        {
+          cardId: c.id,
+          iconType: "iconMiscRed",
+          markerId: c.markers[0].id,
+        },
       );
       this.changeSelectedMarkerAM(newMarker);
     });
@@ -112,7 +122,7 @@ export class OverviewMapService {
 
   async reloadSelectedMarker() {
     await this.markerService
-      .getMarker(this.selectedMarker()!.markerId)
+      .getMarker(this.selectedMarker()!.markerId, !!this.showLabels)
       .then((m) => {
         this.selectedLayerGroup.clearLayers();
         this.selectedMarker.set(m);
@@ -125,17 +135,28 @@ export class OverviewMapService {
 
   async addMarkerToSelectedCard(latlng: LatLngExpression): Promise<void> {
     let newMarker = new MarkerAM(
+      (id: number) => this.cardService.readCard(id),
       latlng,
       {},
-      { cardId: this.editCard()?.id, iconType: "iconMiscRed" },
+      {
+        cardId: this.editCard()?.id,
+        iconType: "iconMiscRed",
+        loadCard: this.showLabels,
+      },
     );
     await this.markerService
       .createNewMarker(this.selectedMarker()!.cardId, newMarker.toMarkerDB())
       .then((m) => {
         newMarker = new MarkerAM(
+          (id: number) => this.cardService.readCard(id),
           latlng,
           {},
-          { markerId: m.id, cardId: m.card_id, iconType: "iconMiscRed" },
+          {
+            markerId: m.id,
+            cardId: m.card_id,
+            iconType: "iconMiscRed",
+            loadCard: this.showLabels,
+          },
         );
         this.changeSelectedMarkerAM(newMarker);
       });
@@ -184,10 +205,6 @@ export class OverviewMapService {
     }
   }
 
-  resetSelectedLayerGroup() {
-    this.selectedLayerGroup.clearLayers();
-  }
-
   async updateIconSize(iconKey: IconKeys, newSize: number) {
     this.iconSizeMap.set(iconKey, newSize);
     this.mainLayerGroup.getLayers().forEach((l) => {
@@ -208,26 +225,28 @@ export class OverviewMapService {
   }
 
   async updateMapBounds(bounds: LatLngBounds) {
-    await this.markerService.getMarkerAMInArea(bounds).then((markers) => {
-      // remove markers that are not in the new bounds
-      this.mainLayerGroup.getLayers().map((l) => {
-        if (l instanceof MarkerAM) {
-          const wasRemoved = !markers.some((m) => m.markerId === l.markerId);
-          if (wasRemoved) {
-            this.removeLayerFromMainLayerGroup(l);
+    await this.markerService
+      .getMarkerAMInArea(bounds, !!this.showLabels)
+      .then((markers) => {
+        // remove markers that are not in the new bounds
+        this.mainLayerGroup.getLayers().map((l) => {
+          if (l instanceof MarkerAM) {
+            const wasRemoved = !markers.some((m) => m.markerId === l.markerId);
+            if (wasRemoved) {
+              this.removeLayerFromMainLayerGroup(l);
+            }
           }
-        }
+        });
+        // add new markers
+        markers.filter((m) => {
+          const wasAdded = !this.mainLayerGroup
+            .getLayers()
+            .some((l) => l instanceof MarkerAM && l.markerId === m.markerId);
+          if (wasAdded && m.markerId !== this.selectedMarker()?.markerId) {
+            this.addLayerToMainLayerGroup(m);
+          }
+        });
       });
-      // add new markers
-      markers.filter((m) => {
-        const wasAdded = !this.mainLayerGroup
-          .getLayers()
-          .some((l) => l instanceof MarkerAM && l.markerId === m.markerId);
-        if (wasAdded && m.markerId !== this.selectedMarker()?.markerId) {
-          this.addLayerToMainLayerGroup(m);
-        }
-      });
-    });
   }
 
   hightlightMarker(highlightedMarkerIds: number[]) {

@@ -1,6 +1,12 @@
-import { Circle, Icon, LatLngExpression, Marker, MarkerOptions } from "leaflet";
+import {
+  Circle,
+  DivIcon,
+  LatLngExpression,
+  Marker,
+  MarkerOptions,
+} from "leaflet";
 import { ICONS } from "../services/icon.service";
-import { MarkerDB } from "./card";
+import { CardDB, MarkerDB } from "./card";
 
 export enum RadiusVisibility {
   always = "always",
@@ -10,8 +16,10 @@ export enum RadiusVisibility {
 export class MarkerAM extends Marker {
   private _markerId: number;
   private _cardId: number;
+  private _card?: CardDB;
   private _iconType: keyof typeof ICONS;
   private _radiusLayer?: Circle;
+  private _iconSize: number = 20;
 
   get markerId(): number {
     return this._markerId;
@@ -27,6 +35,7 @@ export class MarkerAM extends Marker {
   }
 
   constructor(
+    fetchCard: (id: number) => Promise<CardDB>,
     latlng: LatLngExpression,
     options?: MarkerOptions,
     amOptions?: {
@@ -35,12 +44,14 @@ export class MarkerAM extends Marker {
       cardId?: number;
       iconType?: keyof typeof ICONS;
       iconSize?: number;
+      loadCard?: boolean;
     },
   ) {
     super(latlng, options);
     this._markerId = amOptions?.markerId ?? 0;
     this._cardId = amOptions?.cardId ?? 0;
     this._iconType = amOptions?.iconType ?? "iconBorderLimesBlack";
+    this._iconSize = amOptions?.iconSize ?? 20;
     if (amOptions?.radius) {
       this._radiusLayer = new Circle(latlng, {
         radius: amOptions.radius ?? 0,
@@ -49,13 +60,14 @@ export class MarkerAM extends Marker {
       });
       this.visibilityOfRadius(RadiusVisibility.onHover);
     }
-    const icon: Icon = new Icon({
-      iconUrl: ICONS[this._iconType] ?? ICONS.iconMiscRed,
-      iconSize: [amOptions?.iconSize ?? 20, amOptions?.iconSize ?? 20],
-      popupAnchor: [0, 0],
-    });
+    this.setIconType(this.iconType);
 
-    this.setIcon(icon);
+    if (amOptions?.loadCard) {
+      fetchCard(amOptions?.cardId ?? 0).then((card: CardDB) => {
+        this._card = card;
+        this.setIconType(this._iconType);
+      });
+    }
   }
   visibilityOfRadius(opt: RadiusVisibility): void {
     if (this._radiusLayer === undefined) {
@@ -79,10 +91,15 @@ export class MarkerAM extends Marker {
 
   setIconType(iconType: keyof typeof ICONS): void {
     this._iconType = iconType;
-    const icon: Icon = new Icon({
-      iconUrl: ICONS[this._iconType] ?? ICONS.iconMiscRed,
-      iconSize: [20, 20],
-      popupAnchor: [0, 0],
+    const htmlString = `
+    <div style="display: flex; flex-direction: column; width: 100px; align-items: center; transform: translateX(-44px)">
+        <img class="my-div-image" style="width: ${this._iconSize}px; height: ${this._iconSize}px" src='${ICONS[iconType]}'/>
+        <span class="my-div-span" style="background: white; width: 50px">${this._card?.title ?? ""}</span>
+    </div> 
+     `;
+    const icon: DivIcon = new DivIcon({
+      className: "my-div-image",
+      html: htmlString,
     });
     this.setIcon(icon);
     this.on("hover", () => {});
@@ -106,12 +123,8 @@ export class MarkerAM extends Marker {
   }
 
   setIconSize(size: number): void {
-    const icon: Icon = new Icon({
-      iconUrl: ICONS[this._iconType],
-      iconSize: [size, size],
-      popupAnchor: [0, 0],
-    });
-    this.setIcon(icon);
+    this._iconSize = size;
+    this.setIconType(this.iconType);
   }
   toMarkerDB(): MarkerDB {
     return {

@@ -198,7 +198,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     if (this.map == null) return;
     const bounds = this.map.getBounds();
 
-    if (this.map.getZoom() < 7) {
+    if (this.map.getZoom() < (this.mapSettings?.maxZoomLevel ?? 7)) {
       this.overviewMapService.resetMainLayerGroup();
       this.map.off("click");
       this.cursorStyle = "default";
@@ -223,13 +223,12 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   async ngOnInit() {
     this.settingsService.getMapSettings().then((settings: MapSettings) => {
       this.mapSettings = settings;
-      if (settings.maxClusterSize) {
-        this.markerClusterOptions = {
-          maxClusterRadius: settings.maxClusterSize,
-        };
-      } else {
-        this.markerClusterOptions = {};
-      }
+      this.markerClusterOptions = {
+        ...(settings.maxClusterSize
+          ? { maxClusterRadius: settings.maxClusterSize }
+          : {}),
+      };
+      this.overviewMapService.showLabels = !!settings.showLabels;
     });
     await appWindow.setTitle("map");
     await appWindow.onCloseRequested(async () => {

@@ -6,6 +6,8 @@ import * as fs from "@tauri-apps/plugin-fs";
 export type MapSettings = {
   initialMapBounds?: LatLngBounds;
   maxClusterSize?: number;
+  maxZoomLevel?: number;
+  showLabels?: boolean;
 };
 
 @Injectable({
@@ -21,6 +23,10 @@ export class SettingService {
   async updateMapSettings(mapSettings: Partial<MapSettings>): Promise<void> {
     const enc = new TextEncoder();
     const currentMapSettings = await this.readMapSettingsFile();
+    console.log(
+      "json stringify:",
+      JSON.stringify({ ...currentMapSettings, ...mapSettings }),
+    );
     await fs.writeFile(
       this.mapSettingsFileName,
       enc.encode(JSON.stringify({ ...currentMapSettings, ...mapSettings })),
@@ -45,6 +51,8 @@ export class SettingService {
               )
             : undefined,
           maxClusterSize: settings.maxClusterSize,
+          maxZoomLevel: settings.maxZoomLevel ?? 7,
+          showLabels: settings.showLabels,
         };
       });
   }

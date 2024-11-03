@@ -7,7 +7,6 @@ extern crate diesel_migrations;
 
 pub mod persistence;
 use app::models::CardDTO;
-use app::models::CardTitleMapping;
 use app::models::ImageDTO;
 use app::models::Marker;
 use app::models::MarkerDTO;
@@ -19,7 +18,6 @@ use diesel::SqliteConnection;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use persistence::cards::query_all_cards;
 use persistence::cards::query_card_by_id;
-use persistence::cards::query_card_names;
 use persistence::cards::query_cards_in_stack;
 use persistence::cards::query_cards_paginated;
 use persistence::cards::query_count_cards;
@@ -73,7 +71,6 @@ fn main() {
             count_cards,
             write_card_content,
             read_card_content,
-            cache_card_names,
             delete_card,
             create_marker,
             read_marker,
@@ -287,18 +284,7 @@ fn delete_marker(marker_id: i32) {
     query_delete_marker(conn, marker_id);
 }
 
-#[tauri::command]
-fn cache_card_names(app_handle: tauri::AppHandle) {
-    let conn = &mut establish_connection();
-    let card_names: Vec<CardTitleMapping> = query_card_names(conn);
-    let json_card_names = serde_json::to_string(&card_names).expect("error");
-    let mut card_name_cache_path = app_handle
-        .path()
-        .app_cache_dir()
-        .expect("error resolving cache dir");
-    card_name_cache_path.push("card_names.json");
-    fs::write(card_name_cache_path, json_card_names).expect("couldn't write to file system");
-}
+
 
 #[tauri::command]
 fn read_markers_in_area(north: f32, east: f32, south: f32, west: f32) -> Vec<Marker> {
