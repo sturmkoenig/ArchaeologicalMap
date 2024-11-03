@@ -5,7 +5,6 @@
       [style]="{ cursor: cursorStyle }"
       leaflet
       [leafletOptions]="options"
-      [leafletLayers]="overviewMapService.selectedLayerGroup.getLayers()"
       [leafletMarkerCluster]="[]"
       [leafletMarkerClusterOptions]="markerClusterOptions"
       (leafletMapReady)="onMapReady($event)"

@@ -77,6 +77,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
           panToEvent.payload.lng,
         );
         this.highligtedMarkerIds = [panToEvent.payload.id];
+        this.overviewMapService.hightlightMarker([panToEvent.payload.id]);
         this.map.flyTo(point);
       },
     );
@@ -102,6 +103,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
         const bounds: LatLngBounds = new LatLngBounds(southWest, northEast);
         this.map.flyToBounds(bounds);
         this.highligtedMarkerIds = panToBoundsEvent.payload.markerIds;
+        this.overviewMapService.hightlightMarker(this.highligtedMarkerIds);
       },
     );
     this.mainLayerGroup = this.overviewMapService.mainLayerGroup;

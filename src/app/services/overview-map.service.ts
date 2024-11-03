@@ -3,6 +3,7 @@ import {
   LatLng,
   LatLngBounds,
   LatLngExpression,
+  Layer,
   LayerGroup,
   MarkerClusterGroup,
 } from "leaflet";
@@ -150,11 +151,6 @@ export class OverviewMapService {
         this.removeLayerFromMainLayerGroup(l);
       }
     });
-    this.clusterGroup.eachLayer((l) => {
-      if (l instanceof MarkerAM && l.cardId === deleteCardId) {
-        this.removeLayerFromMainLayerGroup(l);
-      }
-    });
   }
 
   addLayerToMainLayerGroup(marker: MarkerAM | undefined): void {
@@ -162,7 +158,10 @@ export class OverviewMapService {
       return;
     }
     this.mainLayerGroup.addLayer(marker);
+    console.log(this.clusterGroup.hasLayer(marker));
     this.clusterGroup.addLayer(marker);
+    console.log(marker.toMarkerDB());
+    console.log(this.clusterGroup.hasLayer(marker));
     marker.on("click", () => {
       this.changeSelectedMarkerAM(marker);
     });
@@ -175,6 +174,7 @@ export class OverviewMapService {
   removeLayerFromMainLayerGroup(marker: MarkerAM): void {
     this.mainLayerGroup.removeLayer(marker);
     this.clusterGroup.removeLayer(marker);
+    console.log(this.clusterGroup.getLayers());
     if (marker.radiusLayer) {
       this.radiusLayerGroup.removeLayer(marker.radiusLayer);
     }
@@ -214,14 +214,6 @@ export class OverviewMapService {
           }
         }
       });
-      this.clusterGroup.getLayers().map((l) => {
-        if (l instanceof MarkerAM) {
-          const wasRemoved = !markers.some((m) => m.markerId === l.markerId);
-          if (wasRemoved) {
-            this.removeLayerFromMainLayerGroup(l);
-          }
-        }
-      });
       // add new markers
       markers.filter((m) => {
         const wasAdded = !this.mainLayerGroup
@@ -232,5 +224,20 @@ export class OverviewMapService {
         }
       });
     });
+  }
+
+  hightlightMarker(highlightedMarkerIds: number[]) {
+    this.clusterGroup
+      .getLayers()
+      .filter(
+        (marker: Layer) =>
+          marker instanceof MarkerAM &&
+          highlightedMarkerIds.find((id) => id === marker.markerId) !==
+            undefined,
+      )
+      .forEach((marker: Layer) => {
+        marker.bindTooltip("searched marker");
+        marker.toggleTooltip();
+      });
   }
 }
