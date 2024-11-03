@@ -1,11 +1,4 @@
-import {
-  Circle,
-  Icon,
-  LatLngExpression,
-  LayerGroup,
-  Marker,
-  MarkerOptions,
-} from "leaflet";
+import { Circle, Icon, LatLngExpression, Marker, MarkerOptions } from "leaflet";
 import { ICONS } from "../services/icon.service";
 import { MarkerDB } from "./card";
 
