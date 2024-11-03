@@ -195,7 +195,9 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   }
 
   async mapMoveEnded() {
-    if (this.map == null) return;
+    if (!this.map) {
+      return;
+    }
     const bounds = this.map.getBounds();
 
     if (this.map.getZoom() < (this.mapSettings?.maxZoomLevel ?? 7)) {

@@ -67,6 +67,9 @@ export class OverviewMapService {
   }
 
   resetMainLayerGroup(): void {
+    if (!this.clusterGroup) {
+      return;
+    }
     this.mainLayerGroup.clearLayers();
     this.clusterGroup.clearLayers();
   }
