@@ -53,7 +53,6 @@ export class ImageCreateComponent {
     getCurrentWebview().onDragDropEvent((event) => {
       this.ngZone.run(async () => {
         if (event.payload.type === "drop") {
-          console.log(JSON.stringify(event));
           await this.createImages(event.payload.paths);
           this.isHovered = false;
         } else if (event.payload.type === "enter") {
@@ -81,7 +80,6 @@ export class ImageCreateComponent {
     if (this.image === null || this.image === undefined) {
       return;
     }
-    console.log(this.image);
     await this.imageService
       .createImage({
         name: this.title,

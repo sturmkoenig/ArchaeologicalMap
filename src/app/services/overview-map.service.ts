@@ -173,7 +173,6 @@ export class OverviewMapService {
   }
 
   removeLayerFromMainLayerGroup(marker: MarkerAM): void {
-    console.log(marker.markerId);
     this.mainLayerGroup.removeLayer(marker);
     this.clusterGroup.removeLayer(marker);
     if (marker.radiusLayer) {
@@ -229,7 +228,6 @@ export class OverviewMapService {
           .getLayers()
           .some((l) => l instanceof MarkerAM && l.markerId === m.markerId);
         if (wasAdded && m.markerId !== this.selectedMarker()?.markerId) {
-          console.log(m.markerId);
           this.addLayerToMainLayerGroup(m);
         }
       });

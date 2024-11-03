@@ -13,7 +13,6 @@ import "leaflet.markercluster";
 import {
   LatLng,
   LatLngBounds,
-  LatLngBoundsExpression,
   LayerGroup,
   Map as LeafletMap,
   MapOptions as LeafletMapOptions,
@@ -58,7 +57,8 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   public zoom!: number;
   updateCardVisible: boolean = false;
   settingsVisible: boolean = false;
-  markerClusterOptions: MarkerClusterGroupOptions;
+  mapSettings?: MapSettings;
+  markerClusterOptions?: MarkerClusterGroupOptions;
   selectedMarker: WritableSignal<MarkerAM | undefined>;
   editCard: WritableSignal<CardDB | undefined>;
 
@@ -69,7 +69,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     private settingsService: SettingService,
     public overviewMapService: OverviewMapService,
   ) {
-    this.markerClusterOptions = { spiderfyOnMaxZoom: true };
     listen(
       "panTo",
       (panToEvent: { payload: { lat: number; lng: number; id: number } }) => {
@@ -188,6 +187,9 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     this.zoom = map.getZoom();
     this.map.addLayer(this.overviewMapService.radiusLayerGroup);
     this.map.addLayer(this.overviewMapService.selectedLayerGroup);
+    if (this.mapSettings?.initialMapBounds) {
+      this.map.fitBounds(this.mapSettings?.initialMapBounds);
+    }
   }
 
   async mapMoveEnded() {
@@ -212,11 +214,13 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
 
   async ngOnInit() {
     this.settingsService.getMapSettings().then((settings: MapSettings) => {
-      if (settings.initialMapBounds) {
-        this.map.fitBounds(settings.initialMapBounds);
-      }
+      this.mapSettings = settings;
       if (settings.maxClusterSize) {
-        this.markerClusterOptions.maxClusterRadius = settings.maxClusterSize;
+        this.markerClusterOptions = {
+          maxClusterRadius: settings.maxClusterSize,
+        };
+      } else {
+        this.markerClusterOptions = {};
       }
     });
     await appWindow.setTitle("map");
@@ -229,7 +233,13 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   }
 
   markerClusterReady($event: MarkerClusterGroup) {
-    console.log("Hi from markerClusterGroup ready");
     this.overviewMapService.setMarkerClusterLayerGroup($event);
+  }
+
+  async onMapSettingsChanged() {
+    await this.settingsService.updateMapSettings({
+      initialMapBounds: this.map.getBounds(),
+    });
+    window.location.reload();
   }
 }

@@ -1,5 +1,5 @@
 <div class="overview-map--container">
-  <div class="overview-map">
+  <div class="overview-map" *ngIf="markerClusterOptions">
     <div
       class="map-container"
       [style]="{ cursor: cursorStyle }"
@@ -101,9 +101,10 @@
       [visible]="settingsVisible"
       (visibleChange)="settingsVisible = false"
     >
-      <app-icon-size-settings
+      <app-map-settings
         (iconSizeChange)="onUpdateIconSize($event)"
-      ></app-icon-size-settings>
+        (mapSettingsChanged)="onMapSettingsChanged()"
+      ></app-map-settings>
     </app-right-sidebar>
     <button
       mat-fab

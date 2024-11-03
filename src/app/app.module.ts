@@ -60,6 +60,7 @@ import { MarkerButtonToggleComponent } from "./components/markers/marker-button-
 import { OverviewMapService } from "./services/overview-map.service";
 import { NgOptimizedImage } from "@angular/common";
 import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
+import { MapSettingsComponent } from "./components/overview-map/map-settings/map-settings.component";
 
 @NgModule({
   declarations: [
@@ -114,6 +115,7 @@ import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster"
     MatMenuModule,
     LeafletModule,
     NgOptimizedImage,
+    MapSettingsComponent,
   ],
   providers: [
     StackStore,

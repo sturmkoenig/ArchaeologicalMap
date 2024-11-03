@@ -37,7 +37,6 @@ export class SettingService {
       })
       .then((mapSettings) => {
         const response: any = JSON.parse(mapSettings);
-        console.log(response);
         return {
           initialMapBounds: new LatLngBounds(
             response.initialMapBounds!._southWest,

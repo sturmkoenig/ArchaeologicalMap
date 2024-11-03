@@ -1,0 +1,10 @@
+<mat-slider [max]="100" [min]="1">
+  <input
+    matSliderThumb
+    [(ngModel)]="mapSettings.maxClusterSize"
+    (dragEnd)="changeMaxClusterRadius()"
+  />
+</mat-slider>
+<app-icon-size-settings
+  (iconSizeChange)="onIconSizeChange($event)"
+></app-icon-size-settings>
