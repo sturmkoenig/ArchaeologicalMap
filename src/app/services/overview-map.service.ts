@@ -12,6 +12,7 @@ import { MarkerAM, RadiusVisibility } from "../model/marker";
 import { CardDB } from "../model/card";
 import { CardService } from "./card.service";
 import { IconKeys, IconService } from "./icon.service";
+import { mark } from "@angular/compiler-cli/src/ngtsc/perf/src/clock";
 
 @Injectable()
 export class OverviewMapService {
@@ -47,6 +48,9 @@ export class OverviewMapService {
       if (this.selectedMarker()) {
         this.removeLayerFromMainLayerGroup(this.selectedMarker()!);
         this.selectedMarker()!.addTo(this.selectedLayerGroup);
+        if (this.selectedMarker()?.radiusLayer) {
+          this.radiusLayerGroup.addLayer(this.selectedMarker()!.radiusLayer!);
+        }
         this.selectedMarker()!.visibilityOfRadius(RadiusVisibility.always);
         this.cardService.readCard(this.selectedMarker()!.cardId).then((c) => {
           this.editCard.set(c);
@@ -158,23 +162,23 @@ export class OverviewMapService {
       return;
     }
     this.mainLayerGroup.addLayer(marker);
-    console.log(this.clusterGroup.hasLayer(marker));
     this.clusterGroup.addLayer(marker);
-    console.log(marker.toMarkerDB());
-    console.log(this.clusterGroup.hasLayer(marker));
     marker.on("click", () => {
       this.changeSelectedMarkerAM(marker);
     });
 
     if (marker.radiusLayer) {
+      marker.visibilityOfRadius(RadiusVisibility.onHover);
       this.radiusLayerGroup.addLayer(marker.radiusLayer);
+      if (!this.radiusLayerGroup.hasLayer(marker.radiusLayer)) {
+        console.log("added");
+      }
     }
   }
 
   removeLayerFromMainLayerGroup(marker: MarkerAM): void {
     this.mainLayerGroup.removeLayer(marker);
     this.clusterGroup.removeLayer(marker);
-    console.log(this.clusterGroup.getLayers());
     if (marker.radiusLayer) {
       this.radiusLayerGroup.removeLayer(marker.radiusLayer);
     }

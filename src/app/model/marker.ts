@@ -69,6 +69,7 @@ export class MarkerAM extends Marker {
       return;
     }
     if (opt === "onHover") {
+      this._radiusLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       this.on("mouseover", () => {
         this._radiusLayer?.setStyle({ opacity: 1, fillOpacity: 0.2 });
       });
