@@ -5,10 +5,15 @@
       [style]="{ cursor: cursorStyle }"
       leaflet
       [leafletOptions]="options"
-      [leafletLayers]="layers"
+      [leafletLayers]="overviewMapService.selectedLayerGroup.getLayers()"
+      [leafletMarkerCluster]="[]"
+      [leafletMarkerClusterOptions]="markerClusterOptions"
       (leafletMapReady)="onMapReady($event)"
       (leafletMapMoveEnd)="mapMoveEnded()"
-    ></div>
+      (leafletMarkerClusterReady)="markerClusterReady($event)"
+    >
+      >
+    </div>
   </div>
 
   @if (selectedMarker()) {

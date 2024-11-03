@@ -1,5 +1,13 @@
 import { Injectable } from "@angular/core";
-import { Circle, Icon, LatLng, LatLngBounds, Layer, Marker } from "leaflet";
+import {
+  Circle,
+  Icon,
+  LatLng,
+  LatLngBounds,
+  Layer,
+  LayerGroup,
+  Marker,
+} from "leaflet";
 import { CardDB, MarkerDB } from "src/app/model/card";
 import { CardService } from "./card.service";
 import { IconKeys, ICONS, IconService } from "./icon.service";

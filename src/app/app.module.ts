@@ -37,7 +37,7 @@ import { RouterModule } from "@angular/router";
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatStepperModule } from "@angular/material/stepper";
-import { LeafletModule } from "@asymmetrik/ngx-leaflet";
+import { LeafletModule } from "@bluehalo/ngx-leaflet";
 import { CardDetailsComponent } from "./components/cards/card-details/card-details.component";
 import { CardListComponent } from "./components/cards/card-list/card-list.component";
 import { CardDeleteDialogComponent } from "./components/cards/card-update-modal/card-delete-dialog/card-delete-dialog.component";
@@ -50,8 +50,6 @@ import { FilterPipe } from "./layout/editor/filter.pipe";
 import { MapComponent } from "./layout/map/map.component";
 import { CardDetailsStore } from "./state/card-details.store";
 import { StackStore } from "./state/stack.store";
-import { DndDirective } from "./util/file-dropzone/dnd.directive";
-import { FileDropzoneComponent } from "./util/file-dropzone/file-dropzone.component";
 import { CardService } from "./services/card.service";
 import { ComponentStore } from "@ngrx/component-store";
 import { CardInputComponent } from "./components/cards/card-input/card-input.component";
@@ -61,6 +59,7 @@ import { IconSizeSettingsComponent } from "./components/overview-map/map-setting
 import { MarkerButtonToggleComponent } from "./components/markers/marker-button-toggle/marker-button-toggle.component";
 import { OverviewMapService } from "./services/overview-map.service";
 import { NgOptimizedImage } from "@angular/common";
+import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
 
 @NgModule({
   declarations: [
@@ -78,8 +77,6 @@ import { NgOptimizedImage } from "@angular/common";
     CardDeleteDialogComponent,
     StackCreatorComponent,
     StackDisplayComponent,
-    FileDropzoneComponent,
-    DndDirective,
     MarkerInputComponent,
   ],
   bootstrap: [AppComponent],
@@ -87,6 +84,7 @@ import { NgOptimizedImage } from "@angular/common";
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
+    LeafletMarkerClusterModule,
     MatListModule,
     MatGridListModule,
     MarkerButtonToggleComponent,

@@ -1,5 +1,11 @@
-import { Injectable, WritableSignal, effect, signal } from "@angular/core";
-import { LatLng, LatLngBounds, LatLngExpression, LayerGroup } from "leaflet";
+import { effect, Injectable, signal, WritableSignal } from "@angular/core";
+import {
+  LatLng,
+  LatLngBounds,
+  LatLngExpression,
+  LayerGroup,
+  MarkerClusterGroup,
+} from "leaflet";
 import { MarkerService } from "./marker.service";
 import { MarkerAM, RadiusVisibility } from "../model/marker";
 import { CardDB } from "../model/card";
@@ -9,11 +15,16 @@ import { IconKeys, IconService } from "./icon.service";
 @Injectable()
 export class OverviewMapService {
   public readonly mainLayerGroup: LayerGroup;
+  public clusterGroup!: MarkerClusterGroup;
   public readonly selectedLayerGroup: LayerGroup;
+  public readonly radiusLayerGroup: LayerGroup;
   iconSizeMap: Map<IconKeys, number> = new Map();
   selectedMarker: WritableSignal<MarkerAM | undefined>;
   editCard: WritableSignal<CardDB | undefined>;
 
+  setMarkerClusterLayerGroup(markerClusterLayerGroup: MarkerClusterGroup) {
+    this.clusterGroup = markerClusterLayerGroup;
+  }
   constructor(
     private markerService: MarkerService,
     private cardService: CardService,
@@ -21,6 +32,7 @@ export class OverviewMapService {
   ) {
     this.mainLayerGroup = new LayerGroup();
     this.selectedLayerGroup = new LayerGroup();
+    this.radiusLayerGroup = new LayerGroup();
     this.selectedMarker = signal<MarkerAM | undefined>(undefined);
     this.editCard = signal<CardDB | undefined>(undefined);
     this.iconService
@@ -34,9 +46,6 @@ export class OverviewMapService {
       if (this.selectedMarker()) {
         this.removeLayerFromMainLayerGroup(this.selectedMarker()!);
         this.selectedMarker()!.addTo(this.selectedLayerGroup);
-        if (this.selectedMarker()!.radiusLayer) {
-          this.selectedLayerGroup.addLayer(this.selectedMarker()!.radiusLayer!);
-        }
         this.selectedMarker()!.visibilityOfRadius(RadiusVisibility.always);
         this.cardService.readCard(this.selectedMarker()!.cardId).then((c) => {
           this.editCard.set(c);
@@ -54,6 +63,7 @@ export class OverviewMapService {
 
   resetMainLayerGroup(): void {
     this.mainLayerGroup.clearLayers();
+    this.clusterGroup.clearLayers();
   }
 
   changeSelectedMarkerAM(markerAM: MarkerAM | undefined): void {
@@ -140,6 +150,11 @@ export class OverviewMapService {
         this.removeLayerFromMainLayerGroup(l);
       }
     });
+    this.clusterGroup.eachLayer((l) => {
+      if (l instanceof MarkerAM && l.cardId === deleteCardId) {
+        this.removeLayerFromMainLayerGroup(l);
+      }
+    });
   }
 
   addLayerToMainLayerGroup(marker: MarkerAM | undefined): void {
@@ -147,21 +162,22 @@ export class OverviewMapService {
       return;
     }
     this.mainLayerGroup.addLayer(marker);
+    this.clusterGroup.addLayer(marker);
     marker.on("click", () => {
       this.changeSelectedMarkerAM(marker);
     });
-    this.mainLayerGroup.on("click", () => {
-      this.changeSelectedMarkerAM(marker);
-    });
+
     if (marker.radiusLayer) {
-      this.mainLayerGroup.addLayer(marker.radiusLayer);
+      this.radiusLayerGroup.addLayer(marker.radiusLayer);
     }
   }
 
   removeLayerFromMainLayerGroup(marker: MarkerAM): void {
+    console.log(marker.markerId);
     this.mainLayerGroup.removeLayer(marker);
+    this.clusterGroup.removeLayer(marker);
     if (marker.radiusLayer) {
-      this.mainLayerGroup.removeLayer(marker.radiusLayer);
+      this.radiusLayerGroup.removeLayer(marker.radiusLayer);
     }
   }
 
@@ -172,6 +188,11 @@ export class OverviewMapService {
   async updateIconSize(iconKey: IconKeys, newSize: number) {
     this.iconSizeMap.set(iconKey, newSize);
     this.mainLayerGroup.getLayers().forEach((l) => {
+      if (l instanceof MarkerAM && l.iconType === iconKey) {
+        l.setIconSize(newSize);
+      }
+    });
+    this.clusterGroup.getLayers().forEach((l) => {
       if (l instanceof MarkerAM && l.iconType === iconKey) {
         l.setIconSize(newSize);
       }
@@ -194,12 +215,21 @@ export class OverviewMapService {
           }
         }
       });
+      this.clusterGroup.getLayers().map((l) => {
+        if (l instanceof MarkerAM) {
+          const wasRemoved = !markers.some((m) => m.markerId === l.markerId);
+          if (wasRemoved) {
+            this.removeLayerFromMainLayerGroup(l);
+          }
+        }
+      });
       // add new markers
       markers.filter((m) => {
         const wasAdded = !this.mainLayerGroup
           .getLayers()
           .some((l) => l instanceof MarkerAM && l.markerId === m.markerId);
         if (wasAdded && m.markerId !== this.selectedMarker()?.markerId) {
+          console.log(m.markerId);
           this.addLayerToMainLayerGroup(m);
         }
       });

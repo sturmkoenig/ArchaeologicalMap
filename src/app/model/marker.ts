@@ -7,7 +7,6 @@ import {
   MarkerOptions,
 } from "leaflet";
 import { ICONS } from "../services/icon.service";
-import { Observable } from "rxjs";
 import { MarkerDB } from "./card";
 
 export enum RadiusVisibility {
@@ -37,23 +36,29 @@ export class MarkerAM extends Marker {
   constructor(
     latlng: LatLngExpression,
     options?: MarkerOptions,
-    amOptions?: any,
+    amOptions?: {
+      radius?: number;
+      markerId?: number;
+      cardId?: number;
+      iconType?: keyof typeof ICONS;
+      iconSize?: number;
+    },
   ) {
     super(latlng, options);
-    this._markerId = amOptions.markerId;
-    this._cardId = amOptions.cardId;
-    this._iconType = amOptions.iconType;
-    if (amOptions.radius) {
+    this._markerId = amOptions?.markerId ?? 0;
+    this._cardId = amOptions?.cardId ?? 0;
+    this._iconType = amOptions?.iconType ?? "iconBorderLimesBlack";
+    if (amOptions?.radius) {
       this._radiusLayer = new Circle(latlng, {
-        radius: amOptions.radius,
+        radius: amOptions.radius ?? 0,
         opacity: 0,
         fillOpacity: 0,
       });
       this.visibilityOfRadius(RadiusVisibility.onHover);
     }
-    let icon: Icon = new Icon({
+    const icon: Icon = new Icon({
       iconUrl: ICONS[this._iconType] ?? ICONS.iconMiscRed,
-      iconSize: [amOptions.iconSize ?? 20, amOptions.iconSize ?? 20],
+      iconSize: [amOptions?.iconSize ?? 20, amOptions?.iconSize ?? 20],
       popupAnchor: [0, 0],
     });
 
@@ -68,6 +73,7 @@ export class MarkerAM extends Marker {
         this._radiusLayer?.setStyle({ opacity: 1, fillOpacity: 0.2 });
       });
       this.on("mouseout", () => {
+        this.feature?.geometry;
         this._radiusLayer?.setStyle({ opacity: 0, fillOpacity: 0 });
       });
     } else if (opt === "always") {
@@ -79,7 +85,7 @@ export class MarkerAM extends Marker {
 
   setIconType(iconType: keyof typeof ICONS): void {
     this._iconType = iconType;
-    let icon: Icon = new Icon({
+    const icon: Icon = new Icon({
       iconUrl: ICONS[this._iconType] ?? ICONS.iconMiscRed,
       iconSize: [20, 20],
       popupAnchor: [0, 0],
@@ -106,7 +112,7 @@ export class MarkerAM extends Marker {
   }
 
   setIconSize(size: number): void {
-    let icon: Icon = new Icon({
+    const icon: Icon = new Icon({
       iconUrl: ICONS[this._iconType],
       iconSize: [size, size],
       popupAnchor: [0, 0],

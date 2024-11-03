@@ -9,30 +9,26 @@ import { ActivatedRoute } from "@angular/router";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { createCardDetailsWindow } from "src/app/util/window-util";
+import "leaflet.markercluster";
 import {
   LatLng,
   LatLngBounds,
   LatLngBoundsExpression,
-  Layer,
   LayerGroup,
   Map as LeafletMap,
   MapOptions as LeafletMapOptions,
+  MarkerClusterGroupOptions,
+  MarkerClusterGroup,
   latLng,
   tileLayer,
 } from "leaflet";
 import { CardDB, MarkerDB } from "src/app/model/card";
-import { SettingService } from "src/app/services/setting.service";
+import { MapSettings, SettingService } from "src/app/services/setting.service";
 import { MarkerService } from "../../services/marker.service";
 import { MarkerAM } from "src/app/model/marker";
 import { IconSizeSetting } from "src/app/services/icon.service";
 import { OverviewMapService } from "src/app/services/overview-map.service";
 const appWindow = getCurrentWebviewWindow();
-
-export interface mapCardMarker {
-  card: CardDB;
-  marker: MarkerDB;
-  Layer: Layer;
-}
 
 @Component({
   selector: "app-overview-map",
@@ -40,13 +36,10 @@ export interface mapCardMarker {
   styleUrl: "overview-map.component.scss",
 })
 export class OverviewMapComponent implements OnInit, AfterViewInit {
-  layers: Layer[] = [];
   position?: LatLng;
   highligtedMarkerIds?: number[];
   mainLayerGroup: LayerGroup;
-  radiusLayerGroup: LayerGroup = new LayerGroup();
   selectedLayerGroup: LayerGroup;
-  newCard?: CardDB;
   cursorStyle?: string;
   options: LeafletMapOptions = {
     layers: [
@@ -65,6 +58,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   public zoom!: number;
   updateCardVisible: boolean = false;
   settingsVisible: boolean = false;
+  markerClusterOptions: MarkerClusterGroupOptions;
   selectedMarker: WritableSignal<MarkerAM | undefined>;
   editCard: WritableSignal<CardDB | undefined>;
 
@@ -75,6 +69,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     private settingsService: SettingService,
     public overviewMapService: OverviewMapService,
   ) {
+    this.markerClusterOptions = { spiderfyOnMaxZoom: true };
     listen(
       "panTo",
       (panToEvent: { payload: { lat: number; lng: number; id: number } }) => {
@@ -137,11 +132,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     this.overviewMapService.deleteEditCard();
   }
 
-  reloadMainLayerGroup() {
-    this.overviewMapService.resetMainLayerGroup();
-    this.mapMoveEnded();
-  }
-
   onUpdateIconSize(iconSetting: IconSizeSetting) {
     this.overviewMapService.updateIconSize(
       iconSetting.iconType,
@@ -188,13 +178,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     });
   }
 
-  updateRadiusLayerGroup(newRadius: Layer | null) {
-    this.radiusLayerGroup.clearLayers();
-    if (newRadius !== null) {
-      this.radiusLayerGroup.addLayer(newRadius);
-    }
-  }
-
   updateSelectedCard(newCard: CardDB) {
     this.overviewMapService.updateEditCard(newCard);
     // TODO refresh state
@@ -203,24 +186,14 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   onMapReady(map: LeafletMap) {
     this.map = map;
     this.zoom = map.getZoom();
-    this.map.addLayer(this.mainLayerGroup);
-    this.map.addLayer(this.selectedLayerGroup);
+    this.map.addLayer(this.overviewMapService.radiusLayerGroup);
+    this.map.addLayer(this.overviewMapService.selectedLayerGroup);
   }
 
-  mapChanged(emittedMap: LeafletMap) {
-    this.map = emittedMap;
-  }
-
-  mapMoveEnded() {
+  async mapMoveEnded() {
     if (this.map == null) return;
     const bounds = this.map.getBounds();
 
-    if (this.map.getZoom() < 7) {
-      this.overviewMapService.resetMainLayerGroup();
-      this.map.off("click");
-      this.cursorStyle = "default";
-      return;
-    }
     this.overviewMapService.updateMapBounds(bounds);
   }
 
@@ -238,17 +211,25 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   }
 
   async ngOnInit() {
-    this.settingsService
-      .loadMapBoundingBox()
-      .then((boundingBox: LatLngBoundsExpression | undefined) => {
-        if (boundingBox) {
-          this.map.fitBounds(boundingBox);
-        }
-      });
-    appWindow.setTitle("map");
-    appWindow.onCloseRequested(async () => {
-      // persist card postion here
-      await this.settingsService.saveMapBoundingBox(this.map.getBounds());
+    this.settingsService.getMapSettings().then((settings: MapSettings) => {
+      if (settings.initialMapBounds) {
+        this.map.fitBounds(settings.initialMapBounds);
+      }
+      if (settings.maxClusterSize) {
+        this.markerClusterOptions.maxClusterRadius = settings.maxClusterSize;
+      }
     });
+    await appWindow.setTitle("map");
+    await appWindow.onCloseRequested(async () => {
+      // persist card postion here
+      await this.settingsService.updateMapSettings({
+        initialMapBounds: this.map.getBounds(),
+      });
+    });
+  }
+
+  markerClusterReady($event: MarkerClusterGroup) {
+    console.log("Hi from markerClusterGroup ready");
+    this.overviewMapService.setMarkerClusterLayerGroup($event);
   }
 }
