@@ -16,7 +16,7 @@ interface IImageMeta {
 
 Quill.register("modules/imageResize", ImageResize);
 
-var BaseImageFormat = Quill.import("formats/image");
+const BaseImageFormat = Quill.import("formats/image");
 const ImageFormatAttributesList = ["alt", "height", "width", "style"];
 
 class ImageFormat extends BaseImageFormat {
@@ -43,10 +43,10 @@ class ImageFormat extends BaseImageFormat {
 
 Quill.register(ImageFormat, true);
 
-var Inline = Quill.import("blots/inline");
+const Inline = Quill.import("blots/inline");
 class LinkBlot extends Inline {
   static create(url: any) {
-    let node = super.create(url);
+    const node = super.create(url);
     // node.setAttribute("routerLink", url);
     node.setAttribute("href", url);
     if (url.match("http")) {
@@ -71,7 +71,7 @@ class LinkBlot extends Inline {
   }
 
   formats() {
-    let formats = super.formats();
+    const formats = super.formats();
     formats["link"] = LinkBlot.formats(this["domNode"]);
     return formats;
   }
@@ -148,9 +148,7 @@ export class EditorComponent implements OnInit {
     $event.stopPropagation();
   }
   quill!: Quill;
-  // TODO this is kind of ugly since cardtitlemapping is specialiced. It would be better to extract the titlebar
   @Input()
-  cardTitleMapping!: [{ id: number; title: string }];
   searchText: string = "";
   carrotPosition?: RangeStatic | null;
 

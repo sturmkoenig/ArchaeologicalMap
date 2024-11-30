@@ -5,6 +5,7 @@ import { CardDB } from "../model/card";
 import { CardService } from "../services/card.service";
 import { ImageEntity } from "../model/image";
 import { ImageService } from "../services/image.service";
+import { Stack } from "../model/stack";
 
 export enum status {
   loaded,
@@ -106,7 +107,7 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
   });
 
   readonly loadStackOfCards = this.effect((cardId$: Observable<number>) => {
-    let card$ = cardId$.pipe(
+    const card$ = cardId$.pipe(
       switchMap((cardId) => {
         return this.cardService.readCard(cardId);
       }),
@@ -135,11 +136,11 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
               allCardsInStack.sort((card, nextCard) =>
                 card.title.localeCompare(nextCard.title),
               );
-              let currentCardIndex: number = allCardsInStack.findIndex(
+              const currentCardIndex: number = allCardsInStack.findIndex(
                 (x) => x.id === card.id,
               );
 
-              let { previousCard, nextCard } =
+              const { previousCard, nextCard } =
                 this.calculateNextAndPreviousCard(
                   allCardsInStack,
                   currentCardIndex,
@@ -192,10 +193,10 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
     if (state.status === status.loading) {
       return state;
     }
-    let currentCardIndex: number = state.cardsInStack.findIndex(
+    const currentCardIndex: number = state.cardsInStack.findIndex(
       (x) => x.id === cardId,
     );
-    let { nextCard, previousCard } = this.calculateNextAndPreviousCard(
+    const { nextCard, previousCard } = this.calculateNextAndPreviousCard(
       state.cardsInStack,
       currentCardIndex,
     );

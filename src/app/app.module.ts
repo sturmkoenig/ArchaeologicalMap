@@ -3,7 +3,10 @@ import { BrowserModule } from "@angular/platform-browser";
 
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
-import { HttpClientModule } from "@angular/common/http";
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatGridListModule } from "@angular/material/grid-list";
@@ -34,7 +37,7 @@ import { RouterModule } from "@angular/router";
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatStepperModule } from "@angular/material/stepper";
-import { LeafletModule } from "@asymmetrik/ngx-leaflet";
+import { LeafletModule } from "@bluehalo/ngx-leaflet";
 import { CardDetailsComponent } from "./components/cards/card-details/card-details.component";
 import { CardListComponent } from "./components/cards/card-list/card-list.component";
 import { CardDeleteDialogComponent } from "./components/cards/card-update-modal/card-delete-dialog/card-delete-dialog.component";
@@ -47,8 +50,6 @@ import { FilterPipe } from "./layout/editor/filter.pipe";
 import { MapComponent } from "./layout/map/map.component";
 import { CardDetailsStore } from "./state/card-details.store";
 import { StackStore } from "./state/stack.store";
-import { DndDirective } from "./util/file-dropzone/dnd.directive";
-import { FileDropzoneComponent } from "./util/file-dropzone/file-dropzone.component";
 import { CardService } from "./services/card.service";
 import { ComponentStore } from "@ngrx/component-store";
 import { CardInputComponent } from "./components/cards/card-input/card-input.component";
@@ -57,6 +58,9 @@ import { RightSidebarComponent } from "./layout/right-sidebar/right-sidebar.comp
 import { IconSizeSettingsComponent } from "./components/overview-map/map-settings/icon-size-settings/icon-size-settings.component";
 import { MarkerButtonToggleComponent } from "./components/markers/marker-button-toggle/marker-button-toggle.component";
 import { OverviewMapService } from "./services/overview-map.service";
+import { NgOptimizedImage } from "@angular/common";
+import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
+import { MapSettingsComponent } from "./components/overview-map/map-settings/map-settings.component";
 
 @NgModule({
   declarations: [
@@ -74,14 +78,14 @@ import { OverviewMapService } from "./services/overview-map.service";
     CardDeleteDialogComponent,
     StackCreatorComponent,
     StackDisplayComponent,
-    FileDropzoneComponent,
-    DndDirective,
     MarkerInputComponent,
   ],
+  bootstrap: [AppComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
+    LeafletMarkerClusterModule,
     MatListModule,
     MatGridListModule,
     MarkerButtonToggleComponent,
@@ -95,7 +99,6 @@ import { OverviewMapService } from "./services/overview-map.service";
     MatSidenavModule,
     MatDividerModule,
     RightSidebarComponent,
-    HttpClientModule,
     MatButtonModule,
     MatButtonToggleModule,
     MatCardModule,
@@ -111,6 +114,8 @@ import { OverviewMapService } from "./services/overview-map.service";
     MatPaginatorModule,
     MatMenuModule,
     LeafletModule,
+    NgOptimizedImage,
+    MapSettingsComponent,
   ],
   providers: [
     StackStore,
@@ -118,7 +123,7 @@ import { OverviewMapService } from "./services/overview-map.service";
     CardService,
     ComponentStore,
     OverviewMapService,
+    provideHttpClient(withInterceptorsFromDi()),
   ],
-  bootstrap: [AppComponent],
 })
 export class AppModule {}

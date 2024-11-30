@@ -1,11 +1,12 @@
-import { Component, Inject, NgZone } from "@angular/core";
-import { MAT_DIALOG_DATA } from "@angular/material/dialog";
-import { fs, path } from "@tauri-apps/api";
-import { convertFileSrc } from "@tauri-apps/api/tauri";
-import { listen } from "@tauri-apps/api/event";
+import { Component, NgZone } from "@angular/core";
+import { path } from "@tauri-apps/api";
+import { convertFileSrc } from "@tauri-apps/api/core";
+import { listen, TauriEvent, Event } from "@tauri-apps/api/event";
 import { v4 as uuid } from "uuid";
 import { BehaviorSubject } from "rxjs";
 import { StackStore } from "src/app/state/stack.store";
+import * as fs from "@tauri-apps/plugin-fs";
+import { DragDropEvent } from "@tauri-apps/api/webview";
 
 @Component({
   selector: "app-stack-creator",
@@ -20,12 +21,7 @@ import { StackStore } from "src/app/state/stack.store";
           </mat-form-field>
           <div mat-dialog-actions>
             <button mat-button mat-dialog-close>Abbrechen</button>
-            <button
-              mat-button
-              mat-dialog-close
-              cdkFocusInitial
-              (click)="onSaveStack()"
-            >
+            <button mat-button mat-dialog-close (click)="onSaveStack()">
               Speichern
             </button>
           </div>
@@ -39,10 +35,11 @@ import { StackStore } from "src/app/state/stack.store";
         <img
           *ngIf="fileUrl | async"
           mat-card-image
-          [src]="fileUrl | async"
+          ngSrc="fileUrl | async"
           alt="stack header image"
+          fill
         />
-        <mat-card-content> </mat-card-content>
+        <mat-card-content></mat-card-content>
       </mat-card>
     </div>
   `,
@@ -65,32 +62,35 @@ export class StackCreatorComponent {
   fileUrl: BehaviorSubject<string> = new BehaviorSubject("");
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: any,
     private stackStore: StackStore,
     private ngZone: NgZone,
   ) {
-    listen("tauri://file-drop", (event) => {
-      this.ngZone.run(() => this.fileBrowseHandler(event));
-    });
+    listen<DragDropEvent>(
+      TauriEvent.DRAG_DROP,
+      (event: Event<DragDropEvent>) => {
+        this.ngZone.run(() => this.fileBrowseHandler(event));
+      },
+    );
   }
 
-  async fileBrowseHandler(arg0: any) {
-    if (arg0.payload !== null || arg0.payload !== undefined) {
-      let dataDir = await path.appDataDir();
-      let filePath: string = arg0.payload[0];
-      let fileEnding = filePath.substring(filePath.lastIndexOf(".") + 1);
-      let newFileName = uuid() + "." + fileEnding;
+  async fileBrowseHandler(event: Event<DragDropEvent>) {
+    if (event.payload !== null && event.payload.type === "drop") {
+      const dataDir = await path.appDataDir();
+      const filePath: string = event.payload.paths[0];
+      const fileEnding = filePath.substring(filePath.lastIndexOf(".") + 1);
+      const newFileName = uuid() + "." + fileEnding;
 
-      let copyPath = await path.join(dataDir, "content", "images", newFileName);
-      await fs.copyFile(arg0.payload[0], copyPath);
-      let fileUrl = convertFileSrc(copyPath);
+      const copyPath = await path.join(
+        dataDir,
+        "content",
+        "images",
+        newFileName,
+      );
+      await fs.copyFile(event.payload.paths[0], copyPath);
+      const fileUrl = convertFileSrc(copyPath);
       this.fileUrl.next(fileUrl);
       this.fileName = newFileName;
     }
-  }
-
-  onAbort() {
-    throw new Error("Method not implemented.");
   }
 
   onSaveStack() {

@@ -1,7 +1,14 @@
 import { Injectable } from "@angular/core";
-import { fs } from "@tauri-apps/api";
 import { BaseDirectory } from "@tauri-apps/api/path";
-import { LatLng, LatLngBounds, LatLngBoundsExpression } from "leaflet";
+import { LatLng, LatLngBounds } from "leaflet";
+import * as fs from "@tauri-apps/plugin-fs";
+
+export type MapSettings = {
+  initialMapBounds?: LatLngBounds;
+  maxClusterSize?: number;
+  maxZoomLevel?: number;
+  showLabels?: boolean;
+};
 
 @Injectable({
   providedIn: "root",
@@ -10,37 +17,43 @@ export class SettingService {
   mapSettingsFileName: string = "map-settings.json";
   constructor() {}
 
-  async setIconSizeSettings() {}
-
-  async getIconSizeSettings() {}
-
-  async saveMapBoundingBox(latLngBounds: LatLngBoundsExpression) {
-    await fs.writeFile(this.mapSettingsFileName, JSON.stringify(latLngBounds), {
-      dir: BaseDirectory.AppData,
-    });
+  async getMapSettings(): Promise<MapSettings> {
+    return this.readMapSettingsFile();
+  }
+  async updateMapSettings(mapSettings: Partial<MapSettings>): Promise<void> {
+    const enc = new TextEncoder();
+    const currentMapSettings = await this.readMapSettingsFile();
+    console.log(
+      "json stringify:",
+      JSON.stringify({ ...currentMapSettings, ...mapSettings }),
+    );
+    await fs.writeFile(
+      this.mapSettingsFileName,
+      enc.encode(JSON.stringify({ ...currentMapSettings, ...mapSettings })),
+      {
+        baseDir: BaseDirectory.AppData,
+      },
+    );
   }
 
-  async loadMapBoundingBox(): Promise<any> {
-    let mapSettingsExist: boolean = await fs.exists(this.mapSettingsFileName, {
-      dir: BaseDirectory.AppData,
-    });
-    if (!mapSettingsExist) {
-      return undefined;
-    }
+  async readMapSettingsFile(): Promise<MapSettings> {
     return fs
-      .readTextFile(this.mapSettingsFileName, { dir: BaseDirectory.AppData })
-      .then((mapSettings) => {
-        let response = JSON.parse(mapSettings);
-        let southWest: LatLng = new LatLng(
-          response._southWest.lat,
-          response._southWest.lng,
-        );
-        let northEast: LatLng = new LatLng(
-          response._northEast.lat,
-          response._northEast.lng,
-        );
-        let latLngBounds: LatLngBounds = new LatLngBounds(southWest, northEast);
-        return latLngBounds;
+      .readTextFile(this.mapSettingsFileName, {
+        baseDir: BaseDirectory.AppData,
+      })
+      .then((content) => {
+        const settings: any = JSON.parse(content);
+        return {
+          initialMapBounds: settings.initialMapBounds
+            ? new LatLngBounds(
+                settings.initialMapBounds!._southWest,
+                settings.initialMapBounds!._northEast,
+              )
+            : undefined,
+          maxClusterSize: settings.maxClusterSize,
+          maxZoomLevel: settings.maxZoomLevel ?? 7,
+          showLabels: settings.showLabels,
+        };
       });
   }
 }

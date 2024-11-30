@@ -1,14 +1,12 @@
 import {
   Circle,
-  Icon,
+  DivIcon,
   LatLngExpression,
-  LayerGroup,
   Marker,
   MarkerOptions,
 } from "leaflet";
 import { ICONS } from "../services/icon.service";
-import { Observable } from "rxjs";
-import { MarkerDB } from "./card";
+import { CardDB, MarkerDB } from "./card";
 
 export enum RadiusVisibility {
   always = "always",
@@ -18,8 +16,10 @@ export enum RadiusVisibility {
 export class MarkerAM extends Marker {
   private _markerId: number;
   private _cardId: number;
+  private _card?: CardDB;
   private _iconType: keyof typeof ICONS;
   private _radiusLayer?: Circle;
+  private _iconSize: number = 20;
 
   get markerId(): number {
     return this._markerId;
@@ -35,39 +35,51 @@ export class MarkerAM extends Marker {
   }
 
   constructor(
+    fetchCard: (id: number) => Promise<CardDB>,
     latlng: LatLngExpression,
     options?: MarkerOptions,
-    amOptions?: any,
+    amOptions?: {
+      radius?: number;
+      markerId?: number;
+      cardId?: number;
+      iconType?: keyof typeof ICONS;
+      iconSize?: number;
+      loadCard?: boolean;
+    },
   ) {
     super(latlng, options);
-    this._markerId = amOptions.markerId;
-    this._cardId = amOptions.cardId;
-    this._iconType = amOptions.iconType;
-    if (amOptions.radius) {
+    this._markerId = amOptions?.markerId ?? 0;
+    this._cardId = amOptions?.cardId ?? 0;
+    this._iconType = amOptions?.iconType ?? "iconBorderLimesBlack";
+    this._iconSize = amOptions?.iconSize ?? 20;
+    if (amOptions?.radius) {
       this._radiusLayer = new Circle(latlng, {
-        radius: amOptions.radius,
+        radius: amOptions.radius ?? 0,
         opacity: 0,
         fillOpacity: 0,
       });
       this.visibilityOfRadius(RadiusVisibility.onHover);
     }
-    let icon: Icon = new Icon({
-      iconUrl: ICONS[this._iconType] ?? ICONS.iconMiscRed,
-      iconSize: [amOptions.iconSize ?? 20, amOptions.iconSize ?? 20],
-      popupAnchor: [0, 0],
-    });
+    this.setIconType(this.iconType);
 
-    this.setIcon(icon);
+    if (amOptions?.loadCard) {
+      fetchCard(amOptions?.cardId ?? 0).then((card: CardDB) => {
+        this._card = card;
+        this.setIconType(this._iconType);
+      });
+    }
   }
   visibilityOfRadius(opt: RadiusVisibility): void {
     if (this._radiusLayer === undefined) {
       return;
     }
     if (opt === "onHover") {
+      this._radiusLayer.setStyle({ opacity: 0, fillOpacity: 0 });
       this.on("mouseover", () => {
         this._radiusLayer?.setStyle({ opacity: 1, fillOpacity: 0.2 });
       });
       this.on("mouseout", () => {
+        this.feature?.geometry;
         this._radiusLayer?.setStyle({ opacity: 0, fillOpacity: 0 });
       });
     } else if (opt === "always") {
@@ -79,10 +91,15 @@ export class MarkerAM extends Marker {
 
   setIconType(iconType: keyof typeof ICONS): void {
     this._iconType = iconType;
-    let icon: Icon = new Icon({
-      iconUrl: ICONS[this._iconType] ?? ICONS.iconMiscRed,
-      iconSize: [20, 20],
-      popupAnchor: [0, 0],
+    const htmlString = `
+    <div style="display: flex; flex-direction: column; width: 100px; align-items: center; transform: translateX(-44px)">
+        <img class="my-div-image" style="width: ${this._iconSize}px; height: ${this._iconSize}px" src='${ICONS[iconType]}'/>
+        <span class="my-div-span" style="background: white; width: 50px">${this._card?.title ?? ""}</span>
+    </div> 
+     `;
+    const icon: DivIcon = new DivIcon({
+      className: "my-div-image",
+      html: htmlString,
     });
     this.setIcon(icon);
     this.on("hover", () => {});
@@ -106,12 +123,8 @@ export class MarkerAM extends Marker {
   }
 
   setIconSize(size: number): void {
-    let icon: Icon = new Icon({
-      iconUrl: ICONS[this._iconType],
-      iconSize: [size, size],
-      popupAnchor: [0, 0],
-    });
-    this.setIcon(icon);
+    this._iconSize = size;
+    this.setIconType(this.iconType);
   }
   toMarkerDB(): MarkerDB {
     return {

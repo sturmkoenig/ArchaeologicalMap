@@ -65,6 +65,7 @@ class MockNgZone extends NgZone {
 describe("OverviewMapService", () => {
   function createTestMarkerAM(marker: Partial<MarkerDB>): MarkerAM {
     return new MarkerAM(
+      undefined,
       [0, 0],
       {},
       {

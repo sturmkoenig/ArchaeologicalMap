@@ -1,0 +1,44 @@
+<mat-card class="slider-card">
+  <mat-card-content>
+    <mat-slide-toggle
+      [checked]="mapSettings.showLabels"
+      (toggleChange)="changeShowLabels()"
+      >Labels anzeigen</mat-slide-toggle
+    >
+  </mat-card-content>
+</mat-card>
+<mat-card class="slider-card">
+  <mat-card-content>
+    <div class="label-container">
+      <label>Max Zoom Level</label>
+      <label>{{ zoomSlider.value }}</label>
+    </div>
+    <mat-slider [max]="15" [min]="1">
+      <input
+        matSliderThumb
+        #zoomSlider
+        [(ngModel)]="mapSettings.maxZoomLevel"
+        (dragEnd)="changeMaxZoomLevel()"
+      />
+    </mat-slider>
+  </mat-card-content>
+</mat-card>
+<mat-card class="slider-card">
+  <mat-card-content>
+    <div class="label-container">
+      <label>Max Cluster Size</label>
+      <label class="example-value-label">{{ slider.value }}</label>
+    </div>
+    <mat-slider [max]="100" [min]="1">
+      <input
+        matSliderThumb
+        #slider
+        [(ngModel)]="mapSettings.maxClusterSize"
+        (dragEnd)="changeMaxClusterRadius()"
+      />
+    </mat-slider>
+  </mat-card-content>
+</mat-card>
+<app-icon-size-settings
+  (iconSizeChange)="onIconSizeChange($event)"
+></app-icon-size-settings>

@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 import {
   BehaviorSubject,
   EMPTY,
@@ -16,13 +16,13 @@ import { CardService } from "./card.service";
 export class CardContentService {
   private currentCardId: BehaviorSubject<number> = new BehaviorSubject(0);
   public cardId: BehaviorSubject<number> = new BehaviorSubject(0);
-  public cardContent: BehaviorSubject<any>;
+  public cardContent: BehaviorSubject<string | undefined>;
 
   constructor(private cardService: CardService) {
-    this.cardContent = new BehaviorSubject(undefined);
+    this.cardContent = new BehaviorSubject<string | undefined>(undefined);
     this.cardId
       .pipe(
-        tap((cardId) => {
+        tap(() => {
           return this.saveCardContent();
         }),
         switchMap((cardId) => {
@@ -40,16 +40,15 @@ export class CardContentService {
     return invoke("write_card_content", {
       id: this.currentCardId.getValue().toString(),
       content: JSON.stringify(this.cardContent.getValue()),
-    }).then((res) => JSON.stringify(this.cardContent.getValue()));
+    }).then(() => JSON.stringify(this.cardContent.getValue()));
   }
 
   setCardId(cardId: number) {
     this.cardId.next(cardId);
   }
   async loadCardContent(cardId: number) {
-    return invoke("read_card_content", { id: cardId.toString() }).then(
-      (res: any) => {
-        let loadedContent: any;
+    return invoke<string>("read_card_content", { id: cardId.toString() }).then(
+      (res: string) => {
         if (!res) {
           this.cardContent.next("");
         }

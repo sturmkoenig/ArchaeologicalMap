@@ -1,6 +1,5 @@
 import { Injectable } from "@angular/core";
-import { fs, invoke } from "@tauri-apps/api";
-import { appCacheDir } from "@tauri-apps/api/path";
+import { invoke } from "@tauri-apps/api/core";
 import { CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
 
 @Injectable({
@@ -50,14 +49,6 @@ export class CardService {
     return invoke("read_card", { id: cardId });
   }
 
-  async readCardTitleMapping(): Promise<[{ id: number; title: string }]> {
-    let cacheDir = appCacheDir();
-    invoke("cache_card_names", {});
-    const cacheDir_1 = await appCacheDir();
-    const res = await fs.readTextFile(cacheDir_1 + "card_names.json");
-    return JSON.parse(res);
-  }
-
   updateCard(updateCard: CardDB, markers?: MarkerDB[]): Promise<boolean> {
     return invoke("update_card", {
       card: {
@@ -75,13 +66,13 @@ export class CardService {
     return invoke("count_cards", {});
   }
 
-  async deleteCard(id: number): Promise<any> {
+  async deleteCard(id: number): Promise<void> {
     await invoke("delete_card", {
       id: id,
     });
     return;
   }
-  deleteMarker(markerId: number): Promise<any> {
+  deleteMarker(markerId: number): Promise<void> {
     return invoke("delete_marker", { markerId: markerId });
   }
 

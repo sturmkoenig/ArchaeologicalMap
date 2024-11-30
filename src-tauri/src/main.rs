@@ -7,7 +7,6 @@ extern crate diesel_migrations;
 
 pub mod persistence;
 use app::models::CardDTO;
-use app::models::CardTitleMapping;
 use app::models::ImageDTO;
 use app::models::Marker;
 use app::models::MarkerDTO;
@@ -19,7 +18,6 @@ use diesel::SqliteConnection;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use persistence::cards::query_all_cards;
 use persistence::cards::query_card_by_id;
-use persistence::cards::query_card_names;
 use persistence::cards::query_cards_in_stack;
 use persistence::cards::query_cards_paginated;
 use persistence::cards::query_count_cards;
@@ -38,25 +36,31 @@ use persistence::stacks::query_all_stacks;
 use persistence::stacks::query_create_stack;
 use persistence::stacks::query_delete_stack;
 use persistence::stacks::query_update_stack;
-use tauri::api::path::app_cache_dir;
-
-use tauri::api::path::app_data_dir;
-use tauri::api::path::app_local_data_dir;
+use tauri_api::path::{app_dir, data_dir, local_data_dir, resolve_path, resource_dir};
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use std::env;
 use std::fs;
 use std::path::Path;
-use tauri::AppHandle;
-
+use tauri::{AppHandle, Manager};
 use app::{establish_connection, models::Card};
+use tauri_api::path::BaseDirectory;
 
 use crate::persistence::images::query_update_image;
 
 // main.rs
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .invoke_handler(tauri::generate_handler![
             create_card,
@@ -67,7 +71,6 @@ fn main() {
             count_cards,
             write_card_content,
             read_card_content,
-            cache_card_names,
             delete_card,
             create_marker,
             read_marker,
@@ -89,7 +92,7 @@ fn main() {
         .setup(|app| {
             let config = app.config();
 
-            let data_path = app_local_data_dir(&config).unwrap();
+            let data_path = app_dir().unwrap();
             if !data_path.exists() {
                 std::fs::create_dir_all(data_path)?;
             }
@@ -102,7 +105,7 @@ fn main() {
                 println!("Error running migrations: {:?}", e);
             }
 
-            let app_dir = app_data_dir(&config).expect("error creating app data dir");
+            let app_dir = app_dir().expect("error creating app data dir");
             let err = fs::create_dir(&app_dir);
             if let Err(e) = err {
                 println!("Error creating app dir: {:?}", e);
@@ -121,7 +124,7 @@ fn main() {
                 println!("Error creating images dir: {:?}", e);
             }
 
-            let cache_dir = app_cache_dir(&config).expect("error resolving cache dir");
+            let cache_dir = app_dir.clone();
 
             let err = fs::create_dir(cache_dir);
             if let Err(e) = err {
@@ -190,9 +193,9 @@ fn create_card(card: CardDTO) -> CardDTO {
 
 // TODO may be moved to frontend
 #[tauri::command]
-fn read_card_content(app_handle: tauri::AppHandle, id: String) -> Option<String> {
+async fn read_card_content(app_handle: tauri::AppHandle, id: String) -> Option<String> {
     let mut app_dir = app_handle
-        .path_resolver()
+        .path()
         .app_data_dir()
         .expect("error getting app dir");
     app_dir.push(format!("content/{}.json", id));
@@ -206,7 +209,7 @@ fn read_card_content(app_handle: tauri::AppHandle, id: String) -> Option<String>
 #[tauri::command]
 fn write_card_content(app_handle: tauri::AppHandle, id: String, content: String) {
     let mut content_dir = app_handle
-        .path_resolver()
+        .path()
         .app_data_dir()
         .expect("error getting data dir");
     content_dir.push(format!("content/{}.json", id));
@@ -281,18 +284,7 @@ fn delete_marker(marker_id: i32) {
     query_delete_marker(conn, marker_id);
 }
 
-#[tauri::command]
-fn cache_card_names(app_handle: tauri::AppHandle) {
-    let conn = &mut establish_connection();
-    let card_names: Vec<CardTitleMapping> = query_card_names(conn);
-    let json_card_names = serde_json::to_string(&card_names).expect("error");
-    let mut card_name_cache_path = app_handle
-        .path_resolver()
-        .app_cache_dir()
-        .expect("error resolving cache dir");
-    card_name_cache_path.push("card_names.json");
-    fs::write(card_name_cache_path, json_card_names).expect("couldn't write to file system");
-}
+
 
 #[tauri::command]
 fn read_markers_in_area(north: f32, east: f32, south: f32, west: f32) -> Vec<Marker> {
@@ -369,13 +361,12 @@ fn create_image(
         image_source: std::option::Option::None,
     };
     let image_id = query_create_image(conn, &new_image);
-    let config = app_handle.config();
-    let app_data_dir = app_data_dir(&config).expect("error creating app data dir");
+    let app_data_dir = app_handle.path().app_data_dir().expect("couldn't get app data dir");
 
     let file_stem = Path::new(&image_path)
         .file_stem()
-        .and_then(|fname| fname.to_str())
-        .ok_or_else(|| "Invalid file path")?;
+        .and_then(|fname| fname.to_str()).expect("Panic! No such filename ");
+
 
     let extension = Path::new(&image_path)
         .extension()
@@ -388,7 +379,7 @@ fn create_image(
     let _ = fs::copy(image_path, dest_path).or_else(|e| {
         println!("Error copying image: {:?}", e);
         return Err(e);
-    });
+    }).expect("couldn't copy image");
     let image_source = Some(format!("{}{}", app_image_dir, new_image_name));
     let image_dto = ImageDTO {
         id: image_id,
@@ -418,7 +409,7 @@ fn delete_image(app_handle: AppHandle, image_name: &str, image_id: i32) -> Resul
     persistence::cards::query_set_image_to_null(conn, image_id)?;
     persistence::images::query_delete_image(conn, image_id)?;
     let delete_path = app_handle
-        .path_resolver()
+        .path()
         .app_data_dir()
         .expect("error getting app data dir")
         .join(image.image_source);
