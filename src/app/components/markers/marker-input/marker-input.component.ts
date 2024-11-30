@@ -6,14 +6,31 @@ import {
   Output,
   SimpleChanges,
 } from "@angular/core";
-import { MarkerDB } from "src/app/model/card";
-import { ICONS, IconService, iconsSorted } from "src/app/services/icon.service";
-import { MatSelectChange } from "@angular/material/select";
-import { MatCheckboxChange } from "@angular/material/checkbox";
+import { MarkerDB } from "@app/model/card";
+import { ICONS, IconService, iconsSorted } from "@service/icon.service";
+import { MatSelectChange, MatSelectModule } from "@angular/material/select";
+import { MatCheckbox, MatCheckboxChange } from "@angular/material/checkbox";
+import { MatSliderModule } from "@angular/material/slider";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MarkerButtonToggleComponent } from "@app/components/markers/marker-button-toggle/marker-button-toggle.component";
+import { MatInputModule } from "@angular/material/input";
+import { FormsModule } from "@angular/forms";
+import { KeyValuePipe, NgForOf } from "@angular/common";
 
 @Component({
   selector: "app-marker-input",
-  standalone: false,
+  standalone: true,
+  imports: [
+    MatCheckbox,
+    MatSliderModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MarkerButtonToggleComponent,
+    MatInputModule,
+    FormsModule,
+    KeyValuePipe,
+    NgForOf,
+  ],
   template: `
     @if (this.marker) {
       <div>
@@ -92,7 +109,7 @@ export class MarkerInputComponent implements OnChanges {
     if (!changes["marker"]) {
       return;
     }
-    let currentIconCategory = changes["marker"].currentValue.icon_name;
+    const currentIconCategory = changes["marker"].currentValue.icon_name;
     if (currentIconCategory.match("Red")) {
       this.selectedIconCategory = currentIconCategory.replace("Red", "");
     } else if (currentIconCategory.match("Black")) {
@@ -102,7 +119,7 @@ export class MarkerInputComponent implements OnChanges {
 
   setIcon(newIcon: MatSelectChange) {
     this.selectedIconCategory = newIcon.value;
-    let iconName: any = IconService.getIconNameByPath(
+    const iconName: any = IconService.getIconNameByPath(
       iconsSorted[this.selectedIconCategory][0],
     );
     this.marker!.icon_name = iconName;

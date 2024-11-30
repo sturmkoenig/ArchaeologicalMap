@@ -1,11 +1,12 @@
 import { TestBed } from "@angular/core/testing";
 import { OverviewMapService } from "./overview-map.service";
 import { CardMarkerLayer, MarkerService } from "./marker.service";
-import { Circle, LatLngBounds, Marker } from "leaflet";
+import { Circle, LatLngBounds, Marker, MarkerClusterGroup } from "leaflet";
 import { NgZone } from "@angular/core";
-import { MarkerAM } from "../model/marker";
+import { isMarkerAM, MarkerAM } from "../model/marker";
 import { CardService } from "./card.service";
 import { CardDB, MarkerDB } from "../model/card";
+import { OverviewMapComponent } from "@app/components/overview-map/overview-map.component";
 
 const testCard: CardDB = {
   id: 0,
@@ -65,7 +66,15 @@ class MockNgZone extends NgZone {
 describe("OverviewMapService", () => {
   function createTestMarkerAM(marker: Partial<MarkerDB>): MarkerAM {
     return new MarkerAM(
-      undefined,
+      () =>
+        Promise.resolve({
+          id: 1,
+          title: "My test Title",
+          description: "a worthwile point on the map",
+          markers: [],
+          region_image_id: 1,
+          stack_id: 1,
+        }),
       [0, 0],
       {},
       {
@@ -104,15 +113,17 @@ describe("OverviewMapService", () => {
       deleteCard: jest.fn(),
     };
     TestBed.configureTestingModule({
+      imports: [OverviewMapComponent],
       providers: [
-        OverviewMapService,
         { provide: NgZone, useClass: MockNgZone },
         { provide: MarkerService, useValue: markerServiceMock },
         { provide: CardService, useValue: cardServiceMock },
+        { provide: OverviewMapService },
       ],
-    });
+    }).compileComponents();
 
     service = TestBed.inject(OverviewMapService);
+    service.setMarkerClusterLayerGroup(new MarkerClusterGroup());
   });
 
   it("should be created", () => {
@@ -143,8 +154,12 @@ describe("OverviewMapService", () => {
     ]);
     await service.updateMapBounds(testLatLngBounds);
     expect(service.mainLayerGroup.getLayers().length).toBe(1);
-    // @ts-ignore
-    expect(service.mainLayerGroup.getLayers()[0].markerId === 1).toBe(true);
+    const marker = service.mainLayerGroup.getLayers()[0];
+    if (isMarkerAM(marker)) {
+      expect(marker.markerId === 1).toBe(true);
+    } else {
+      fail("marker in mainLayerGroup is not of correct type");
+    }
   });
 
   it("should do nothing if the same marker is selected twice", async () => {
@@ -216,7 +231,7 @@ describe("OverviewMapService", () => {
     await service.updateMapBounds(testLatLngBounds);
     service.changeSelectedMarkerAM(testMarker);
     TestBed.flushEffects();
-    expect(service.selectedLayerGroup.getLayers().length).toBe(2);
+    expect(service.selectedLayerGroup.getLayers().length).toBe(1);
     expect(service.mainLayerGroup.getLayers().length).toBe(0);
   });
 
@@ -241,8 +256,9 @@ describe("OverviewMapService", () => {
     await service.updateMapBounds(testLatLngBounds);
     service.changeSelectedMarkerAM(testMarker);
     TestBed.flushEffects();
-    expect(service.selectedLayerGroup.getLayers().length).toBe(2);
-    service.deleteSelectedMarker();
+    expect(service.selectedLayerGroup.getLayers().length).toBe(1);
+    expect(service.radiusLayerGroup.getLayers().length).toBe(1);
+    await service.deleteSelectedMarker();
     TestBed.flushEffects();
     expect(service.selectedLayerGroup.getLayers().length).toBe(0);
     expect(cardServiceMock.deleteMarker).toHaveBeenCalled();
@@ -287,7 +303,8 @@ describe("OverviewMapService", () => {
       testMarker3,
     ]);
     await service.updateMapBounds(testLatLngBounds);
-    expect(service.mainLayerGroup.getLayers().length).toBe(4);
+    expect(service.mainLayerGroup.getLayers().length).toBe(3);
+    expect(service.radiusLayerGroup.getLayers().length).toBe(1);
 
     // select marker which has a card that is linked to other displayed markers
     cardServiceMock.readCard.mockReturnValue(testCard);
@@ -300,13 +317,16 @@ describe("OverviewMapService", () => {
     TestBed.flushEffects();
     expect(cardServiceMock.deleteCard).toHaveBeenCalled();
 
-    //selectd should be empty
+    //selected should be empty
     expect(service.selectedLayerGroup.getLayers().length).toBe(0);
     // all markers with card_id should have been removed
     expect(service.mainLayerGroup.getLayers().length).toBe(1);
-    //@ts-ignore
-    expect(service.mainLayerGroup.getLayers()[0].markerId).toBe(2);
-    //@ts-ignore
-    expect(service.mainLayerGroup.getLayers()[0].cardId).toBe(testCard.id! + 1);
+    const marker = service.mainLayerGroup.getLayers()[0];
+    if (isMarkerAM(marker)) {
+      expect(marker.markerId).toBe(2);
+      expect(marker.cardId).toBe(testCard.id! + 1);
+    } else {
+      fail("marker in mainLayerGroup is not of correct type!");
+    }
   });
 });

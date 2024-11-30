@@ -10,8 +10,8 @@ import { MatInputModule } from "@angular/material/input";
 import { MatPaginatorModule, PageEvent } from "@angular/material/paginator";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { debounceTime, Subject } from "rxjs";
-import { ImageEntity } from "src/app/model/image";
-import { ImageService } from "src/app/services/image.service";
+import { ImageEntity } from "@app/model/image";
+import { ImageService } from "@service/image.service";
 
 @Component({
   selector: "app-image-list",

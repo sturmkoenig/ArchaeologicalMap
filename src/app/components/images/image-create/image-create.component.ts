@@ -2,7 +2,7 @@ import { Component, NgZone } from "@angular/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { MatIconModule } from "@angular/material/icon";
 import { NgClass, NgIf } from "@angular/common";
-import { ImageService } from "src/app/services/image.service";
+import { ImageService } from "@service/image.service";
 import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { getCurrentWebview } from "@tauri-apps/api/webview";

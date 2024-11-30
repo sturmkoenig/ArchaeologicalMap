@@ -2,11 +2,16 @@ import {
   Circle,
   DivIcon,
   LatLngExpression,
+  Layer,
   Marker,
   MarkerOptions,
 } from "leaflet";
 import { ICONS } from "../services/icon.service";
 import { CardDB, MarkerDB } from "./card";
+
+export const isMarkerAM = (marker: Layer): marker is MarkerAM => {
+  return !!(marker as MarkerAM).markerId;
+};
 
 export enum RadiusVisibility {
   always = "always",

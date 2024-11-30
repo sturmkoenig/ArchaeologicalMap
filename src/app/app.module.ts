@@ -18,7 +18,6 @@ import { MatToolbarModule } from "@angular/material/toolbar";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app.component";
-import { OverviewMapComponent } from "./components/overview-map/overview-map.component";
 import { ToolbarComponent } from "./layout/toolbar/toolbar.component";
 
 import { MatCheckboxModule } from "@angular/material/checkbox";
@@ -50,14 +49,12 @@ import { FilterPipe } from "./layout/editor/filter.pipe";
 import { MapComponent } from "./layout/map/map.component";
 import { CardDetailsStore } from "./state/card-details.store";
 import { StackStore } from "./state/stack.store";
-import { CardService } from "./services/card.service";
+import { CardService } from "@service/card.service";
 import { ComponentStore } from "@ngrx/component-store";
-import { CardInputComponent } from "./components/cards/card-input/card-input.component";
-import { MarkerInputComponent } from "./components/markers/marker-input/marker-input.component";
 import { RightSidebarComponent } from "./layout/right-sidebar/right-sidebar.component";
 import { IconSizeSettingsComponent } from "./components/overview-map/map-settings/icon-size-settings/icon-size-settings.component";
 import { MarkerButtonToggleComponent } from "./components/markers/marker-button-toggle/marker-button-toggle.component";
-import { OverviewMapService } from "./services/overview-map.service";
+import { OverviewMapService } from "@service/overview-map.service";
 import { NgOptimizedImage } from "@angular/common";
 import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
 import { MapSettingsComponent } from "./components/overview-map/map-settings/map-settings.component";
@@ -65,12 +62,10 @@ import { MapSettingsComponent } from "./components/overview-map/map-settings/map
 @NgModule({
   declarations: [
     AppComponent,
-    OverviewMapComponent,
     MapComponent,
     ToolbarComponent,
     CardListComponent,
     CardDetailsComponent,
-    CardInputComponent,
     PositionPickerComponent,
     CardUpdateModalComponent,
     EditorComponent,
@@ -78,7 +73,6 @@ import { MapSettingsComponent } from "./components/overview-map/map-settings/map
     CardDeleteDialogComponent,
     StackCreatorComponent,
     StackDisplayComponent,
-    MarkerInputComponent,
   ],
   bootstrap: [AppComponent],
   imports: [

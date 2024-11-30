@@ -13,6 +13,7 @@ import { MatButtonModule } from "@angular/material/button";
         <div class="right-sidebar--container__toggle">
           <button
             mat-fab
+            data-testid="close-update-sidebar"
             color="primary"
             aria-label="Example icon button with a delete icon"
             (click)="onCollapse()"

@@ -7,9 +7,8 @@ import {
 } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { listen } from "@tauri-apps/api/event";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { createCardDetailsWindow } from "src/app/util/window-util";
-import "leaflet.markercluster";
+import { createCardDetailsWindow } from "@app/util/window-util";
+import * as L from "leaflet";
 import {
   LatLng,
   LatLngBounds,
@@ -21,15 +20,36 @@ import {
   latLng,
   tileLayer,
 } from "leaflet";
-import { CardDB, MarkerDB } from "src/app/model/card";
-import { MapSettings, SettingService } from "src/app/services/setting.service";
-import { MarkerService } from "../../services/marker.service";
-import { MarkerAM } from "src/app/model/marker";
-import { IconSizeSetting } from "src/app/services/icon.service";
-import { OverviewMapService } from "src/app/services/overview-map.service";
-const appWindow = getCurrentWebviewWindow();
+import "leaflet.markercluster";
+import { CardDB, MarkerDB } from "@app/model/card";
+import { MapSettings, SettingService } from "@service/setting.service";
+import { MarkerService } from "@service/marker.service";
+import { MarkerAM } from "@app/model/marker";
+import { IconSizeSetting } from "@service/icon.service";
+import { OverviewMapService } from "@service/overview-map.service";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { RightSidebarComponent } from "@app/layout/right-sidebar/right-sidebar.component";
+import { CardInputComponent } from "@app/components/cards/card-input/card-input.component";
+import { MapSettingsComponent } from "@app/components/overview-map/map-settings/map-settings.component";
+import { MarkerInputComponent } from "@app/components/markers/marker-input/marker-input.component";
+import { LeafletModule } from "@bluehalo/ngx-leaflet";
+import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
+import { MatButton, MatFabButton } from "@angular/material/button";
+import { NgIf } from "@angular/common";
 
 @Component({
+  standalone: true,
+  imports: [
+    RightSidebarComponent,
+    CardInputComponent,
+    MapSettingsComponent,
+    MarkerInputComponent,
+    LeafletModule,
+    LeafletMarkerClusterModule,
+    MatFabButton,
+    MatButton,
+    NgIf,
+  ],
   selector: "app-overview-map",
   templateUrl: "overview-map.component.html",
   styleUrl: "overview-map.component.scss",
@@ -218,20 +238,23 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
         this.route.snapshot.queryParams["latitude"],
         this.route.snapshot.queryParams["longitude"],
       );
-      this.map.panTo(this.position);
+      if (this.map) {
+        this.map.panTo(this.position);
+      }
     }
   }
 
   async ngOnInit() {
-    this.settingsService.getMapSettings().then((settings: MapSettings) => {
-      this.mapSettings = settings;
-      this.markerClusterOptions = {
-        ...(settings.maxClusterSize
-          ? { maxClusterRadius: settings.maxClusterSize }
-          : {}),
-      };
-      this.overviewMapService.showLabels = !!settings.showLabels;
-    });
+    await this.settingsService
+      .getMapSettings()
+      .then((settings: MapSettings) => {
+        this.mapSettings = settings;
+        this.markerClusterOptions = {
+          maxClusterRadius: settings.maxClusterSize ?? 1,
+        };
+        this.overviewMapService.showLabels = !!settings.showLabels;
+      });
+    const appWindow = getCurrentWindow();
     await appWindow.setTitle("map");
     await appWindow.onCloseRequested(async () => {
       // persist card postion here

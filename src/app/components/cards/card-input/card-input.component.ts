@@ -1,31 +1,52 @@
 import {
   Component,
-  Input,
-  Output,
   EventEmitter,
-  ViewChild,
+  Input,
   OnChanges,
+  Output,
   SimpleChanges,
+  ViewChild,
 } from "@angular/core";
-import { CardDB } from "src/app/model/card";
-import { StackStore } from "src/app/state/stack.store";
+import { CardDB } from "@app/model/card";
+import { StackStore } from "@app/state/stack.store";
 import { Observable } from "rxjs";
-import { Stack } from "src/app/model/stack";
-import { NgForm } from "@angular/forms";
+import { Stack } from "@app/model/stack";
+import { FormsModule, NgForm } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
 import { ImageCreateComponent } from "../../images/image-create/image-create.component";
 import { ImageListComponent } from "../../images/image-list/image-list.component";
-import { ImageEntity } from "src/app/model/image";
-import { ImageService } from "src/app/services/image.service";
+import { ImageEntity } from "@app/model/image";
+import { ImageService } from "@service/image.service";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatButton } from "@angular/material/button";
+import { MatSelectModule } from "@angular/material/select";
+import { MatInputModule } from "@angular/material/input";
+import { MatOptionModule } from "@angular/material/core";
+import { AsyncPipe, NgForOf } from "@angular/common";
 
 @Component({
+  standalone: true,
+  imports: [
+    MatSelectModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatOptionModule,
+    FormsModule,
+    AsyncPipe,
+    MatButton,
+    NgForOf,
+  ],
   selector: "app-card-input",
   template: `
     @if (this.card) {
       <form class="card-input">
         <div class="card-image-editor">
           @if (image) {
-            <img class="card-image-editor__image" [src]="image.imageSource" />
+            <img
+              class="card-image-editor__image"
+              [src]="image.imageSource"
+              alt="image of the card"
+            />
           } @else {
             <div class="card-image-editor__placeholder"></div>
           }
@@ -66,7 +87,6 @@ import { ImageService } from "src/app/services/image.service";
           <mat-select
             [value]="card.stack_id"
             (valueChange)="onStackIdChange($event)"
-            name="stack"
           >
             <mat-option
               *ngFor="let stack of stacks$ | async"

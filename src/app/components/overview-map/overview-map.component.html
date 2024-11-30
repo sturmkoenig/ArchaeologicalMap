@@ -1,12 +1,13 @@
 <div class="overview-map--container">
-  <div class="overview-map" *ngIf="markerClusterOptions">
+  <div class="overview-map">
     <div
+      id="map"
       class="map-container"
       [style]="{ cursor: cursorStyle }"
       leaflet
       [leafletOptions]="options"
       [leafletMarkerCluster]="[]"
-      [leafletMarkerClusterOptions]="markerClusterOptions"
+      [leafletMarkerClusterOptions]="markerClusterOptions!"
       (leafletMapReady)="onMapReady($event)"
       (leafletMapMoveEnd)="mapMoveEnded()"
       (leafletMarkerClusterReady)="markerClusterReady($event)"
@@ -20,6 +21,7 @@
       <button
         mat-fab
         color="primary"
+        data-testid="update-card-button"
         class="round-button round-button__add button"
         (click)="updateCardVisible = !updateCardVisible"
       >

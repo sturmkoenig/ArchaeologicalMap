@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 
-import { MarkerButtonToggleComponent } from "./marker-button-toggle.component";
+import { MarkerButtonToggleComponent } from "@app/components/markers/marker-button-toggle/marker-button-toggle.component";
 import { By } from "@angular/platform-browser";
-import { ICONS, iconsSorted } from "src/app/services/icon.service";
+import { ICONS, iconsSorted } from "@service/icon.service";
 
 describe("MarkerButtonToggleComponent", () => {
   let component: MarkerButtonToggleComponent;
@@ -23,7 +23,7 @@ describe("MarkerButtonToggleComponent", () => {
   });
 
   it("should emit a new value when a button is clicked", () => {
-    spyOn(component.selectedIcon, "emit");
+    jest.spyOn(component.selectedIcon, "emit");
     const buttonToggles = fixture.debugElement.queryAll(
       By.css("mat-button-toggle-group"),
     );
@@ -35,11 +35,11 @@ describe("MarkerButtonToggleComponent", () => {
     expect(component.selectedIcon.emit).toHaveBeenCalledWith("iconCaveRed");
   });
   it("should show the correct icons for the selected icon category", () => {
-    for (let cat in iconsSorted) {
+    for (const cat in iconsSorted) {
       component.iconCategory = cat as keyof typeof iconsSorted;
       fixture.detectChanges();
       const images = fixture.debugElement.queryAll(By.css(".option-icon"));
-      expect(images.length > 0).toBeTrue();
+      expect(images.length > 0).toBeTruthy();
       images.forEach((image, index) => {
         const expectedPath =
           component.iconsSorted[component.iconCategory][index];

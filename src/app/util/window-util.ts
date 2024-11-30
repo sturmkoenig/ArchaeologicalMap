@@ -1,6 +1,6 @@
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
-export function createCardDetailsWindow(cardId: number) {
+export const createCardDetailsWindow = (cardId: number) => {
   const webview = new WebviewWindow(cardId.toString(), {
     url: "cards/details?id=" + cardId,
     height: 800,
@@ -12,4 +12,4 @@ export function createCardDetailsWindow(cardId: number) {
   webview.once("tauri://created", function () {
     webview.emit("set-focus-to");
   });
-}
+};
