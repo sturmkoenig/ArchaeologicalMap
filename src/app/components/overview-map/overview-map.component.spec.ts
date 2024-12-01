@@ -124,8 +124,6 @@ describe("OverviewMapComponent", () => {
     givenTheCard(testCard);
     whenIClickAButton("add-new-card");
     await whenIClickTheMap();
-    await fixture.whenStable();
-    TestBed.flushEffects();
 
     expect(cardServiceMock.createCard).toHaveBeenCalledWith({
       title: "",
@@ -147,13 +145,9 @@ describe("OverviewMapComponent", () => {
   it("should delete selected card", async () => {
     givenTheCard(testCard);
     whenIClickAButton("add-new-card");
-    whenIClickTheMap();
-    await fixture.whenStable();
-    TestBed.flushEffects();
+    await whenIClickTheMap();
 
-    component.onDeleteSelectedCard();
-    await fixture.whenStable();
-    TestBed.flushEffects();
+    await component.onDeleteSelectedCard();
 
     expect(cardServiceMock.deleteCard).toHaveBeenCalledWith(testCard.id!);
     expect(component.selectedLayerGroup.getLayers()).toHaveLength(0);
@@ -163,13 +157,9 @@ describe("OverviewMapComponent", () => {
   it("should delete marker", async () => {
     givenTheCard(testCard);
     whenIClickAButton("add-new-card");
-    whenIClickTheMap();
-    await fixture.whenStable();
-    TestBed.flushEffects();
+    await whenIClickTheMap();
 
-    component.onDeleteSelectedMarker();
-    await fixture.whenStable();
-    TestBed.flushEffects();
+    await component.onDeleteSelectedMarker();
 
     expect(cardServiceMock.deleteMarker).toHaveBeenCalledWith(testCard.id!);
     expect(component.selectedLayerGroup.getLayers()).toHaveLength(0);
@@ -179,14 +169,10 @@ describe("OverviewMapComponent", () => {
   it("should move existing marker", async () => {
     givenTheCard(testCard);
     whenIClickAButton("add-new-card");
-    whenIClickTheMap();
-    await fixture.whenStable();
-    TestBed.flushEffects();
+    await whenIClickTheMap();
 
     component.onMoveExistingMarker();
-    whenIClickTheMap();
-    await fixture.whenStable();
-    TestBed.flushEffects();
+    await whenIClickTheMap();
 
     expect(markerServiceMock.updateMarker).toHaveBeenCalled();
   });
@@ -194,11 +180,8 @@ describe("OverviewMapComponent", () => {
   it("should update icon size of selected layer correctly", async () => {
     givenTheCard(testCard);
     whenIClickAButton("add-new-card");
-    whenIClickTheMap();
-    await fixture.whenStable();
-    TestBed.flushEffects();
+    await whenIClickTheMap();
     component.onUpdateIconSize({ iconType: "iconMiscRed", iconSize: 40 });
-    TestBed.flushEffects();
     const layer: MarkerAM =
       component.selectedLayerGroup.getLayers()[0] as MarkerAM;
     expect((layer.getIcon().options as any).html).toMatch(
@@ -210,15 +193,9 @@ describe("OverviewMapComponent", () => {
     givenTheCard(testCard);
     whenIClickAButton("add-new-card");
     await whenIClickTheMap();
-    await fixture.whenStable();
-    TestBed.flushEffects();
-    fixture.detectChanges();
 
     whenIClickAButton("update-card-button");
-    fixture.detectChanges();
-    TestBed.flushEffects();
     whenIClickAButton("close-update-sidebar");
-    fixture.detectChanges();
 
     expect(component.selectedLayerGroup.getLayers()).toHaveLength(0);
     expect(component.overviewMapService.clusterGroup.getLayers()).toHaveLength(
@@ -257,10 +234,12 @@ describe("OverviewMapComponent", () => {
       By.css(`[data-testid="${testId}"]`),
     ).nativeElement;
     button.click();
+    fixture.detectChanges();
   };
 
   const whenIClickTheMap = async () => {
     const map = fixture.debugElement.query(By.css("#map")).nativeElement;
     map.click();
+    fixture.detectChanges();
   };
 });
