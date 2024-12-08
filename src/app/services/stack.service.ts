@@ -18,6 +18,9 @@ export class StackService {
   getAll(): Promise<Stack[]> {
     return invoke("read_all_stacks", {});
   }
+  async getStackById(id: string): Promise<Stack> {
+    return invoke("read_stack_by_id", { id });
+  }
   async deleteStack(
     stackIdToDelete: number,
     stackHeaderImage: string,

@@ -61,15 +61,38 @@
   border-width: 0;
   background-color: #fdfefe;
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto;
 
-  &--properties {
-    flex-grow: 1;
+  &--content {
     display: grid;
-    grid-template-columns: 1fr 3fr;
-    margin: 2rem;
-    margin-top: 4rem;
+    gap: 20px;
+    grid-template-columns: 1fr 2fr;
+    grid-template-rows: auto auto 1fr;
+    &_stack-title {
+      grid-column: 1 / span 2; /* Span across both columns */
+      grid-row: 1;
+    }
+    &_card-image {
+      grid-column: 1;
+      grid-row: 2 / span 2; /* Span across two rows */
+    }
+
+    &_card-title {
+      grid-column: 2;
+      grid-row: 2;
+      justify-self: start; /* Ensures the entire element aligns to the start of grid cell */
+      text-align: left;    /* Ensures text content within aligns to the left */
+    }
+    &_card-description {
+      grid-column: 2;
+      grid-row: 3;
+      justify-self: start; /* Ensures the entire element aligns to the start of grid cell */
+      text-align: left;    /* Ensures text content within aligns to the left */
+    }
   }
+
   &--buttons {
     display: flex;
     margin-top: auto;
@@ -89,10 +112,7 @@
   left: 100px;
   margin-left: auto;
 }
-.card-content {
-  display: flex;
-  flex-direction: column;
-}
+
 
 .container {
   display: flex;

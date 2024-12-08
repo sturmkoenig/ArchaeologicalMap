@@ -45,9 +45,8 @@ use std::fs;
 use std::path::Path;
 use tauri::{AppHandle, Manager};
 use app::{establish_connection, models::Card};
-use tauri_api::path::BaseDirectory;
-
 use crate::persistence::images::query_update_image;
+use crate::persistence::stacks::query_stack_by_id;
 
 // main.rs
 fn main() {
@@ -317,11 +316,13 @@ fn read_all_stacks() -> Vec<StackDTO> {
     stack_dtos
 }
 
-// TODO implement methods
 #[tauri::command]
-fn get_cards_in_stack(stack_id: i32) -> Vec<CardDTO> {
+fn get_cards_in_stack(stack_id: i32) ->  (StackDTO, Vec<CardDTO>){
     let conn = &mut establish_connection();
-    query_cards_in_stack(conn, stack_id)
+    let cards = query_cards_in_stack(conn, stack_id);
+    let stack = query_stack_by_id(conn, stack_id);
+    (StackDTO::from(stack), cards)
+
 }
 
 #[tauri::command]

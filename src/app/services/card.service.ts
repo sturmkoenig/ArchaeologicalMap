@@ -1,13 +1,20 @@
 import { Injectable } from "@angular/core";
 import { invoke } from "@tauri-apps/api/core";
 import { CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
+import { Stack } from "@app/model/stack";
 
 @Injectable({
   providedIn: "root",
 })
 export class CardService {
-  getAllCardsForStack(stack_id: number): Promise<CardDB[]> {
-    return invoke("get_cards_in_stack", { stackId: stack_id });
+  getAllCardsForStack(
+    stack_id: number,
+  ): Promise<{ stack: Stack; cards: CardDB[] }> {
+    return invoke<[Stack, CardDB[]]>("get_cards_in_stack", {
+      stackId: stack_id,
+    }).then((result) => {
+      return { stack: result[0], cards: result[1] };
+    });
   }
 
   createCard(newCard: CardDB): Promise<CardDB> {

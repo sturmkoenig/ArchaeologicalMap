@@ -27,9 +27,9 @@
             <mat-icon>arrow_back_ios</mat-icon>
           </button>
         </span>
-        <div class="card--properties">
+        <div class="card--content">
           <ng-container *ngIf="card.markers">
-            <div class="navigate-to-position-button">
+            <div class="card--content_navigate-to-position-button">
               @if (regionImage$ | async) {
                 <button
                   class="region-image-button"
@@ -55,13 +55,20 @@
               }
             </div>
           </ng-container>
-
-          <div class="card-content">
-            <h3 data-testid="card-title">{{ card.title }}</h3>
-            <p>
-              {{ card.description }}
-            </p>
+          <div class="card--content_stack-title">
+            <ng-container
+              *ngIf="cardDetailsStore.currentStack$ | async as currentStack"
+            >
+              <h3 data-testid="stack-title">{{ currentStack.name }}</h3>
+            </ng-container>
           </div>
+
+          <div class="card--content_card-title">
+            <h4 data-testid="card-title">{{ card.title }}</h4>
+          </div>
+          <p class="card--content_card-description">
+            {{ card.description }}
+          </p>
         </div>
         <span
           *ngIf="cardDetailsStore.nextCardId$ | async as nextCardId"
