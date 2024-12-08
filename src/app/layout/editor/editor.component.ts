@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from "@angular/core";
 import Quill, { RangeStatic } from "quill";
 import ImageResize from "quill-image-resize-module";
-import { CardContentService } from "src/app/services/card-content.service";
+import { CardContentService } from "@service/card-content.service";
 import QuillImageDropAndPaste, {
   ImageData as QuillImageData,
 } from "quill-image-drop-and-paste";

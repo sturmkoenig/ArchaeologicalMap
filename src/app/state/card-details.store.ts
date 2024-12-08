@@ -1,6 +1,14 @@
 import { Injectable } from "@angular/core";
 import { ComponentStore } from "@ngrx/component-store";
-import { Observable, combineLatest, from, of, switchMap, tap } from "rxjs";
+import {
+  Observable,
+  combineLatest,
+  from,
+  of,
+  switchMap,
+  tap,
+  EMPTY,
+} from "rxjs";
 import { CardDB } from "../model/card";
 import { CardService } from "../services/card.service";
 import { ImageEntity } from "../model/image";
@@ -109,12 +117,13 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
   readonly loadStackOfCards = this.effect((cardId$: Observable<number>) => {
     const card$ = cardId$.pipe(
       switchMap((cardId) => {
-        return this.cardService.readCard(cardId);
+        const card = this.cardService.readCard(cardId);
+        return card;
       }),
     );
     return combineLatest([card$, this.currentStackId$]).pipe(
       switchMap(([card, currentStackId]) => {
-        if (!card.stack_id) {
+        if (card.stack_id === undefined || card.stack_id === null) {
           return of(
             this.setAllCards({
               status: status.loaded,
@@ -174,7 +183,7 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
       return imageId$.pipe(
         switchMap((imageId) => {
           if (imageId === undefined || imageId === null) {
-            return of(undefined);
+            return EMPTY;
           } else {
             return this.imageService.readImage(imageId);
           }

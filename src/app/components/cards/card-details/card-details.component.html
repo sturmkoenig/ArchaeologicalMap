@@ -1,28 +1,28 @@
 <div class="card-details-component-container">
-  <div class="card-details-side-nav">
-    @if (currentStackId$ | async) {
+  @if (currentStackId$ | async) {
+    <div class="card-details-side-nav" data-testid="stack-side-nav">
       <ng-container
         *ngFor="let card of cardDetailsStore.allCardsInStack$ | async"
       >
         <span
+          [attr.data-testid]="'stack-side-nav-card-' + card.id"
           class="card-details-side-nav--container"
-          [routerLink]="'/cards/details'"
-          [queryParams]="{ id: card.id }"
+          [routerLink]="['/cards/details', card.id]"
           [ngClass]="{ 'current-card': card.id === this.cardId }"
           >{{ card.title }}
         </span>
       </ng-container>
-    }
-  </div>
+    </div>
+  }
   <div class="card-details-container">
     <ng-container *ngIf="card$ | async as card">
       <div class="card">
         <span class="card--nav">
           <button
+            data-testid="previous-card-button"
             mat-icon-button
             *ngIf="cardDetailsStore.previousCardId$ | async as previousCardId"
-            [routerLink]="'/cards/details'"
-            [queryParams]="{ id: previousCardId }"
+            [routerLink]="['/cards/details', previousCardId]"
           >
             <mat-icon>arrow_back_ios</mat-icon>
           </button>
@@ -33,9 +33,11 @@
               @if (regionImage$ | async) {
                 <button
                   class="region-image-button"
+                  data-testid="card-pan-to-lat-lng-image-button"
                   (click)="panToLatLng(card.markers)"
                 >
                   <img
+                    data-testid="card-region-img"
                     [src]="(regionImage$ | async)?.imageSource"
                     alt="arrow_forward_ios"
                   />
@@ -43,6 +45,7 @@
               } @else {
                 <button
                   mat-mini-fab
+                  data-testid="card-pan-to-lat-lng-mini-button"
                   color="warn"
                   (click)="panToLatLng(card.markers)"
                   aria-label="Example icon button with a home icon"
@@ -54,7 +57,7 @@
           </ng-container>
 
           <div class="card-content">
-            <B>{{ card.title }}</B>
+            <h3 data-testid="card-title">{{ card.title }}</h3>
             <p>
               {{ card.description }}
             </p>
@@ -66,8 +69,8 @@
         >
           <button
             mat-icon-button
-            [routerLink]="'/cards/details'"
-            [queryParams]="{ id: nextCardId }"
+            data-testid="next-card-button"
+            [routerLink]="['/cards/details', nextCardId]"
           >
             <mat-icon>arrow_forward_ios</mat-icon>
           </button>

@@ -2,7 +2,7 @@ import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 export const createCardDetailsWindow = (cardId: number) => {
   const webview = new WebviewWindow(cardId.toString(), {
-    url: "cards/details?id=" + cardId,
+    url: "/cards/details/" + cardId,
     height: 800,
   });
   webview.once("tauri://error", function (e: unknown) {
