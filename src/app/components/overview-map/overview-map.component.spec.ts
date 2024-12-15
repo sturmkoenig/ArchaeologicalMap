@@ -12,13 +12,14 @@ import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { By } from "@angular/platform-browser";
 import { CardDB } from "src/app/model/card";
 import * as TauriEvent from "@tauri-apps/api/event";
-import { SettingService } from "@service/setting.service";
+import { MapSettings, SettingService } from "@service/setting.service";
 import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
 import { NgIf } from "@angular/common";
 import { MapSettingsComponent } from "@app/components/overview-map/map-settings/map-settings.component";
 import { MarkerAM } from "@app/model/marker";
 import { CardInputComponent } from "@app/components/cards/card-input/card-input.component";
 import { from } from "rxjs";
+import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { StackStore } from "@app/state/stack.store";
 
 jest.mock("@tauri-apps/api/event", () => {
@@ -41,6 +42,11 @@ jest.mock("@tauri-apps/api/webviewWindow", () => ({
   },
 }));
 
+jest.mock("@tauri-apps/plugin-fs", () => ({
+  writeTextFile: jest.fn(),
+  readTextFile: jest.fn(),
+}));
+
 describe("OverviewMapComponent", () => {
   let component: OverviewMapComponent;
   let fixture: ComponentFixture<OverviewMapComponent>;
@@ -54,12 +60,10 @@ describe("OverviewMapComponent", () => {
     deleteCard: jest.Mock;
     deleteMarker: jest.Mock;
   };
+  let readTextFileMock: jest.Mock;
+  let writeTextFileMock: jest.Mock;
+  let mapSettings: MapSettings;
   let iconServiceMock: { getIconSizeSettings: jest.Mock };
-  let settingsServiceMock: {
-    saveMapBoundingBox: jest.Mock;
-    loadMapBoundingBox: jest.Mock;
-    getMapSettings: jest.Mock;
-  };
 
   beforeEach(async () => {
     jest
@@ -69,6 +73,22 @@ describe("OverviewMapComponent", () => {
       getMarkerAMInArea: jest.fn(),
       updateMarker: jest.fn(),
     };
+    mapSettings = {
+      maxZoomLevel: 11,
+      markerClusterGroupOptions: {
+        maxClusterRadius: 100,
+        disableClusteringAtZoom: 1,
+      },
+    };
+
+    readTextFileMock = (readTextFile as jest.Mock).mockImplementation(
+      async (...args) => Promise.resolve(JSON.stringify(mapSettings)),
+    );
+
+    writeTextFileMock = (writeTextFile as jest.Mock).mockImplementation(
+      async (fileName: string, settings: string, options: unknown) =>
+        Promise.resolve((mapSettings = JSON.parse(settings))),
+    );
     markerServiceMock.getMarkerAMInArea.mockResolvedValue([]);
     cardServiceMock = {
       createCard: jest.fn(),
@@ -78,11 +98,6 @@ describe("OverviewMapComponent", () => {
     };
     iconServiceMock = { getIconSizeSettings: jest.fn() };
     iconServiceMock.getIconSizeSettings.mockResolvedValue(new Map());
-    settingsServiceMock = {
-      saveMapBoundingBox: jest.fn(),
-      loadMapBoundingBox: jest.fn(),
-      getMapSettings: jest.fn(),
-    };
     const StackStoreMock = {
       stacks$: from([]),
     };
@@ -105,19 +120,16 @@ describe("OverviewMapComponent", () => {
         { provide: MarkerService, useValue: markerServiceMock },
         { provide: CardService, useValue: cardServiceMock },
         { provide: IconService, useValue: iconServiceMock },
-        { provide: SettingService, useValue: settingsServiceMock },
+        SettingService,
         OverviewMapService,
         { provide: ActivatedRoute, useValue: activatedRouteStub },
         { provide: StackStore, useValue: StackStoreMock },
       ],
     }).compileComponents();
-    settingsServiceMock.getMapSettings.mockResolvedValue({
-      maxClusterRadius: 1,
-    });
     fixture = TestBed.createComponent(OverviewMapComponent);
     component = fixture.componentInstance;
+    await fixture.whenStable();
     fixture.detectChanges();
-    component.markerClusterOptions = { maxClusterRadius: 1 };
   });
 
   it("should have mainLayerGroup property with mocked value", async () => {
@@ -145,6 +157,7 @@ describe("OverviewMapComponent", () => {
   it("should delete selected card", async () => {
     givenTheCard(testCard);
     whenIClickAButton("add-new-card");
+    fixture.detectChanges();
     await whenIClickTheMap();
 
     await component.onDeleteSelectedCard();
@@ -152,6 +165,21 @@ describe("OverviewMapComponent", () => {
     expect(cardServiceMock.deleteCard).toHaveBeenCalledWith(testCard.id!);
     expect(component.selectedLayerGroup.getLayers()).toHaveLength(0);
     expect(component.mainLayerGroup.getLayers()).toHaveLength(0);
+  });
+
+  it("should persist changes to the max zoom level", async () => {
+    whenIClickAButton("open-settings-menu-button");
+    const newZoomLevel = "13";
+    fixture.detectChanges();
+    await whenIUseASlider("max-zoom-level-slider", newZoomLevel);
+    await fixture.whenStable();
+    expect(mapSettings).toEqual({
+      maxZoomLevel: 13,
+      markerClusterGroupOptions: {
+        maxClusterRadius: 100,
+        disableClusteringAtZoom: 1,
+      },
+    });
   });
 
   it("should delete marker", async () => {
@@ -230,16 +258,26 @@ describe("OverviewMapComponent", () => {
   };
 
   const whenIClickAButton = (testId: string) => {
+    fixture.detectChanges();
     const button = fixture.debugElement.query(
       By.css(`[data-testid="${testId}"]`),
     ).nativeElement;
     button.click();
-    fixture.detectChanges();
   };
 
   const whenIClickTheMap = async () => {
     const map = fixture.debugElement.query(By.css("#map")).nativeElement;
     map.click();
+    fixture.detectChanges();
+  };
+
+  const whenIUseASlider = async (testId: string, newSliderValue: string) => {
+    const slider = fixture.debugElement.query(By.css(`[data-testid="${testId}`))
+      .nativeElement as HTMLInputElement;
+    slider.value = newSliderValue;
+    slider.dispatchEvent(new Event("input"));
+    slider.dispatchEvent(new Event("dragEnd"));
+    await fixture.whenStable();
     fixture.detectChanges();
   };
 });

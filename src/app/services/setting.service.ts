@@ -1,12 +1,12 @@
 import { Injectable } from "@angular/core";
 import { BaseDirectory } from "@tauri-apps/api/path";
-import { LatLng, LatLngBounds } from "leaflet";
+import { LatLngBounds, MarkerClusterGroupOptions } from "leaflet";
 import * as fs from "@tauri-apps/plugin-fs";
 
 export type MapSettings = {
   initialMapBounds?: LatLngBounds;
-  maxClusterSize?: number;
   maxZoomLevel?: number;
+  markerClusterGroupOptions: MarkerClusterGroupOptions;
   showLabels?: boolean;
 };
 
@@ -21,15 +21,10 @@ export class SettingService {
     return this.readMapSettingsFile();
   }
   async updateMapSettings(mapSettings: Partial<MapSettings>): Promise<void> {
-    const enc = new TextEncoder();
     const currentMapSettings = await this.readMapSettingsFile();
-    console.log(
-      "json stringify:",
-      JSON.stringify({ ...currentMapSettings, ...mapSettings }),
-    );
-    await fs.writeFile(
+    await fs.writeTextFile(
       this.mapSettingsFileName,
-      enc.encode(JSON.stringify({ ...currentMapSettings, ...mapSettings })),
+      JSON.stringify({ ...currentMapSettings, ...mapSettings }),
       {
         baseDir: BaseDirectory.AppData,
       },
@@ -37,7 +32,7 @@ export class SettingService {
   }
 
   async readMapSettingsFile(): Promise<MapSettings> {
-    return fs
+    return await fs
       .readTextFile(this.mapSettingsFileName, {
         baseDir: BaseDirectory.AppData,
       })
@@ -50,9 +45,7 @@ export class SettingService {
                 settings.initialMapBounds!._northEast,
               )
             : undefined,
-          maxClusterSize: settings.maxClusterSize,
-          maxZoomLevel: settings.maxZoomLevel ?? 7,
-          showLabels: settings.showLabels,
+          ...settings,
         };
       });
   }

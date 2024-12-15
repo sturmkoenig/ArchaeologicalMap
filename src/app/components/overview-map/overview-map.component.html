@@ -1,20 +1,24 @@
 <div class="overview-map--container">
-  <div class="overview-map">
-    <div
-      id="map"
-      class="map-container"
-      [style]="{ cursor: cursorStyle }"
-      leaflet
-      [leafletOptions]="options"
-      [leafletMarkerCluster]="[]"
-      [leafletMarkerClusterOptions]="markerClusterOptions!"
-      (leafletMapReady)="onMapReady($event)"
-      (leafletMapMoveEnd)="mapMoveEnded()"
-      (leafletMarkerClusterReady)="markerClusterReady($event)"
-    >
+  @if (this.mapSettings) {
+    <div class="overview-map">
+      <div
+        id="map"
+        class="map-container"
+        [style]="{ cursor: cursorStyle }"
+        leaflet
+        [leafletOptions]="options"
+        [leafletMarkerCluster]="[]"
+        [leafletMarkerClusterOptions]="
+          this.mapSettings.markerClusterGroupOptions
+        "
+        (leafletMapReady)="onMapReady($event)"
+        (leafletMapMoveEnd)="mapMoveEnded()"
+        (leafletMarkerClusterReady)="markerClusterReady($event)"
       >
+        >
+      </div>
     </div>
-  </div>
+  }
 
   @if (selectedMarker()) {
     @if (!updateCardVisible) {
@@ -103,12 +107,14 @@
       (visibleChange)="settingsVisible = false"
     >
       <app-map-settings
+        data-testid="map settings copmonent"
         (iconSizeChange)="onUpdateIconSize($event)"
         (mapSettingsChanged)="onMapSettingsChanged()"
       ></app-map-settings>
     </app-right-sidebar>
     <button
       mat-fab
+      data-testid="open-settings-menu-button"
       color="primary"
       (click)="settingsVisible = true"
       class="round-button round-button__settings button"

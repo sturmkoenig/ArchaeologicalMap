@@ -8,12 +8,14 @@ import { ImageService } from "@service/image.service";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { provideRouter, RouterModule } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
-import { CardDB } from "@app/model/card";
+import { CardDB, MarkerDB } from "@app/model/card";
 import { By } from "@angular/platform-browser";
-import { listen } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
 import { RouterTestingHarness } from "@angular/router/testing";
 import { StackService } from "@service/stack.service";
 import { Stack } from "@app/model/stack";
+import { MarkerAM } from "@app/model/marker";
+import { LatLngBounds } from "leaflet";
 
 jest.mock("quill-image-resize-module", () => {
   // Provide any mock implementation if necessary
@@ -24,6 +26,10 @@ jest.mock("@tauri-apps/api/window", () => ({
   getCurrentWindow: () => ({
     setFocus: jest.fn(),
   }),
+}));
+jest.mock("@tauri-apps/api/event", () => ({
+  emit: jest.fn(),
+  listen: jest.fn(),
 }));
 
 jest.mock("@tauri-apps/api/webviewWindow", () => ({
@@ -203,6 +209,60 @@ describe("CardDetailsComponent", () => {
     expect(
       getElementByDataTestId("previous-card-button", harness),
     ).toBeTruthy();
+  });
+
+  it("should pan to multiple markers of a card", async () => {
+    const givenMarkerOne: MarkerDB = {
+      icon_name: "iconBorderLimesRed",
+      radius: 0,
+      id: 1,
+      latitude: 0,
+      longitude: 0,
+    };
+    const givenMarkerTwo: MarkerDB = {
+      icon_name: "iconBorderLimesRed",
+      radius: 0,
+      id: 2,
+      latitude: 0,
+      longitude: 0,
+    };
+    const givenBounds = new LatLngBounds([0, 0], [0, 0]);
+    markerServiceMock.getBounds.mockReturnValue(givenBounds);
+    await givenACard({
+      ...defaultCard,
+      markers: [givenMarkerOne, givenMarkerTwo],
+    });
+    const harness = await RouterTestingHarness.create("/cards/details/1");
+    harness.detectChanges();
+    whenIClickAButton("show-on-map-button", harness);
+    expect(emit).toHaveBeenCalledWith("panToBounds", {
+      minLat: givenBounds.getSouthWest().lat,
+      minLng: givenBounds.getSouthWest().lng,
+      maxLat: givenBounds.getNorthEast().lat,
+      maxLng: givenBounds.getNorthEast().lng,
+      markerIds: [givenMarkerOne.id, givenMarkerTwo.id],
+    });
+  });
+  it("should pan to a single marker of a card", async () => {
+    const givenMarker: MarkerDB = {
+      icon_name: "iconBorderLimesRed",
+      radius: 0,
+      id: 1,
+      latitude: 0,
+      longitude: 0,
+    };
+    await givenACard({
+      ...defaultCard,
+      markers: [givenMarker],
+    });
+    const harness = await RouterTestingHarness.create("/cards/details/1");
+    harness.detectChanges();
+    whenIClickAButton("show-on-map-button", harness);
+    expect(emit).toHaveBeenCalledWith("panTo", {
+      lat: givenMarker.latitude,
+      lng: givenMarker.longitude,
+      id: 1,
+    });
   });
 
   const getElementByDataTestId = (

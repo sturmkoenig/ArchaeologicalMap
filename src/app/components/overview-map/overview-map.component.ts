@@ -2,22 +2,21 @@ import {
   AfterViewInit,
   Component,
   NgZone,
+  OnDestroy,
   OnInit,
   WritableSignal,
 } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
-import { listen } from "@tauri-apps/api/event";
+import { listen, UnlistenFn } from "@tauri-apps/api/event";
 import { createCardDetailsWindow } from "@app/util/window-util";
-import * as L from "leaflet";
 import {
   LatLng,
+  latLng,
   LatLngBounds,
   LayerGroup,
   Map as LeafletMap,
   MapOptions as LeafletMapOptions,
-  MarkerClusterGroupOptions,
   MarkerClusterGroup,
-  latLng,
   tileLayer,
 } from "leaflet";
 import "leaflet.markercluster";
@@ -35,7 +34,6 @@ import { MarkerInputComponent } from "@app/components/markers/marker-input/marke
 import { LeafletModule } from "@bluehalo/ngx-leaflet";
 import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
 import { MatButton, MatFabButton } from "@angular/material/button";
-import { NgIf } from "@angular/common";
 
 @Component({
   standalone: true,
@@ -48,13 +46,12 @@ import { NgIf } from "@angular/common";
     LeafletMarkerClusterModule,
     MatFabButton,
     MatButton,
-    NgIf,
   ],
   selector: "app-overview-map",
   templateUrl: "overview-map.component.html",
   styleUrl: "overview-map.component.scss",
 })
-export class OverviewMapComponent implements OnInit, AfterViewInit {
+export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   position?: LatLng;
   highligtedMarkerIds?: number[];
   mainLayerGroup: LayerGroup;
@@ -78,7 +75,8 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   updateCardVisible: boolean = false;
   settingsVisible: boolean = false;
   mapSettings?: MapSettings;
-  markerClusterOptions?: MarkerClusterGroupOptions;
+  unlistenPanTo: Promise<UnlistenFn>;
+  unlistenPanToBounds: Promise<UnlistenFn>;
   selectedMarker: WritableSignal<MarkerAM | undefined>;
   editCard: WritableSignal<CardDB | undefined>;
 
@@ -89,7 +87,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     private settingsService: SettingService,
     public overviewMapService: OverviewMapService,
   ) {
-    listen(
+    this.unlistenPanTo = listen(
       "panTo",
       (panToEvent: { payload: { lat: number; lng: number; id: number } }) => {
         const point: LatLng = new LatLng(
@@ -101,7 +99,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
         this.map.flyTo(point);
       },
     );
-    listen(
+    this.unlistenPanToBounds = listen(
       "panToBounds",
       (panToBoundsEvent: {
         payload: {
@@ -150,11 +148,11 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
   }
 
   async onDeleteSelectedCard() {
-    this.overviewMapService.deleteEditCard();
+    await this.overviewMapService.deleteEditCard();
   }
 
-  onUpdateIconSize(iconSetting: IconSizeSetting) {
-    this.overviewMapService.updateIconSize(
+  async onUpdateIconSize(iconSetting: IconSizeSetting) {
+    await this.overviewMapService.updateIconSize(
       iconSetting.iconType,
       iconSetting.iconSize,
     );
@@ -165,7 +163,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
       throw new Error("marker does not exist");
     }
 
-    this.overviewMapService.deleteSelectedMarker();
+    await this.overviewMapService.deleteSelectedMarker();
   }
 
   async updateSelectedMarker(newMarker: MarkerDB) {
@@ -226,7 +224,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
       this.cursorStyle = "default";
       return;
     }
-    this.overviewMapService.updateMapBounds(bounds);
+    await this.overviewMapService.updateMapBounds(bounds);
   }
 
   ngAfterViewInit(): void {
@@ -244,14 +242,20 @@ export class OverviewMapComponent implements OnInit, AfterViewInit {
     }
   }
 
+  async ngOnDestroy(): Promise<void> {
+    try {
+      await this.unlistenPanToBounds;
+      await this.unlistenPanTo;
+    } catch (error) {
+      console.log("Unable to unlisten to panToBounds listener", error);
+    }
+  }
+
   async ngOnInit() {
     await this.settingsService
       .getMapSettings()
       .then((settings: MapSettings) => {
         this.mapSettings = settings;
-        this.markerClusterOptions = {
-          maxClusterRadius: settings.maxClusterSize ?? 1,
-        };
         this.overviewMapService.showLabels = !!settings.showLabels;
       });
     const appWindow = getCurrentWindow();

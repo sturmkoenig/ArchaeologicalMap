@@ -1,15 +1,14 @@
 import { Component, EventEmitter, OnInit, Output } from "@angular/core";
 import { IconSizeSettingsComponent } from "./icon-size-settings/icon-size-settings.component";
-import { IconSizeSetting } from "../../../services/icon.service";
-import { MapSettings, SettingService } from "../../../services/setting.service";
-import { MatSlider, MatSliderThumb } from "@angular/material/slider";
-import { FormsModule } from "@angular/forms";
+import { IconSizeSetting } from "@service/icon.service";
+import { MapSettings, SettingService } from "@service/setting.service";
 import {
-  MatCard,
-  MatCardContent,
-  MatCardHeader,
-  MatCardTitle,
-} from "@angular/material/card";
+  MatSlider,
+  MatSliderModule,
+  MatSliderThumb,
+} from "@angular/material/slider";
+import { FormsModule } from "@angular/forms";
+import { MatCard, MatCardContent } from "@angular/material/card";
 import { MatSlideToggle } from "@angular/material/slide-toggle";
 
 @Component({
@@ -23,14 +22,14 @@ import { MatSlideToggle } from "@angular/material/slide-toggle";
     MatCard,
     MatCardContent,
     MatSlideToggle,
-    MatCardTitle,
-    MatCardHeader,
+    MatSliderModule,
   ],
   templateUrl: "./map-settings.component.html",
   styleUrl: "./map-settings.component.css",
 })
 export class MapSettingsComponent implements OnInit {
-  mapSettings: MapSettings = {};
+  mapSettings: MapSettings = { maxZoomLevel: 1, markerClusterGroupOptions: {} };
+
   @Output()
   iconSizeChange: EventEmitter<IconSizeSetting> = new EventEmitter();
   @Output()
@@ -39,7 +38,15 @@ export class MapSettingsComponent implements OnInit {
   constructor(private settingsService: SettingService) {}
 
   async ngOnInit() {
-    this.mapSettings = await this.settingsService.getMapSettings();
+    const mapSettings = await this.settingsService.getMapSettings();
+    this.mapSettings = { ...this.mapSettings, ...mapSettings };
+    this.mapSettings.markerClusterGroupOptions = {
+      ...{
+        maxClusterRadius: 1,
+        disableClusteringAtZoom: 1,
+      },
+      ...mapSettings.markerClusterGroupOptions,
+    };
   }
 
   onIconSizeChange(iconSizeSetting: IconSizeSetting) {
@@ -48,16 +55,16 @@ export class MapSettingsComponent implements OnInit {
 
   async changeMaxClusterRadius() {
     await this.settingsService.updateMapSettings({
-      maxClusterSize: this.mapSettings.maxClusterSize,
+      markerClusterGroupOptions: this.mapSettings.markerClusterGroupOptions,
     });
-    this.mapSettingsChanged.emit(this.mapSettings);
+    // this.mapSettingsChanged.emit(this.mapSettings);
   }
 
   async changeMaxZoomLevel() {
     await this.settingsService.updateMapSettings({
       maxZoomLevel: this.mapSettings.maxZoomLevel,
     });
-    this.mapSettingsChanged.emit(this.mapSettings);
+    //this.mapSettingsChanged.emit(this.mapSettings);
   }
 
   async changeShowLabels() {
@@ -66,6 +73,13 @@ export class MapSettingsComponent implements OnInit {
       showLabels: this.mapSettings.showLabels,
     });
 
-    this.mapSettingsChanged.emit(this.mapSettings);
+    // this.mapSettingsChanged.emit(this.mapSettings);
+  }
+
+  async changeDisableClusteringAtZoomLevel() {
+    await this.settingsService.updateMapSettings({
+      markerClusterGroupOptions: this.mapSettings.markerClusterGroupOptions,
+    });
+    // this.mapSettingsChanged.emit(this.mapSettings);
   }
 }

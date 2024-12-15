@@ -24,9 +24,6 @@ export class OverviewMapService {
   selectedMarker: WritableSignal<MarkerAM | undefined>;
   editCard: WritableSignal<CardDB | undefined>;
 
-  setMarkerClusterLayerGroup(markerClusterLayerGroup: MarkerClusterGroup) {
-    this.clusterGroup = markerClusterLayerGroup;
-  }
   constructor(
     private markerService: MarkerService,
     private cardService: CardService,
@@ -64,6 +61,10 @@ export class OverviewMapService {
         });
       }
     });
+  }
+
+  setMarkerClusterLayerGroup(markerClusterLayerGroup: MarkerClusterGroup) {
+    this.clusterGroup = markerClusterLayerGroup;
   }
 
   resetMainLayerGroup(): void {
