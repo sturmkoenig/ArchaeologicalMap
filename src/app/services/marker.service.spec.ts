@@ -2,8 +2,8 @@ import { TestBed } from "@angular/core/testing";
 import { MarkerService } from "@service/marker.service";
 import { CardService } from "@service/card.service";
 import { MarkerDB } from "@app/model/card";
-import { MarkerAM } from "@app/model/marker";
 import { LatLngBounds } from "leaflet";
+import { MarkerAM } from "@app/model/markerAM";
 
 const MockCardService = {
   readCard: () => {},

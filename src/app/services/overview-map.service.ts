@@ -8,10 +8,11 @@ import {
   MarkerClusterGroup,
 } from "leaflet";
 import { MarkerService } from "./marker.service";
-import { isMarkerAM, MarkerAM, RadiusVisibility } from "../model/marker";
+import { isMarkerAM, RadiusVisibility } from "../model/marker";
 import { CardDB } from "../model/card";
 import { CardService } from "./card.service";
 import { IconKeys, IconService } from "./icon.service";
+import { MarkerAM } from "@app/model/markerAM";
 
 @Injectable()
 export class OverviewMapService {

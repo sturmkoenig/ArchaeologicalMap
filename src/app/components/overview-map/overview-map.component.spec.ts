@@ -16,11 +16,11 @@ import { MapSettings, SettingService } from "@service/setting.service";
 import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
 import { NgIf } from "@angular/common";
 import { MapSettingsComponent } from "@app/components/overview-map/map-settings/map-settings.component";
-import { MarkerAM } from "@app/model/marker";
 import { CardInputComponent } from "@app/components/cards/card-input/card-input.component";
 import { from } from "rxjs";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { StackStore } from "@app/state/stack.store";
+import { MarkerAM } from "@app/model/markerAM";
 
 jest.mock("@tauri-apps/api/event", () => {
   return {

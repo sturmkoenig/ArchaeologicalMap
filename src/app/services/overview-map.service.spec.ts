@@ -3,10 +3,11 @@ import { OverviewMapService } from "./overview-map.service";
 import { CardMarkerLayer, MarkerService } from "./marker.service";
 import { Circle, LatLngBounds, Marker, MarkerClusterGroup } from "leaflet";
 import { NgZone } from "@angular/core";
-import { isMarkerAM, MarkerAM } from "../model/marker";
+import { isMarkerAM } from "../model/marker";
 import { CardService } from "./card.service";
 import { CardDB, MarkerDB } from "../model/card";
 import { OverviewMapComponent } from "@app/components/overview-map/overview-map.component";
+import { MarkerAM } from "@app/model/markerAM";
 
 const testCard: CardDB = {
   id: 0,

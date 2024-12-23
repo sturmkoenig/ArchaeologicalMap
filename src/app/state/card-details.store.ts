@@ -11,10 +11,9 @@ import {
   tap,
 } from "rxjs";
 import { CardDB } from "../model/card";
-import { CardService } from "../services/card.service";
+import { CardService } from "@service/card.service";
 import { ImageEntity } from "../model/image";
-import { ImageService } from "../services/image.service";
-import { StackService } from "@service/stack.service";
+import { ImageService } from "@service/image.service";
 import { Stack } from "@app/model/stack";
 
 export enum status {
@@ -130,8 +129,7 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
   readonly loadStackOfCards = this.effect((cardId$: Observable<number>) => {
     const card$ = cardId$.pipe(
       switchMap((cardId) => {
-        const card = this.cardService.readCard(cardId);
-        return card;
+        return this.cardService.readCard(cardId);
       }),
     );
     return combineLatest([card$, this.currentStackId$]).pipe(
@@ -239,7 +237,6 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
   constructor(
     private cardService: CardService,
     private imageService: ImageService,
-    private stackService: StackService,
   ) {
     super({ status: status.loading });
   }

@@ -23,7 +23,6 @@ import "leaflet.markercluster";
 import { CardDB, MarkerDB } from "@app/model/card";
 import { MapSettings, SettingService } from "@service/setting.service";
 import { MarkerService } from "@service/marker.service";
-import { MarkerAM } from "@app/model/marker";
 import { IconSizeSetting } from "@service/icon.service";
 import { OverviewMapService } from "@service/overview-map.service";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -34,6 +33,7 @@ import { MarkerInputComponent } from "@app/components/markers/marker-input/marke
 import { LeafletModule } from "@bluehalo/ngx-leaflet";
 import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
 import { MatButton, MatFabButton } from "@angular/material/button";
+import { MarkerAM } from "@app/model/markerAM";
 
 @Component({
   standalone: true,

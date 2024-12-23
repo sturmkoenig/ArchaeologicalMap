@@ -4,8 +4,8 @@ import { CardDB, MarkerDB } from "src/app/model/card";
 import { CardService } from "./card.service";
 import { IconKeys, ICONS, IconService } from "./icon.service";
 import { invoke } from "@tauri-apps/api/core";
-import { MarkerAM } from "../model/marker";
 import { createCardDetailsWindow } from "../util/window-util";
+import { MarkerAM } from "@app/model/markerAM";
 
 export interface CardMarkerLayer {
   card?: CardDB;

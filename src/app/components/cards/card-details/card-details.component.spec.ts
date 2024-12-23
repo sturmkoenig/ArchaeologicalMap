@@ -14,8 +14,8 @@ import { emit, listen } from "@tauri-apps/api/event";
 import { RouterTestingHarness } from "@angular/router/testing";
 import { StackService } from "@service/stack.service";
 import { Stack } from "@app/model/stack";
-import { MarkerAM } from "@app/model/marker";
 import { LatLngBounds } from "leaflet";
+import { MarkerAM } from "@app/model/markerAM";
 
 jest.mock("quill-image-resize-module", () => {
   // Provide any mock implementation if necessary
