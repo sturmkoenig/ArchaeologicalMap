@@ -47,8 +47,7 @@ pub fn query_all_stacks(conn: &mut SqliteConnection) -> Vec<Stack> {
 }
 
 pub fn query_stack_by_id(conn: &mut SqliteConnection, stack_id: i32) -> Stack {
-    use schema::stack::dsl::*;
-    stack.find(id)
+    stack::table.find(stack_id)
         .first(conn)
         .expect(&format!("could not load the stack with stackId {}", stack_id))
 }

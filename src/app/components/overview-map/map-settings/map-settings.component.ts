@@ -57,14 +57,14 @@ export class MapSettingsComponent implements OnInit {
     await this.settingsService.updateMapSettings({
       markerClusterGroupOptions: this.mapSettings.markerClusterGroupOptions,
     });
-    // this.mapSettingsChanged.emit(this.mapSettings);
+    this.mapSettingsChanged.emit(this.mapSettings);
   }
 
   async changeMaxZoomLevel() {
     await this.settingsService.updateMapSettings({
       maxZoomLevel: this.mapSettings.maxZoomLevel,
     });
-    //this.mapSettingsChanged.emit(this.mapSettings);
+    this.mapSettingsChanged.emit(this.mapSettings);
   }
 
   async changeShowLabels() {
@@ -73,13 +73,13 @@ export class MapSettingsComponent implements OnInit {
       showLabels: this.mapSettings.showLabels,
     });
 
-    // this.mapSettingsChanged.emit(this.mapSettings);
+    this.mapSettingsChanged.emit(this.mapSettings);
   }
 
   async changeDisableClusteringAtZoomLevel() {
     await this.settingsService.updateMapSettings({
       markerClusterGroupOptions: this.mapSettings.markerClusterGroupOptions,
     });
-    // this.mapSettingsChanged.emit(this.mapSettings);
+    this.mapSettingsChanged.emit(this.mapSettings);
   }
 }

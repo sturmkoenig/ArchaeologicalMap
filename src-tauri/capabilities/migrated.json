@@ -11,6 +11,7 @@
     "fs:allow-write-file",
     "fs:allow-read-dir",
     "fs:allow-copy-file",
+    "fs:allow-app-write",
     "fs:allow-mkdir",
     "fs:allow-remove",
     "fs:allow-remove",

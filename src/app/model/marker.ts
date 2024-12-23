@@ -6,7 +6,7 @@ import {
   Marker,
   MarkerOptions,
 } from "leaflet";
-import { ICONS } from "../services/icon.service";
+import { ICONS } from "@service/icon.service";
 import { CardDB, MarkerDB } from "./card";
 
 export const isMarkerAM = (marker: Layer): marker is MarkerAM => {
@@ -99,7 +99,7 @@ export class MarkerAM extends Marker {
     const htmlString = `
     <div style="display: flex; flex-direction: column; width: 100px; align-items: center; transform: translateX(-44px)">
         <img class="my-div-image" style="width: ${this._iconSize}px; height: ${this._iconSize}px" src='${ICONS[iconType]}'/>
-        <span class="my-div-span" style="background: white; width: 50px">${this._card?.title ?? ""}</span>
+        <span class="my-div-span" style="background: white; width: auto; font-size: 9px; background-color: rgba(255, 0, 0, 0); ">${this._card?.title ?? ""}</span>
     </div> 
      `;
     const icon: DivIcon = new DivIcon({

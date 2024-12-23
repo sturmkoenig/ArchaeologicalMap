@@ -81,6 +81,7 @@ fn main() {
             delete_stack,
             read_all_stacks,
             get_cards_in_stack,
+
             create_image,
             read_image,
             read_images,
@@ -318,11 +319,11 @@ fn read_all_stacks() -> Vec<StackDTO> {
 
 #[tauri::command]
 fn get_cards_in_stack(stack_id: i32) ->  (StackDTO, Vec<CardDTO>){
+    println!("stack_id: {}", stack_id);
     let conn = &mut establish_connection();
     let cards = query_cards_in_stack(conn, stack_id);
     let stack = query_stack_by_id(conn, stack_id);
     (StackDTO::from(stack), cards)
-
 }
 
 #[tauri::command]

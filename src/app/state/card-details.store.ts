@@ -6,6 +6,7 @@ import {
   from,
   map,
   Observable,
+  of,
   switchMap,
   tap,
 } from "rxjs";
@@ -136,11 +137,13 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
     return combineLatest([card$, this.currentStackId$]).pipe(
       switchMap(([card, currentStackId]) => {
         if (card.stack_id === undefined || card.stack_id === null) {
-          this.setAllCards({
-            status: status.loaded,
-            currentCard: card,
-            cardsInStack: [card],
-          });
+          this.setAllCards(
+            of({
+              status: status.loaded,
+              currentCard: card,
+              cardsInStack: [card],
+            }),
+          );
           return EMPTY;
         }
 

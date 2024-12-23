@@ -1,6 +1,11 @@
 import { Injectable } from "@angular/core";
 import { BaseDirectory } from "@tauri-apps/api/path";
-import { LatLngBounds, MarkerClusterGroupOptions } from "leaflet";
+import {
+  latLng,
+  LatLng,
+  LatLngBounds,
+  MarkerClusterGroupOptions,
+} from "leaflet";
 import * as fs from "@tauri-apps/plugin-fs";
 
 export type MapSettings = {
@@ -15,7 +20,6 @@ export type MapSettings = {
 })
 export class SettingService {
   mapSettingsFileName: string = "map-settings.json";
-  constructor() {}
 
   async getMapSettings(): Promise<MapSettings> {
     return this.readMapSettingsFile();
@@ -39,13 +43,13 @@ export class SettingService {
       .then((content) => {
         const settings: any = JSON.parse(content);
         return {
+          ...settings,
           initialMapBounds: settings.initialMapBounds
             ? new LatLngBounds(
-                settings.initialMapBounds!._southWest,
-                settings.initialMapBounds!._northEast,
+                settings.initialMapBounds._southWest,
+                settings.initialMapBounds._northEast,
               )
             : undefined,
-          ...settings,
         };
       });
   }

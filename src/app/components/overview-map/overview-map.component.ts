@@ -208,7 +208,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.map.addLayer(this.overviewMapService.radiusLayerGroup);
     this.map.addLayer(this.overviewMapService.selectedLayerGroup);
     if (this.mapSettings?.initialMapBounds) {
-      this.map.fitBounds(this.mapSettings?.initialMapBounds);
+      this.map.fitBounds(this.mapSettings.initialMapBounds);
     }
   }
 
@@ -224,6 +224,9 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
       this.cursorStyle = "default";
       return;
     }
+    await this.settingsService.updateMapSettings({
+      initialMapBounds: this.map.getBounds(),
+    });
     await this.overviewMapService.updateMapBounds(bounds);
   }
 
@@ -261,7 +264,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
     const appWindow = getCurrentWindow();
     await appWindow.setTitle("map");
     await appWindow.onCloseRequested(async () => {
-      // persist card postion here
       await this.settingsService.updateMapSettings({
         initialMapBounds: this.map.getBounds(),
       });
