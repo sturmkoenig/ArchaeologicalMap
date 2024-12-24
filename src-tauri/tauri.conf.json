@@ -3,7 +3,7 @@
   "build": {
     "beforeBuildCommand": "ng build",
     "beforeDevCommand": "ng serve",
-    "frontendDist": "../dist/archaological-map",
+    "frontendDist": "../dist/archaological-map/browser",
     "devUrl": "http://localhost:4200"
   },
   "bundle": {

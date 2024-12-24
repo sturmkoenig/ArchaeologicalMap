@@ -258,6 +258,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
     await this.settingsService
       .getMapSettings()
       .then((settings: MapSettings) => {
+        console.log("successfully got settings: ", settings);
         this.mapSettings = settings;
         this.overviewMapService.showLabels = !!settings.showLabels;
       });

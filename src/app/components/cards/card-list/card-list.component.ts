@@ -218,7 +218,7 @@ export class CardListComponent implements OnInit {
 
   goToDetailsPage(cardId: number) {
     const webview = new WebviewWindow(cardId.toString(), {
-      url: "cards/details?id=" + cardId,
+      url: "cards/details/" + cardId,
     });
     webview.once("tauri://error", function (e) {
       console.error("window creation error: " + JSON.stringify(e));
