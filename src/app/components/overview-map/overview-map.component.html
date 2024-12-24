@@ -1,26 +1,36 @@
 <div class="overview-map--container">
-  <div class="overview-map">
-    <div
-      class="map-container"
-      [style]="{ cursor: cursorStyle }"
-      leaflet
-      [leafletOptions]="options"
-      [leafletLayers]="layers"
-      (leafletMapReady)="onMapReady($event)"
-      (leafletMapMoveEnd)="mapMoveEnded()"
-    ></div>
-  </div>
+  @if (this.mapSettings) {
+    <div class="overview-map">
+      <div
+        id="map"
+        class="map-container"
+        [style]="{ cursor: cursorStyle }"
+        leaflet
+        [leafletOptions]="options"
+        [leafletMarkerCluster]="[]"
+        [leafletMarkerClusterOptions]="
+          this.mapSettings.markerClusterGroupOptions
+        "
+        (leafletMapReady)="onMapReady($event)"
+        (leafletMapMoveEnd)="mapMoveEnded()"
+        (leafletMarkerClusterReady)="markerClusterReady($event)"
+      >
+        >
+      </div>
+    </div>
+  }
 
   @if (selectedMarker()) {
     @if (!updateCardVisible) {
-      <div
+      <button
+        mat-fab
+        color="primary"
+        data-testid="update-card-button"
         class="round-button round-button__add button"
         (click)="updateCardVisible = !updateCardVisible"
       >
-        <span color="accent" class="icon-add material-symbols-outlined">
-          update
-        </span>
-      </div>
+        <span class="icon-add material-symbols-outlined"> update </span>
+      </button>
     } @else {
       <div class="appsidebar">
         <app-right-sidebar
@@ -82,25 +92,36 @@
       </div>
     }
   } @else {
-    <div class="round-button round-button__add button" (click)="onAddNewCard()">
+    <button
+      mat-fab
+      data-testid="add-new-card"
+      color="primary"
+      class="round-button round-button__add button"
+      (click)="onAddNewCard()"
+    >
       <span class="icon-add material-symbols-outlined"> add </span>
-    </div>
+    </button>
 
     <app-right-sidebar
       [visible]="settingsVisible"
       (visibleChange)="settingsVisible = false"
     >
-      <app-icon-size-settings
+      <app-map-settings
+        data-testid="map settings copmonent"
         (iconSizeChange)="onUpdateIconSize($event)"
-      ></app-icon-size-settings>
+        (mapSettingsChanged)="onMapSettingsChanged()"
+      ></app-map-settings>
     </app-right-sidebar>
-    <div
-      class="round-button round-button__settings button"
+    <button
+      mat-fab
+      data-testid="open-settings-menu-button"
+      color="primary"
       (click)="settingsVisible = true"
+      class="round-button round-button__settings button"
     >
       <span color="accent" class="icon-add material-symbols-outlined">
         settings
       </span>
-    </div>
+    </button>
   }
 </div>

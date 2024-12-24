@@ -1,12 +1,11 @@
 import { TestBed } from "@angular/core/testing";
-import { MarkerService } from "./marker.service";
-import { CardService } from "./card.service";
-import { MarkerDB } from "../model/card";
-import { MarkerAM } from "../model/marker";
+import { MarkerService } from "@service/marker.service";
+import { CardService } from "@service/card.service";
+import { MarkerDB } from "@app/model/card";
 import { LatLngBounds } from "leaflet";
+import { MarkerAM } from "@app/model/markerAM";
 
 const MockCardService = {
-  readCardTitleMapping: () => Promise.resolve([]),
   readCard: () => {},
   readMarkersInArea: () => {
     return Promise.resolve([]);
@@ -16,7 +15,7 @@ const MockCardService = {
 describe("MarkerService", () => {
   let service: MarkerService;
 
-  let testMarkerDB: MarkerDB = {
+  const testMarkerDB: MarkerDB = {
     id: 1,
     card_id: 1,
     latitude: 1,
@@ -30,6 +29,7 @@ describe("MarkerService", () => {
       providers: [
         MarkerService,
         { provide: CardService, useValue: MockCardService },
+        { provide: MarkerService },
       ],
     });
 
@@ -41,20 +41,20 @@ describe("MarkerService", () => {
   });
 
   it("should load MarkerAM correctly", async () => {
-    const dependencySpy = spyOn(
-      TestBed.inject(CardService),
-      "readMarkersInArea",
-    ).and.returnValue(Promise.resolve([testMarkerDB]));
+    jest
+      .spyOn(TestBed.inject(CardService), "readMarkersInArea")
+      .mockResolvedValue([testMarkerDB]);
     await service
       .getMarkerAMInArea(
         new LatLngBounds([
           [1, 1],
           [1, 1],
         ]),
+        false,
       )
       .then((markers: MarkerAM[]) => {
         expect(markers).toBeTruthy();
-        expect(markers).toHaveSize(1);
+        expect(markers).toHaveLength(1);
         expect(markers[0].markerId).toEqual(testMarkerDB.id!);
         expect(markers[0].cardId).toEqual(testMarkerDB.card_id!);
         expect(markers[0].iconType).toEqual(testMarkerDB.icon_name);

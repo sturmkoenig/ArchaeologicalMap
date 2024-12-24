@@ -149,8 +149,3 @@ impl From<Marker> for MarkerDTO {
         }
     }
 }
-#[derive(Serialize)]
-pub struct CardTitleMapping {
-    pub id: i32,
-    pub title: String,
-}

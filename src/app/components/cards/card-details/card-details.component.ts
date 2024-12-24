@@ -1,19 +1,17 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { emit, listen } from "@tauri-apps/api/event";
-import { CardService } from "src/app/services/card.service";
 
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { appWindow } from "@tauri-apps/api/window";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Observable } from "rxjs";
-import { EditorComponent } from "src/app/layout/editor/editor.component";
-import { CardDB, MarkerDB } from "src/app/model/card";
-import { CardContentService } from "src/app/services/card-content.service";
-import { MarkerService } from "src/app/services/marker.service";
-import { CardDetailsStore } from "src/app/state/card-details.store";
-import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal.component";
-import { ImageEntity } from "src/app/model/image";
+import { EditorComponent } from "@app/layout/editor/editor.component";
+import { CardDB, MarkerDB } from "@app/model/card";
+import { CardContentService } from "@service/card-content.service";
+import { MarkerService } from "@service/marker.service";
+import { CardDetailsStore } from "@app/state/card-details.store";
+import { ImageEntity } from "@app/model/image";
 
 @Component({
   selector: "app-card-details",
@@ -26,7 +24,6 @@ export class CardDetailsComponent implements OnInit {
 
   @ViewChild(EditorComponent)
   editor!: EditorComponent;
-  cardTitleMapping!: [{ id: number; title: string }];
   allCardsInStack$: Observable<CardDB[]>;
   currentStackId$: Observable<number | undefined>;
   regionImage$: Observable<ImageEntity | undefined>;
@@ -36,7 +33,6 @@ export class CardDetailsComponent implements OnInit {
     private markerService: MarkerService,
     public dialog: MatDialog,
     private _snackBar: MatSnackBar,
-    private cardService: CardService,
     private cardContentService: CardContentService,
     public cardDetailsStore: CardDetailsStore,
   ) {
@@ -51,23 +47,23 @@ export class CardDetailsComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.route.queryParams.subscribe((params) => {
+    const appWindow = getCurrentWindow();
+    this.route.paramMap.subscribe((params) => {
       if (this.editor) {
         this.cardContentService.cardContent.next(this.editor.getContents());
       }
-      this.cardId = +params["id"];
+      const cardId = params.get("id");
+      if (cardId) {
+        this.cardId = Number(cardId);
+      }
       this.cardDetailsStore.loadStackOfCards(this.cardId);
       this.cardContentService.setCardId(this.cardId);
       listen("set-focus-to", async () => {
-        console.log("set-focus-to");
         await appWindow.setFocus();
       });
     });
 
-    this.cardService.readCardTitleMapping().then((ctm) => {
-      this.cardTitleMapping = ctm;
-    });
-    appWindow.onCloseRequested(async () => {
+    await appWindow.onCloseRequested(async () => {
       this.cardContentService.cardContent.next(this.editor.getContents());
       await this.cardContentService.saveCardContent();
     });
@@ -84,7 +80,7 @@ export class CardDetailsComponent implements OnInit {
         id: marker[0].id ?? 0,
       });
     } else {
-      let bounds = this.markerService.getBounds(marker);
+      const bounds = this.markerService.getBounds(marker);
       emit("panToBounds", {
         minLat: bounds.getSouthWest().lat,
         minLng: bounds.getSouthWest().lng,
@@ -93,26 +89,5 @@ export class CardDetailsComponent implements OnInit {
         markerIds: marker.map((marker) => marker.id ?? 0),
       });
     }
-  }
-
-  openUpdateDialog(currentCard: CardDB) {
-    const dialogRef = this.dialog.open(CardUpdateModalComponent, {
-      data: {
-        currentCard,
-      },
-      enterAnimationDuration: "200ms",
-      exitAnimationDuration: "150ms",
-    });
-    dialogRef.componentInstance.deleted.subscribe((data: boolean) => {
-      if (data === true) {
-        this._snackBar.open("Seite gelöscht", "⌫");
-        dialogRef.close();
-      }
-    });
-    dialogRef.componentInstance.updated.subscribe((data: boolean) => {
-      if (data === true) {
-        this._snackBar.open("Änderungen gespeichert!", "💾");
-      }
-    });
   }
 }

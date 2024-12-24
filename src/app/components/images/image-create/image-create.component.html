@@ -13,12 +13,12 @@
         mat-fab
         color="primary"
         aria-label="Example icon button with a delete icon"
-        (click)="openFileBroser()"
+        (click)="openFileBrowser()"
       >
         <mat-icon>folder_open</mat-icon>
       </button>
     </div>
-    <div class="image-drop-box">
+    <div class="image-drop-box" [ngClass]="{ 'is-hovered': this.isHovered }">
       @if (!image) {
         <mat-icon> perm_media </mat-icon>
       }
@@ -37,7 +37,6 @@
     mat-button
     [mat-dialog-close]="true"
     [disabled]="!image"
-    cdkFocusInitial
     (click)="onSaveImage()"
   >
     Save

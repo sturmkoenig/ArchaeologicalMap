@@ -1,13 +1,24 @@
 import { Injectable } from "@angular/core";
 import { ComponentStore } from "@ngrx/component-store";
-import { Observable, combineLatest, from, of, switchMap, tap } from "rxjs";
+import {
+  combineLatest,
+  EMPTY,
+  from,
+  map,
+  Observable,
+  of,
+  switchMap,
+  tap,
+} from "rxjs";
 import { CardDB } from "../model/card";
-import { CardService } from "../services/card.service";
+import { CardService } from "@service/card.service";
 import { ImageEntity } from "../model/image";
-import { ImageService } from "../services/image.service";
+import { ImageService } from "@service/image.service";
+import { Stack } from "@app/model/stack";
 
 export enum status {
   loaded,
+
   loading,
 }
 
@@ -18,6 +29,7 @@ export type CardDetailsState =
       previousCard?: CardDB;
       currentCard: CardDB;
       currentImage?: ImageEntity;
+      currentStack?: Stack;
       nextCard?: CardDB;
       cardsInStack: CardDB[];
     }
@@ -66,6 +78,12 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
     }
     return state.currentImage;
   });
+  readonly currentStack$ = this.select((state) => {
+    if (state.status === status.loading) {
+      return undefined;
+    }
+    return state.currentStack;
+  });
 
   readonly previousCardId$ = this.select((state) => {
     if (state.status === status.loading) {
@@ -94,70 +112,77 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
       return state.currentStackId;
     }
   });
-  readonly setAllCards = this.updater((state, newState: any) => {
-    return {
-      status: status.loaded,
-      cardsInStack: newState.cardsInStack,
-      currentStackId: newState.currentStackId,
-      previousCard: newState.previousCard,
-      currentCard: newState.currentCard,
-      nextCard: newState.nextCard,
-    };
-  });
+  readonly setAllCards = this.updater(
+    (state, newState: Extract<CardDetailsState, { status: status.loaded }>) => {
+      return {
+        status: status.loaded,
+        cardsInStack: newState.cardsInStack,
+        currentStackId: newState.currentStackId,
+        currentStack: newState.currentStack,
+        previousCard: newState.previousCard,
+        currentCard: newState.currentCard,
+        nextCard: newState.nextCard,
+      };
+    },
+  );
 
   readonly loadStackOfCards = this.effect((cardId$: Observable<number>) => {
-    let card$ = cardId$.pipe(
+    const card$ = cardId$.pipe(
       switchMap((cardId) => {
         return this.cardService.readCard(cardId);
       }),
     );
     return combineLatest([card$, this.currentStackId$]).pipe(
       switchMap(([card, currentStackId]) => {
-        if (!card.stack_id) {
-          return of(
-            this.setAllCards({
+        if (card.stack_id === undefined || card.stack_id === null) {
+          this.setAllCards(
+            of({
               status: status.loaded,
-              currentCardIndex: 0,
               currentCard: card,
               cardsInStack: [card],
             }),
           );
+          return EMPTY;
         }
 
         if (currentStackId && currentStackId === card.stack_id) {
           this.updateCurrentCard(card.id!);
-          return of();
+          return EMPTY;
         }
 
         return from(this.cardService.getAllCardsForStack(card.stack_id)).pipe(
-          tap({
-            next: (allCardsInStack) => {
-              allCardsInStack.sort((card, nextCard) =>
-                card.title.localeCompare(nextCard.title),
-              );
-              let currentCardIndex: number = allCardsInStack.findIndex(
-                (x) => x.id === card.id,
-              );
-
-              let { previousCard, nextCard } =
-                this.calculateNextAndPreviousCard(
-                  allCardsInStack,
-                  currentCardIndex,
-                );
-
-              this.setAllCards({
-                status: status.loaded,
-                previousCard: previousCard,
-                currentCardIndex: currentCardIndex,
-                currentStackId: card.stack_id,
-                nextCard: nextCard,
-                currentCard: card,
-                cardsInStack: allCardsInStack,
-              });
-            },
-            error: (e) => console.error(e),
-          }),
+          map((cards: { stack: Stack; cards: CardDB[] }) => ({
+            cards: cards.cards,
+            stack: cards.stack,
+            card,
+          })),
         );
+      }),
+      tap({
+        next: ({ cards: allCardsInStack, stack, card: card }) => {
+          allCardsInStack.sort((card, nextCard) =>
+            card.title.localeCompare(nextCard.title),
+          );
+          const currentCardIndex: number = allCardsInStack.findIndex(
+            (x) => x.id === card.id,
+          );
+
+          const { previousCard, nextCard } = this.calculateNextAndPreviousCard(
+            allCardsInStack,
+            currentCardIndex,
+          );
+
+          this.setAllCards({
+            status: status.loaded,
+            previousCard: previousCard,
+            currentStackId: card.stack_id ?? undefined,
+            currentStack: stack,
+            nextCard: nextCard,
+            currentCard: card,
+            cardsInStack: allCardsInStack,
+          });
+        },
+        error: (e) => console.error(e),
       }),
     );
   });
@@ -173,7 +198,7 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
       return imageId$.pipe(
         switchMap((imageId) => {
           if (imageId === undefined || imageId === null) {
-            return of(undefined);
+            return EMPTY;
           } else {
             return this.imageService.readImage(imageId);
           }
@@ -192,10 +217,10 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
     if (state.status === status.loading) {
       return state;
     }
-    let currentCardIndex: number = state.cardsInStack.findIndex(
+    const currentCardIndex: number = state.cardsInStack.findIndex(
       (x) => x.id === cardId,
     );
-    let { nextCard, previousCard } = this.calculateNextAndPreviousCard(
+    const { nextCard, previousCard } = this.calculateNextAndPreviousCard(
       state.cardsInStack,
       currentCardIndex,
     );

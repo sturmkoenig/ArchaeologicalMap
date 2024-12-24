@@ -1,51 +1,61 @@
 import { Injectable } from "@angular/core";
-import { fs } from "@tauri-apps/api";
-import {
-  BaseDirectory,
-  appConfigDir,
-  appDataDir,
-  join,
-} from "@tauri-apps/api/path";
-import { LatLng, LatLngBounds, LatLngBoundsExpression } from "leaflet";
+import { BaseDirectory } from "@tauri-apps/api/path";
+import { LatLngBounds, MarkerClusterGroupOptions } from "leaflet";
+import * as fs from "@tauri-apps/plugin-fs";
+
+export type MapSettings = {
+  initialMapBounds?: LatLngBounds;
+  maxZoomLevel?: number;
+  markerClusterGroupOptions: MarkerClusterGroupOptions;
+  showLabels?: boolean;
+};
+
+type MapSettingsWritten = {
+  initialMapBounds?: {
+    _southWest: [number, number];
+    _northEast: [number, number];
+  };
+  maxZoomLevel?: number;
+  markerClusterGroupOptions: MarkerClusterGroupOptions;
+  showLabels?: boolean;
+};
 
 @Injectable({
   providedIn: "root",
 })
 export class SettingService {
   mapSettingsFileName: string = "map-settings.json";
-  constructor() {}
 
-  async setIconSizeSettings() {}
-
-  async getIconSizeSettings() {}
-
-  async saveMapBoundingBox(latLngBounds: LatLngBoundsExpression) {
-    await fs.writeFile(this.mapSettingsFileName, JSON.stringify(latLngBounds), {
-      dir: BaseDirectory.AppData,
-    });
+  async getMapSettings(): Promise<MapSettings> {
+    return this.readMapSettingsFile();
+  }
+  async updateMapSettings(mapSettings: Partial<MapSettings>): Promise<void> {
+    const currentMapSettings = await this.readMapSettingsFile();
+    await fs.writeTextFile(
+      this.mapSettingsFileName,
+      JSON.stringify({ ...currentMapSettings, ...mapSettings }),
+      {
+        baseDir: BaseDirectory.AppData,
+      },
+    );
   }
 
-  async loadMapBoundingBox(): Promise<any> {
-    let mapSettingsExist: boolean = await fs.exists(this.mapSettingsFileName, {
-      dir: BaseDirectory.AppData,
-    });
-    if (!mapSettingsExist) {
-      return undefined;
-    }
-    return fs
-      .readTextFile(this.mapSettingsFileName, { dir: BaseDirectory.AppData })
-      .then((mapSettings) => {
-        let response = JSON.parse(mapSettings);
-        let southWest: LatLng = new LatLng(
-          response._southWest.lat,
-          response._southWest.lng
-        );
-        let northEast: LatLng = new LatLng(
-          response._northEast.lat,
-          response._northEast.lng
-        );
-        let latLngBounds: LatLngBounds = new LatLngBounds(southWest, northEast);
-        return latLngBounds;
+  async readMapSettingsFile(): Promise<MapSettings> {
+    return await fs
+      .readTextFile(this.mapSettingsFileName, {
+        baseDir: BaseDirectory.AppData,
+      })
+      .then((content) => {
+        const settings: MapSettingsWritten = JSON.parse(content);
+        return {
+          ...settings,
+          initialMapBounds: settings.initialMapBounds
+            ? new LatLngBounds(
+                settings.initialMapBounds._southWest,
+                settings.initialMapBounds._northEast,
+              )
+            : undefined,
+        };
       });
   }
 }

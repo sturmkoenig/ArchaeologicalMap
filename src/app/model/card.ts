@@ -27,7 +27,7 @@ export interface CardDB {
   description: string;
   markers: MarkerDB[];
   region_image_id?: number;
-  stack_id?: number;
+  stack_id?: number | null;
 }
 
 export interface MarkerDB {

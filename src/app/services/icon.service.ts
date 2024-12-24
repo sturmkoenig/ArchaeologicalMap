@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
-import { fs } from "@tauri-apps/api";
-import { BaseDirectory, appDataDir } from "@tauri-apps/api/path";
+import { BaseDirectory } from "@tauri-apps/api/path";
+import * as fs from "@tauri-apps/plugin-fs";
 
 const ICON_SIZE_SETTINGS_FILE = "icon-size.settings.json";
 
@@ -179,7 +179,7 @@ export const iconsSorted = {
 export class IconService {
   constructor() {}
 
-  getIconPath(iconType: keyof typeof ICONS): String {
+  getIconPath(iconType: keyof typeof ICONS): string {
     if (ICONS[iconType]) {
       return ICONS[iconType];
     }
@@ -197,14 +197,14 @@ export class IconService {
     const iconSizeSettingsExist: boolean = await fs.exists(
       ICON_SIZE_SETTINGS_FILE,
       {
-        dir: BaseDirectory.AppData,
+        baseDir: BaseDirectory.AppData,
       },
     );
 
     if (iconSizeSettingsExist) {
       await fs
         .readTextFile(ICON_SIZE_SETTINGS_FILE, {
-          dir: BaseDirectory.AppData,
+          baseDir: BaseDirectory.AppData,
         })
         .then((iconSettings) => {
           iconSizeSettings = JSON.parse(iconSettings);
@@ -224,14 +224,15 @@ export class IconService {
     // add new setting
     iconSizeSettings.set(iconKey, iconSize);
     const iconSizeSettingsArray: IconSizeSetting[] = [];
-    for (let [key, value] of iconSizeSettings) {
+    for (const [key, value] of iconSizeSettings) {
       iconSizeSettingsArray.push({ iconType: key, iconSize: value });
     }
     const iconSettingString = JSON.stringify(iconSizeSettingsArray);
     // write new settings
+    const enc = new TextEncoder(); // always utf-8
     await fs
-      .writeFile(ICON_SIZE_SETTINGS_FILE, iconSettingString, {
-        dir: BaseDirectory.AppData,
+      .writeFile(ICON_SIZE_SETTINGS_FILE, enc.encode(iconSettingString), {
+        baseDir: BaseDirectory.AppData,
       })
       .catch((e) => {
         console.error("error writing icon size settings", e);
@@ -239,7 +240,7 @@ export class IconService {
   }
 
   async getIconSizeSettings(): Promise<Map<IconKeys, number>> {
-    let iconSizeSettingMap: Map<IconKeys, number> = new Map();
+    const iconSizeSettingMap: Map<IconKeys, number> = new Map();
     const iconSizeSettings: IconSizeSetting[] =
       await this.readIconSizeSettings();
     iconSizeSettings.forEach((iconSizeSetting) => {

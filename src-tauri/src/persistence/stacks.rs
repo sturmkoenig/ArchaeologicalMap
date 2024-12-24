@@ -10,6 +10,7 @@ use app::{
 };
 use diesel::expression_methods::ExpressionMethods;
 use diesel::{select, QueryDsl, SqliteConnection};
+use app::schema::stack::id;
 
 pub fn query_create_stack(conn: &mut SqliteConnection, new_stack: &NewStack) -> Stack {
     diesel::insert_into(stack::table)
@@ -43,6 +44,12 @@ pub fn query_all_stacks(conn: &mut SqliteConnection) -> Vec<Stack> {
     stack::table
         .load::<Stack>(conn)
         .expect("could not load all stacks from database")
+}
+
+pub fn query_stack_by_id(conn: &mut SqliteConnection, stack_id: i32) -> Stack {
+    stack::table.find(stack_id)
+        .first(conn)
+        .expect(&format!("could not load the stack with stackId {}", stack_id))
 }
 
 pub fn query_delete_stack(conn: &mut SqliteConnection, stack_id: i32) {

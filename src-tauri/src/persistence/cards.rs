@@ -1,5 +1,5 @@
 use app::last_insert_rowid;
-use app::models::{CardDTO, CardTitleMapping, Marker, NewCard};
+use app::models::{CardDTO,  Marker, NewCard};
 use app::schema::cards::{id, title};
 use app::schema::{self, marker};
 use app::{models::Card, schema::cards};
@@ -32,7 +32,7 @@ pub fn query_card_by_id(conn: &mut SqliteConnection, card_id: i32) -> CardDTO {
     let card: Card = cards::table
         .find(card_id)
         .first(conn)
-        .expect("Error loading posts");
+        .expect("Error loading sqlite");
     let markers: Vec<Marker> = marker::table
         .filter(marker::card_id.eq(card_id))
         .load(conn)
@@ -42,20 +42,7 @@ pub fn query_card_by_id(conn: &mut SqliteConnection, card_id: i32) -> CardDTO {
     card_dto.markers = marker_dtos;
     return card_dto;
 }
-pub fn query_card_names(conn: &mut SqliteConnection) -> Vec<CardTitleMapping> {
-    let mut card_mapping: Vec<CardTitleMapping> = Vec::new();
-    let query_result: Vec<(i32, String)> = cards::table
-        .select((id, title))
-        .load(conn)
-        .expect("Error creating cache");
-    for res in query_result {
-        card_mapping.push(CardTitleMapping {
-            id: (res.0),
-            title: (res.1),
-        });
-    }
-    return card_mapping;
-}
+
 pub fn query_delete_card(conn: &mut SqliteConnection, card_id: i32) -> Result<(), String> {
     let result = diesel::delete(cards::table.filter(id.eq(card_id))).execute(conn);
     match result {

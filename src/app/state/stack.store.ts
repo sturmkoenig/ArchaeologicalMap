@@ -4,7 +4,7 @@ import { Stack, StackPost } from "../model/stack";
 import { EMPTY, Observable, catchError, from, switchMap, tap } from "rxjs";
 import { StackService } from "../services/stack.service";
 import { path } from "@tauri-apps/api";
-import { convertFileSrc } from "@tauri-apps/api/tauri";
+import { convertFileSrc } from "@tauri-apps/api/core";
 
 export interface StackState {
   stacks: Stack[];
@@ -29,7 +29,7 @@ export class StackStore extends ComponentStore<StackState> {
   readonly loadStacks = this.effect<void>(() =>
     from(this.stackService.getAll()).pipe(
       tap((stacks: Stack[]) => {
-        for (let stack of stacks) {
+        for (const stack of stacks) {
           this.getImageUrl(stack.image_name).then((imageUrl) => {
             if (imageUrl !== undefined) {
               stack.image_name = imageUrl.toString();
@@ -37,8 +37,8 @@ export class StackStore extends ComponentStore<StackState> {
           });
         }
         this.setAllStacks(stacks);
-      })
-    )
+      }),
+    ),
   );
   readonly deleteStack = this.effect((deleteStack$: Observable<Stack>) => {
     return deleteStack$.pipe(
@@ -47,9 +47,9 @@ export class StackStore extends ComponentStore<StackState> {
       }),
       switchMap((deleteStack: Stack) => {
         return from(
-          this.stackService.deleteStack(deleteStack.id, deleteStack.image_name)
+          this.stackService.deleteStack(deleteStack.id, deleteStack.image_name),
         );
-      })
+      }),
     );
   });
 
@@ -59,31 +59,25 @@ export class StackStore extends ComponentStore<StackState> {
         from(this.stackService.createStack(newStack)).pipe(
           tap({
             next: (stack: Stack) => {
-              let imageUrl = this.getImageUrl(stack.image_name).then(
-                (imageUrl) => {
-                  if (imageUrl !== undefined) {
-                    stack.image_name = imageUrl.toString();
-                  }
-                  this.addStack(stack);
+              this.getImageUrl(stack.image_name).then((imageUrl) => {
+                if (imageUrl !== undefined) {
+                  stack.image_name = imageUrl.toString();
                 }
-              );
+                this.addStack(stack);
+              });
             },
             error: (e) => console.error(e),
           }),
-          catchError(() => EMPTY)
-        )
-      )
+          catchError(() => EMPTY),
+        ),
+      ),
     );
   });
 
-  private getImageUrl(image_name: string): Promise<void | String> {
-    return path.appDataDir().then((dataDir) => {
-      return path
-        .join(dataDir, "content", "images", image_name)
-        .then((imagePath) => {
-          return convertFileSrc(imagePath);
-        });
-    });
+  private async getImageUrl(image_name: string): Promise<void | string> {
+    const dataDir = await path.appDataDir();
+    const imagePath = await path.join(dataDir, "content", "images", image_name);
+    return convertFileSrc(imagePath);
   }
 
   constructor(private stackService: StackService) {

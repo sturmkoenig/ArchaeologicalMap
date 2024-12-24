@@ -1,88 +1,87 @@
-      .button {
-        z-index: 1000;
-      }
-      .round-button__add {
-        display: absolute;
-        position: fixed;
-        bottom: 50px;
-        right: 50px;
-      }
+.button {
+  z-index: 1000;
+}
+.round-button__add {
+  display: absolute;
+  position: fixed;
+  bottom: 50px;
+  right: 50px;
+}
 
-      .round-button__settings {
-        display: absolute;
-        position: fixed;
-        bottom: 150px;
-        right: 50px;
-      }
+.round-button__settings {
+  display: absolute;
+  position: fixed;
+  bottom: 150px;
+  right: 50px;
+}
+
+.overview-map--container {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: row;
+}
+.crud-card--container {
+  position: relative;
+  width: 400px;
+  border-left: 10px solid #f3f4f4;
+  &__update-card {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  &__toggle {
+    position: absolute;
+    width: 20px;
+    top: 50%;
+    z-index: 1000;
+    transform: translateX(-30px);
+  }
+}
+.overview-map {
+  flex-grow: 1;
+  overflow: hidden;
+}
+.fade-in {
+  animation: ease-in 1s;
+}
+.map-container {
+  width: 100%;
+  height: 100%;
+  // cursor: url("/assets/icons/misc_black_cursor.png"), pointer;
+}
+.marker-input {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  &__buttons {
+    width: 70%;
+    &--marker-options {
+      display: flex;
+      // flex-wrap: wrap;
+      gap: 10px;
+    }
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+.bounce2 {
+}
+@keyframes fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.5;
+  }
+}
 
 
-      .overview-map--container {
-        display: flex;
-        height: 100%;
-        width: 100%;
-        flex-direction: row;
-      }
-      .crud-card--container {
-        position: relative;
-        width: 400px;
-        border-left: 10px solid #f3f4f4;
-        &__update-card {
-          height: 100%;
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
-        &__toggle {
-          position: absolute;
-          width: 20px;
-          top: 50%;
-          z-index: 1000;
-          transform: translateX(-30px);
-        }
-      }
-      .overview-map {
-        flex-grow: 1;
-        overflow: hidden;
-      }
-      .fade-in {
-        animation: ease-in 1s;
-      }
-      .map-container {
-        width: 100%;
-        height: 100%;
-        // cursor: url("/assets/icons/misc_black_cursor.png"), pointer;
-      }
-      .marker-input {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 2rem;
-        &__buttons {
-          width: 70%;
-          &--marker-options {
-            display: flex;
-            // flex-wrap: wrap;
-            gap: 10px;
-          }
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-      }
-      .bounce2 {
-      }
-      @keyframes fade {
-        from {
-          opacity: 1;
-        }
-        to {
-          opacity: 0.5;
-        }
-      }
-
-      :host ::ng-deep .highlighted {
-        animation: fade 0.5s ease infinite alternate;
-      }
- 
+:host ::ng-deep .highlighted {
+  animation: fade 0.5s ease infinite alternate;
+}

@@ -29,7 +29,7 @@ export class CardDeleteDialogComponent {
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private cardService: CardService
+    private cardService: CardService,
   ) {}
 
   onDeleteCard(id: number) {

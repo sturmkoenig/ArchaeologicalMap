@@ -7,12 +7,13 @@ import {
   IconCategoriesKeys,
   IconKeys,
   IconSizeSetting,
-} from "src/app/services/icon.service";
-import { MarkerButtonToggleComponent } from "src/app/components/markers/marker-button-toggle/marker-button-toggle.component";
+} from "@service/icon.service";
+import { MarkerButtonToggleComponent } from "@app/components/markers/marker-button-toggle/marker-button-toggle.component";
 import { MatIconModule } from "@angular/material/icon";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
+import { MatCard, MatCardContent } from "@angular/material/card";
 
 @Component({
   selector: "app-icon-size-settings",
@@ -24,46 +25,50 @@ import { MatButtonModule } from "@angular/material/button";
     MatIconModule,
     MatButtonModule,
     MatInputModule,
+    MatCard,
+    MatCardContent,
   ],
   template: `
     <div class="icons-settings">
       @for (iconCategory of iconsSorted | keyvalue; track iconCategory) {
-        <div class="icon-setting">
-          <div class="selected-icon-configurator">
-            <img
-              class="selected-icon-configurator__img"
-              [src]="getIconPath(getSelectedIcon(iconCategory.key))"
-            />
-            <div class="selected-icon-configurator__form">
-              <mat-form-field appearance="outline">
-                <mat-label>Value</mat-label>
-                <input
-                  matInput
-                  type="number"
-                  [value]="
-                    getPixelSizeForIcon(
-                      asIconKey(getSelectedIcon(iconCategory.key))
-                    )
-                  "
-                  (change)="
-                    onPixelSizeChange(
-                      asIconKey(getSelectedIcon(iconCategory.key)),
-                      $event
-                    )
-                  "
-                  [min]="5"
-                  [max]="40"
-                />
-              </mat-form-field>
+        <mat-card class="icon-settings">
+          <mat-card-content>
+            <div class="selected-icon-configurator">
+              <img
+                class="selected-icon-configurator__img"
+                [src]="getIconPath(getSelectedIcon(iconCategory.key))"
+              />
+              <div class="selected-icon-configurator__form">
+                <mat-form-field appearance="outline">
+                  <mat-label>Value</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    [value]="
+                      getPixelSizeForIcon(
+                        asIconKey(getSelectedIcon(iconCategory.key))
+                      )
+                    "
+                    (change)="
+                      onPixelSizeChange(
+                        asIconKey(getSelectedIcon(iconCategory.key)),
+                        $event
+                      )
+                    "
+                    [min]="5"
+                    [max]="40"
+                  />
+                </mat-form-field>
+              </div>
             </div>
-          </div>
-          <app-marker-button-toggle
-            (selectedIcon)="
-              selectIconforCategory(asCategory(iconCategory.key), $event)
-            "
-            [iconCategory]="typeCastToIconCategory(iconCategory.key)"
-          ></app-marker-button-toggle>
-        </div>
+            <app-marker-button-toggle
+              (selectedIcon)="
+                selectIconforCategory(asCategory(iconCategory.key), $event)
+              "
+              [iconCategory]="typeCastToIconCategory(iconCategory.key)"
+            ></app-marker-button-toggle>
+          </mat-card-content>
+        </mat-card>
       }
     </div>
   `,
@@ -101,7 +106,7 @@ export class IconSizeSettingsComponent {
     iconService
       .getIconSizeSettings()
       .then((oldIconSizeSettings: Map<IconKeys, number>) => {
-        for (let iconCat of Object.keys(IconCategories)) {
+        for (const iconCat of Object.keys(IconCategories)) {
           this.selectedIconsMap.set(
             iconCat as IconCategoriesKeys,
             IconService.getIconNameByPath(
@@ -109,7 +114,7 @@ export class IconSizeSettingsComponent {
             ),
           );
         }
-        for (let icon of Object.keys(ICONS)) {
+        for (const icon of Object.keys(ICONS)) {
           this.iconSizeMap.set(
             icon as IconKeys,
             oldIconSizeSettings.get(icon as IconKeys) ?? 20,
@@ -138,7 +143,7 @@ export class IconSizeSettingsComponent {
   }
 
   getSelectedIcon(iconCategory: any) {
-    let selectedIcon = this.selectedIconsMap.get(iconCategory);
+    const selectedIcon = this.selectedIconsMap.get(iconCategory);
     return selectedIcon ?? ICONS.iconMiscBlack;
   }
 

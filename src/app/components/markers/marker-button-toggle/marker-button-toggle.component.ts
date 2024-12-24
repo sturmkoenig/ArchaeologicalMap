@@ -2,7 +2,11 @@ import { Component, EventEmitter, Input, Output } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
-import { ICONS, IconService, iconsSorted } from "src/app/services/icon.service";
+import {
+  ICONS,
+  IconService,
+  iconsSorted,
+} from "../../../services/icon.service";
 
 @Component({
   selector: "app-marker-button-toggle",

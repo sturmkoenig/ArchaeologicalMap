@@ -1,3 +1,9 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+
 .image-create {
   margin: 20px;
   display: flex;
@@ -16,6 +22,11 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+
+  &.is-hovered {
+    background-color: lightblue;
+    transform: scale(1.1);
+  }
 }
 
 .image-props {
@@ -23,6 +34,7 @@
   flex-direction: row;
   gap: 1rem;
 }
+
 .image-upload {
   display: flex;
   flex-direction: row;

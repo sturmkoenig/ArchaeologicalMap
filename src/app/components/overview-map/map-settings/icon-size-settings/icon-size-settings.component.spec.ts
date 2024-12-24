@@ -1,10 +1,9 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 
-import { IconSizeSettingsComponent } from "./icon-size-settings.component";
+import { IconSizeSettingsComponent } from "@app/components/overview-map/map-settings/icon-size-settings/icon-size-settings.component";
 import { By } from "@angular/platform-browser";
-import { MarkerButtonToggleComponent } from "src/app/components/markers/marker-button-toggle/marker-button-toggle.component";
-import { iconsSorted } from "src/app/services/icon.service";
-import { computed } from "@angular/core";
+import { MarkerButtonToggleComponent } from "@app/components/markers/marker-button-toggle/marker-button-toggle.component";
+import { iconsSorted } from "@service/icon.service";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";

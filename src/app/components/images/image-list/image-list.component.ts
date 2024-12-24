@@ -1,17 +1,17 @@
 import { AsyncPipe, NgForOf } from "@angular/common";
-import { Component, Inject, OnInit } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MatButton, MatButtonModule } from "@angular/material/button";
+import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { MatDialogRef } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
-import { MatPaginatorModule } from "@angular/material/paginator";
+import { MatPaginatorModule, PageEvent } from "@angular/material/paginator";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { Subject, debounceTime } from "rxjs";
-import { ImageEntity } from "src/app/model/image";
-import { ImageService } from "src/app/services/image.service";
+import { debounceTime, Subject } from "rxjs";
+import { ImageEntity } from "@app/model/image";
+import { ImageService } from "@service/image.service";
 
 @Component({
   selector: "app-image-list",
@@ -42,7 +42,6 @@ export class ImageListComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<ImageListComponent>,
     private imageService: ImageService,
-    @Inject(MAT_DIALOG_DATA) public data: any,
     private _snackBar: MatSnackBar,
   ) {}
 
@@ -71,7 +70,8 @@ export class ImageListComponent implements OnInit {
   onSelectImage(image: ImageEntity) {
     this.dialogRef.close(image);
   }
-  changePage(event: any) {
+
+  changePage(event: PageEvent) {
     this.pageIndex = event.pageIndex;
     this.itemsPerPage = event.pageSize;
     this.updatePage();
@@ -96,7 +96,7 @@ export class ImageListComponent implements OnInit {
       });
   }
 
-  changeImageName(image: ImageEntity, newName: any) {
+  changeImageName(image: ImageEntity, newName: string) {
     this.imageService.updateImageName(image.id, newName);
   }
 }
