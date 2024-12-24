@@ -1,9 +1,3 @@
-@use 'sass:map';
-@use '@angular/material' as mat;
-
-@include mat.core();
-
-
 .image-create {
   margin: 20px;
   display: flex;
