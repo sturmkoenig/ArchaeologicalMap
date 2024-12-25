@@ -41,23 +41,18 @@ export class SettingService {
   }
 
   async readMapSettingsFile(): Promise<MapSettings> {
-    console.log("reading map settings...");
     return await fs
       .readFile(this.mapSettingsFileName, {
         baseDir: BaseDirectory.AppData,
       })
       .catch((error) => {
-        console.log("could not read file");
         return JSON.stringify({ markerClusterGroupOptions: {} });
       })
       .then((content: any) => {
-        console.log("read content from: ", BaseDirectory.AppData);
         const decoder = new TextDecoder("utf-8");
-        console.log("read content: ", decoder.decode(content));
         const settings: MapSettingsWritten = JSON.parse(
           decoder.decode(content),
         );
-        console.log("parsed content: ", settings);
         const returnVal = {
           ...settings,
           initialMapBounds: settings.initialMapBounds
@@ -67,7 +62,6 @@ export class SettingService {
               )
             : undefined,
         };
-        console.log("will return: ", returnVal);
         return returnVal;
       });
   }
