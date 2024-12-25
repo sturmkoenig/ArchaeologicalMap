@@ -10,11 +10,9 @@ export class CardService {
   getAllCardsForStack(
     stack_id: number,
   ): Promise<{ stack: Stack; cards: CardDB[] }> {
-    console.log("stack id", stack_id);
     return invoke<[Stack, CardDB[]]>("get_cards_in_stack", {
       stackId: stack_id,
     }).then((result) => {
-      console.log(result);
       return { stack: result[0], cards: result[1] };
     });
   }

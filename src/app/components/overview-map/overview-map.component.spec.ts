@@ -18,9 +18,10 @@ import { NgIf } from "@angular/common";
 import { MapSettingsComponent } from "@app/components/overview-map/map-settings/map-settings.component";
 import { CardInputComponent } from "@app/components/cards/card-input/card-input.component";
 import { from } from "rxjs";
-import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import { readFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { StackStore } from "@app/state/stack.store";
 import { MarkerAM } from "@app/model/markerAM";
+import { DivIconOptions } from "leaflet";
 
 jest.mock("@tauri-apps/api/event", () => {
   return {
@@ -44,7 +45,7 @@ jest.mock("@tauri-apps/api/webviewWindow", () => ({
 
 jest.mock("@tauri-apps/plugin-fs", () => ({
   writeTextFile: jest.fn(),
-  readTextFile: jest.fn(),
+  readFile: jest.fn(),
 }));
 
 describe("OverviewMapComponent", () => {
@@ -60,7 +61,7 @@ describe("OverviewMapComponent", () => {
     deleteCard: jest.Mock;
     deleteMarker: jest.Mock;
   };
-  let readTextFileMock: jest.Mock;
+  let readFileMock: jest.Mock;
   let writeTextFileMock: jest.Mock;
   let mapSettings: MapSettings;
   let iconServiceMock: { getIconSizeSettings: jest.Mock };
@@ -81,8 +82,11 @@ describe("OverviewMapComponent", () => {
       },
     };
 
-    readTextFileMock = (readTextFile as jest.Mock).mockImplementation(
-      async (...args) => Promise.resolve(JSON.stringify(mapSettings)),
+    readFileMock = (readFile as jest.Mock).mockImplementation(
+      async (...args) => {
+        const textEncoder = new TextEncoder();
+        return Promise.resolve(textEncoder.encode(JSON.stringify(mapSettings)));
+      },
     );
 
     writeTextFileMock = (writeTextFile as jest.Mock).mockImplementation(
@@ -133,7 +137,7 @@ describe("OverviewMapComponent", () => {
   });
 
   it("should have mainLayerGroup property with mocked value", async () => {
-    givenTheCard(testCard);
+    givenTheCard(testCardA);
     whenIClickAButton("add-new-card");
     await whenIClickTheMap();
 
@@ -155,14 +159,14 @@ describe("OverviewMapComponent", () => {
   });
 
   it("should delete selected card", async () => {
-    givenTheCard(testCard);
+    givenTheCard(testCardA);
     whenIClickAButton("add-new-card");
     fixture.detectChanges();
     await whenIClickTheMap();
 
     await component.onDeleteSelectedCard();
 
-    expect(cardServiceMock.deleteCard).toHaveBeenCalledWith(testCard.id!);
+    expect(cardServiceMock.deleteCard).toHaveBeenCalledWith(testCardA.id!);
     expect(component.selectedLayerGroup.getLayers()).toHaveLength(0);
     expect(component.mainLayerGroup.getLayers()).toHaveLength(0);
   });
@@ -183,19 +187,19 @@ describe("OverviewMapComponent", () => {
   });
 
   it("should delete marker", async () => {
-    givenTheCard(testCard);
+    givenTheCard(testCardA);
     whenIClickAButton("add-new-card");
     await whenIClickTheMap();
 
     await component.onDeleteSelectedMarker();
 
-    expect(cardServiceMock.deleteMarker).toHaveBeenCalledWith(testCard.id!);
+    expect(cardServiceMock.deleteMarker).toHaveBeenCalledWith(testCardA.id!);
     expect(component.selectedLayerGroup.getLayers()).toHaveLength(0);
     expect(component.mainLayerGroup.getLayers()).toHaveLength(0);
   });
 
   it("should move existing marker", async () => {
-    givenTheCard(testCard);
+    givenTheCard(testCardA);
     whenIClickAButton("add-new-card");
     await whenIClickTheMap();
 
@@ -206,19 +210,19 @@ describe("OverviewMapComponent", () => {
   });
 
   it("should update icon size of selected layer correctly", async () => {
-    givenTheCard(testCard);
+    givenTheCard(testCardA);
     whenIClickAButton("add-new-card");
     await whenIClickTheMap();
     component.onUpdateIconSize({ iconType: "iconMiscRed", iconSize: 40 });
     const layer: MarkerAM =
       component.selectedLayerGroup.getLayers()[0] as MarkerAM;
-    expect((layer.getIcon().options as any).html).toMatch(
+    expect((layer.getIcon().options as DivIconOptions).html).toMatch(
       "width: 40px; height: 40px",
     );
   });
 
   it("should update icon size of main layer correctly", async () => {
-    givenTheCard(testCard);
+    givenTheCard(testCardA);
     whenIClickAButton("add-new-card");
     await whenIClickTheMap();
 
@@ -232,15 +236,29 @@ describe("OverviewMapComponent", () => {
 
     component.onUpdateIconSize({ iconType: "iconMiscRed", iconSize: 40 });
     const layer: MarkerAM = component.mainLayerGroup.getLayers()[0] as MarkerAM;
-    expect((layer.getIcon().options as any).html).toMatch(
+    expect((layer.getIcon().options as DivIconOptions).html).toMatch(
       "width: 40px; height: 40px",
     );
   });
 
-  const testCard: CardDB = {
+  const testCardA: CardDB = {
     id: 1,
     title: "a",
-    description: "a",
+    description: "a's description",
+    markers: [
+      {
+        latitude: 1,
+        longitude: 1,
+        id: 1,
+        radius: 0,
+        icon_name: "iconMiscRed",
+      },
+    ],
+  };
+  const testCardB: CardDB = {
+    id: 1,
+    title: "b",
+    description: "b's description",
     markers: [
       {
         latitude: 1,

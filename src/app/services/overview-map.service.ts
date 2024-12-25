@@ -196,9 +196,6 @@ export class OverviewMapService {
     if (marker.radiusLayer) {
       marker.visibilityOfRadius(RadiusVisibility.onHover);
       this.radiusLayerGroup.addLayer(marker.radiusLayer);
-      if (!this.radiusLayerGroup.hasLayer(marker.radiusLayer)) {
-        console.log("added");
-      }
     }
   }
 
