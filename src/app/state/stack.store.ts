@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { ComponentStore } from "@ngrx/component-store";
 import { Stack, StackPost } from "../model/stack";
 import { EMPTY, Observable, catchError, from, switchMap, tap } from "rxjs";
-import { StackService } from "../services/stack.service";
+import { StackService } from "@service/stack.service";
 import { path } from "@tauri-apps/api";
 import { convertFileSrc } from "@tauri-apps/api/core";
 

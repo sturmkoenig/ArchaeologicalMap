@@ -1,12 +1,12 @@
 import { Component, NgZone } from "@angular/core";
 import { path } from "@tauri-apps/api";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { listen, TauriEvent, Event } from "@tauri-apps/api/event";
+import { Event } from "@tauri-apps/api/event";
 import { v4 as uuid } from "uuid";
 import { BehaviorSubject } from "rxjs";
-import { StackStore } from "src/app/state/stack.store";
+import { StackStore } from "@app/state/stack.store";
 import * as fs from "@tauri-apps/plugin-fs";
-import { DragDropEvent } from "@tauri-apps/api/webview";
+import { DragDropEvent, getCurrentWebview } from "@tauri-apps/api/webview";
 
 @Component({
   selector: "app-stack-creator",
@@ -28,19 +28,22 @@ import { DragDropEvent } from "@tauri-apps/api/webview";
         </div>
       </div>
 
-      <mat-card class="stack_creator__preview">
-        <mat-card-header>
-          <mat-card-title>{{ stackName }}</mat-card-title>
-        </mat-card-header>
-        <img
-          *ngIf="fileUrl | async"
-          mat-card-image
-          ngSrc="fileUrl | async"
-          alt="stack header image"
-          fill
-        />
-        <mat-card-content></mat-card-content>
-      </mat-card>
+      <div class="card-container">
+        <mat-card class="card">
+          <mat-card-header>
+            <div mat-card-avatar class="example-header-image"></div>
+            <mat-card-title>{{ stackName }}</mat-card-title>
+          </mat-card-header>
+          <img
+            *ngIf="fileUrl$ | async as fileUrl"
+            class="card__image"
+            mat-card-image
+            src="{{ convertFileSrc(fileUrl) }}"
+            alt="stack header image"
+          />
+          <mat-card-content></mat-card-content>
+        </mat-card>
+      </div>
     </div>
   `,
   styles: [
@@ -48,10 +51,24 @@ import { DragDropEvent } from "@tauri-apps/api/webview";
       .stack_creator {
         display: flex;
         flex-direction: row;
+        margin: 20px;
       }
       .stack_creator__preview {
         margin: 20px;
+      }
+
+      .card-container {
         width: 200px;
+        height: 300px;
+      }
+      .card {
+        height: 300px;
+        display: flex;
+
+        &__image {
+          max-height: 100px;
+          object-fit: cover;
+        }
       }
     `,
   ],
@@ -59,18 +76,19 @@ import { DragDropEvent } from "@tauri-apps/api/webview";
 export class StackCreatorComponent {
   stackName: string = "";
   fileName: string = "";
-  fileUrl: BehaviorSubject<string> = new BehaviorSubject("");
+  fileUrl$: BehaviorSubject<string> = new BehaviorSubject("");
 
   constructor(
     private stackStore: StackStore,
     private ngZone: NgZone,
   ) {
-    listen<DragDropEvent>(
-      TauriEvent.DRAG_DROP,
-      (event: Event<DragDropEvent>) => {
-        this.ngZone.run(() => this.fileBrowseHandler(event));
-      },
-    );
+    getCurrentWebview().onDragDropEvent((event) => {
+      this.ngZone.run(async () => {
+        if (event.payload.type === "drop") {
+          await this.fileBrowseHandler(event);
+        }
+      });
+    });
   }
 
   async fileBrowseHandler(event: Event<DragDropEvent>) {
@@ -87,8 +105,7 @@ export class StackCreatorComponent {
         newFileName,
       );
       await fs.copyFile(event.payload.paths[0], copyPath);
-      const fileUrl = convertFileSrc(copyPath);
-      this.fileUrl.next(fileUrl);
+      this.fileUrl$.next(copyPath);
       this.fileName = newFileName;
     }
   }
@@ -102,4 +119,6 @@ export class StackCreatorComponent {
       image_name: this.fileName,
     });
   }
+
+  protected readonly convertFileSrc = convertFileSrc;
 }
