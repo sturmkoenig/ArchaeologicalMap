@@ -7,8 +7,25 @@ import { BehaviorSubject } from "rxjs";
 import { StackStore } from "@app/state/stack.store";
 import * as fs from "@tauri-apps/plugin-fs";
 import { DragDropEvent, getCurrentWebview } from "@tauri-apps/api/webview";
+import { MatDialogModule } from "@angular/material/dialog";
+import { CommonModule } from "@angular/common";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { FormsModule } from "@angular/forms";
+import { MatCardModule } from "@angular/material/card";
+import { MatInputModule } from "@angular/material/input";
+import { MatButtonModule } from "@angular/material/button";
 
 @Component({
+  standalone: true,
+  imports: [
+    MatCardModule,
+    MatDialogModule,
+    CommonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    FormsModule,
+  ],
   selector: "app-stack-creator",
   template: `
     <div class="stack_creator">
