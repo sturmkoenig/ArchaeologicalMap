@@ -10,7 +10,7 @@ import { StackStore } from "src/app/state/stack.store";
   template: `
     <div class="stack-display__container">
       <div class="gridbox">
-        <div *ngFor="let stack of stacks$ | async" class="card__container">
+        <div *ngFor="let stack of stacks$ | async" class="card-container">
           <mat-card class="card">
             <mat-card-header>
               <div mat-card-avatar class="example-header-image"></div>
@@ -56,6 +56,7 @@ import { StackStore } from "src/app/state/stack.store";
       }
       .card {
         height: 300px;
+        width: 200px;
         display: flex;
 
         &__image {
@@ -66,7 +67,7 @@ import { StackStore } from "src/app/state/stack.store";
           margin-top: auto;
         }
       }
-      .card__container {
+      .card-container {
         width: 200px;
         height: 300px;
       }

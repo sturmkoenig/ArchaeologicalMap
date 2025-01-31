@@ -7,3 +7,5 @@ test.db
 
 .nx/cache
 .nx/workspace-data
+/.idea/codeStyles/codeStyleConfig.xml
+/.idea/codeStyles/Project.xml

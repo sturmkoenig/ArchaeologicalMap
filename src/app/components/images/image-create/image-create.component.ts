@@ -53,7 +53,7 @@ export class ImageCreateComponent {
     getCurrentWebview().onDragDropEvent((event) => {
       this.ngZone.run(async () => {
         if (event.payload.type === "drop") {
-          await this.createImages(event.payload.paths);
+          await this.createImage(event.payload.paths);
           this.isHovered = false;
         } else if (event.payload.type === "enter") {
           this.isHovered = true;
@@ -101,7 +101,7 @@ export class ImageCreateComponent {
       });
   }
 
-  async createImages(filePath: string[]): Promise<void> {
+  async createImage(filePath: string[]): Promise<void> {
     if (filePath.length !== 0) {
       this.image = filePath[0];
       this.imageDisplay = convertFileSrc(filePath[0]);

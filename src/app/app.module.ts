@@ -42,7 +42,6 @@ import { CardListComponent } from "./components/cards/card-list/card-list.compon
 import { CardDeleteDialogComponent } from "./components/cards/card-update-modal/card-delete-dialog/card-delete-dialog.component";
 import { CardUpdateModalComponent } from "./components/cards/card-update-modal/card-update-modal.component";
 import { PositionPickerComponent } from "./components/cards/card-wizzard/position-picker/position-picker.component";
-import { StackCreatorComponent } from "./components/stacks/stack-creator/stack-creator.component";
 import { StackDisplayComponent } from "./components/stacks/stack-list/stack-list.component";
 import { EditorComponent } from "./layout/editor/editor.component";
 import { FilterPipe } from "./layout/editor/filter.pipe";
@@ -71,7 +70,6 @@ import { MapSettingsComponent } from "./components/overview-map/map-settings/map
     EditorComponent,
     FilterPipe,
     CardDeleteDialogComponent,
-    StackCreatorComponent,
     StackDisplayComponent,
   ],
   bootstrap: [AppComponent],
