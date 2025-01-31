@@ -59,7 +59,12 @@ import { MatButtonModule } from "@angular/material/button";
       </div>
       <div mat-dialog-actions>
         <button mat-button mat-dialog-close>Abbrechen</button>
-        <button mat-button mat-dialog-close (click)="onSaveStack()">
+        <button
+          mat-button
+          mat-dialog-close
+          data-testid="save-button"
+          (click)="onSaveStack()"
+        >
           Speichern
         </button>
       </div>

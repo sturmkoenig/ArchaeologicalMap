@@ -3,10 +3,12 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { StackStore } from "@app/state/stack.store";
 import { MatCardModule } from "@angular/material/card";
 import { MatDialogModule } from "@angular/material/dialog";
-import { of } from "rxjs";
-import { BrowserModule } from "@angular/platform-browser";
 import { CommonModule } from "@angular/common";
-import { ReactiveFormsModule } from "@angular/forms";
+import { FormsModule } from "@angular/forms";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatInputModule } from "@angular/material/input";
+import { MatButtonModule } from "@angular/material/button";
+import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 
 jest.mock("@tauri-apps/api/webview", () => ({
   getCurrentWebview: () => ({
@@ -29,10 +31,14 @@ describe("StackCreatorComponent", () => {
     } as unknown as StackStore;
     await TestBed.configureTestingModule({
       imports: [
-        CommonModule,
-        ReactiveFormsModule,
         MatCardModule,
         MatDialogModule,
+        CommonModule,
+        MatFormFieldModule,
+        NoopAnimationsModule,
+        MatInputModule,
+        MatButtonModule,
+        FormsModule,
       ],
       providers: [{ provide: StackStore, useValue: stackStoreMock }],
     }).compileComponents();
@@ -41,10 +47,16 @@ describe("StackCreatorComponent", () => {
     fixture.detectChanges();
   });
 
-  it("should display original stacks", () => {
-    const cards = fixture.nativeElement.querySelectorAll(".card__container"); // Get all stack containers
-    expect(cards.length).toBe(2); // Check if there are 2 card containers shown
-    expect(cards[0].textContent).toContain("Stack 1"); // Check contents of the first stack
-    expect(cards[1].textContent).toContain("Stack 2"); // Check contents of the second stack
+  it("given all information when i press the save button createStack should be called", () => {
+    const fileName = "testPicture";
+    const stackName = "testName";
+    component.fileName = fileName;
+    component.fileUrl$.next("/path/to/test/image.png");
+    component.stackName = stackName;
+    component.onSaveStack();
+    expect(stackStoreMock.createStack).toBeCalledWith({
+      name: stackName,
+      image_name: fileName,
+    });
   });
 });
