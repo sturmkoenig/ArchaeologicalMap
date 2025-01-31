@@ -1,6 +1,6 @@
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { getAllWebviews } from "@tauri-apps/api/webview";
-import { emitTo } from "@tauri-apps/api/event";
+import { emit } from "@tauri-apps/api/event";
 
 export const createCardDetailsWindow = async (cardId: number) => {
   await getAllWebviews().then((views) =>
@@ -12,7 +12,7 @@ export const createCardDetailsWindow = async (cardId: number) => {
   });
   webview.once("tauri://error", function (e: unknown) {
     console.error("window creation error: " + JSON.stringify(e));
-    emitTo(cardId.toString(), "set-focus-to");
+    emit(`set-focus-to-${cardId}`);
   });
   webview.once("tauri://created", function () {
     console.log("created");
