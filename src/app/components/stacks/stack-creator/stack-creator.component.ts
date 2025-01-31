@@ -13,36 +13,38 @@ import { DragDropEvent, getCurrentWebview } from "@tauri-apps/api/webview";
   template: `
     <div class="stack_creator">
       <div class="stack_creator__creator">
-        <h1 mat-dialog-title>Karten Stack anlegen</h1>
-        <div mat-dialog-content>
-          <mat-form-field class="example-full-width">
-            <mat-label>Stack Name</mat-label>
-            <input matInput placeholder="" [(ngModel)]="stackName" />
-          </mat-form-field>
-          <div mat-dialog-actions>
-            <button mat-button mat-dialog-close>Abbrechen</button>
-            <button mat-button mat-dialog-close (click)="onSaveStack()">
-              Speichern
-            </button>
+        <div>
+          <h1 mat-dialog-title>Karten Stack anlegen</h1>
+          <div mat-dialog-content>
+            <mat-form-field class="example-full-width">
+              <mat-label>Stack Name</mat-label>
+              <input matInput placeholder="" [(ngModel)]="stackName" />
+            </mat-form-field>
           </div>
         </div>
-      </div>
 
-      <div class="card-container">
-        <mat-card class="card">
-          <mat-card-header>
-            <div mat-card-avatar class="example-header-image"></div>
-            <mat-card-title>{{ stackName }}</mat-card-title>
-          </mat-card-header>
-          <img
-            *ngIf="fileUrl$ | async as fileUrl"
-            class="card__image"
-            mat-card-image
-            src="{{ convertFileSrc(fileUrl) }}"
-            alt="stack header image"
-          />
-          <mat-card-content></mat-card-content>
-        </mat-card>
+        <div class="card-container">
+          <mat-card class="card">
+            <mat-card-header>
+              <div mat-card-avatar class="example-header-image"></div>
+              <mat-card-title>{{ stackName }}</mat-card-title>
+            </mat-card-header>
+            <img
+              *ngIf="fileUrl$ | async as fileUrl"
+              class="card__image"
+              mat-card-image
+              src="{{ convertFileSrc(fileUrl) }}"
+              alt="stack header image"
+            />
+            <mat-card-content></mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+      <div mat-dialog-actions>
+        <button mat-button mat-dialog-close>Abbrechen</button>
+        <button mat-button mat-dialog-close (click)="onSaveStack()">
+          Speichern
+        </button>
       </div>
     </div>
   `,
@@ -50,8 +52,11 @@ import { DragDropEvent, getCurrentWebview } from "@tauri-apps/api/webview";
     `
       .stack_creator {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         margin: 20px;
+        &__creator {
+          display: flex;
+        }
       }
       .stack_creator__preview {
         margin: 20px;
