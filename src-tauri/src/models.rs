@@ -1,7 +1,13 @@
-use crate::schema::{cards, image, marker, stack};
-use diesel::deserialize::FromSqlRow;
+use crate::schema::{cards, image, marker, stack, card_new};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
+
+pub struct CardinalDirections {
+    pub north: f32,
+    pub east: f32,
+    pub south: f32,
+    pub west: f32
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CardDTO {
@@ -12,7 +18,20 @@ pub struct CardDTO {
     pub stack_id: Option<i32>,
     pub region_image_id: Option<i32>,
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct CardUnifiedDTO {
+    pub id: Option<i32>,
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub longitude: f32,
+    pub latitude: f32,
+    pub radius: Option<f32>,
+    pub icon_name: String,
+    pub stack_id: Option<i32>,
+    pub region_image_id: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct MarkerDTO {
     pub id: Option<i32>,
     pub card_id: Option<i32>,
@@ -27,6 +46,30 @@ pub struct ImageDTO {
     pub id: i32,
     pub name: String,
     pub image_source: Option<String>,
+}
+
+
+#[derive(Insertable)]
+#[diesel(table_name = card_new)]
+pub struct NewUnifiedCard<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub longitude: f32,
+    pub latitude: f32,
+    pub radius: f32,
+    pub icon_name: &'a str,
+}
+impl Default for NewUnifiedCard<'_> {
+    fn default() -> Self {
+        NewUnifiedCard {
+            title: "",
+            description: "",
+            longitude: 0.0,
+            latitude: 0.0,
+            radius: 0.0,
+            icon_name: "",
+        }
+    }
 }
 
 #[derive(Insertable)]
@@ -82,6 +125,19 @@ pub struct Card {
 }
 
 #[derive(Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]
+#[diesel(table_name = card_new)]
+pub struct CardUnified {
+    pub id:  i32,
+    pub title:  String,
+    pub description:  String,
+    pub stack_id:  Option<i32>,
+    pub latitude:  f32,
+    pub longitude:  f32,
+    pub radius:  f32,
+    pub icon_name:  String,
+}
+
+#[derive(Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]
 #[diesel(table_name = stack)]
 pub struct Stack {
     pub id: i32,
@@ -133,6 +189,21 @@ impl From<Card> for CardDTO {
             markers: Vec::new(),
             stack_id: c.stack_id,
             region_image_id: c.region_image_id,
+        }
+    }
+}
+impl From<CardUnified> for CardUnifiedDTO {
+    fn from(c: CardUnified) -> Self {
+        Self {
+            id: Some(c.id),
+            title: Some(c.title),
+            description: Some(c.description),
+            longitude: c.longitude,
+            latitude: c.latitude,
+            radius: Some(c.radius),
+            icon_name: c.icon_name,
+            stack_id: c.stack_id,
+            region_image_id: None
         }
     }
 }

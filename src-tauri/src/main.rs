@@ -6,15 +6,15 @@ extern crate diesel;
 extern crate diesel_migrations;
 
 pub mod persistence;
-use app::models::CardDTO;
-use app::models::ImageDTO;
+use app::models::{CardUnified, CardinalDirections, ImageDTO};
 use app::models::Marker;
 use app::models::MarkerDTO;
 use app::models::NewImage;
 use app::models::NewStack;
 use app::models::Stack;
 use app::models::StackDTO;
-use diesel::SqliteConnection;
+use app::models::{CardDTO, CardUnifiedDTO};
+use diesel::{QueryResult, SqliteConnection};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use persistence::cards::query_all_cards;
 use persistence::cards::query_card_by_id;
@@ -36,17 +36,18 @@ use persistence::stacks::query_all_stacks;
 use persistence::stacks::query_create_stack;
 use persistence::stacks::query_delete_stack;
 use persistence::stacks::query_update_stack;
-use tauri_api::path::{app_dir, data_dir, local_data_dir, resolve_path, resource_dir};
+use tauri_api::path::app_dir;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
+use crate::persistence::images::query_update_image;
+use crate::persistence::stacks::query_stack_by_id;
+use crate::persistence::unified_cards::{query_cards_in_geological_area, query_create_unified_card, query_unified_card_by_id};
+use app::{establish_connection, models::Card};
 use std::env;
 use std::fs;
 use std::path::Path;
-use tauri::{AppHandle, Manager};
-use app::{establish_connection, models::Card};
-use crate::persistence::images::query_update_image;
-use crate::persistence::stacks::query_stack_by_id;
+use tauri::{AppHandle, Error, Manager};
 
 // main.rs
 fn main() {
@@ -71,11 +72,14 @@ fn main() {
             write_card_content,
             read_card_content,
             delete_card,
+
+
             create_marker,
             read_marker,
             read_markers_in_area,
             update_marker,
             delete_marker,
+
             create_stack,
             update_stack,
             delete_stack,
@@ -171,7 +175,7 @@ fn read_cards_paginated(page: i64, filter: String) -> Vec<CardDTO> {
             region_image_id: card.region_image_id,
         })
     }
-    return card_dtos;
+    card_dtos
 }
 
 #[tauri::command]
@@ -189,6 +193,19 @@ fn create_card(card: CardDTO) -> CardDTO {
         query_create_marker(conn, card_id, marker);
     }
     read_card(card_id)
+}
+
+fn read_cards_in_area(cardinal_directions: CardinalDirections) -> Result<Vec<CardUnifiedDTO>, String> {
+    let conn = &mut establish_connection();
+
+    query_cards_in_geological_area(conn, cardinal_directions).map(|res|
+        res.into_iter().map(CardUnifiedDTO::from).collect::<Vec<CardUnifiedDTO>>()).map_err(|err| err.to_string())
+}
+
+fn create_unified_card(card: CardUnifiedDTO) -> Option<CardUnifiedDTO> {
+    let conn = &mut establish_connection();
+    let card_id = query_create_unified_card(conn, card);
+    query_unified_card_by_id(conn, card_id)
 }
 
 // TODO may be moved to frontend
@@ -475,8 +492,74 @@ fn update_image_name(image_id: i32, new_name: String) {
 
 #[cfg(test)]
 mod tests {
+    use crate::{create_card, create_unified_card, read_cards, read_cards_in_area, MIGRATIONS};
+    use app::establish_connection;
+    use app::models::{CardDTO, CardUnifiedDTO, CardinalDirections};
+    use diesel_migrations::MigrationHarness;
+    use std::default::Default;
+    use std::env;
+
+    struct TestDb {
+       name: String
+    }
+
+    impl TestDb {
+        fn initialize() -> Self {
+            env::set_var("DB_PATH", "testing.db");
+            let conn = &mut establish_connection();
+            let err = conn.run_pending_migrations(MIGRATIONS);
+            Self {
+                name: "testing.db".to_string()
+            }
+        }
+
+    }
+    impl Drop for TestDb {
+        fn drop(&mut self) {
+            let conn = &mut establish_connection();
+            let err = conn.revert_all_migrations(MIGRATIONS);
+        }
+    }
+    fn given_database_has_card(card: CardUnifiedDTO){
+        create_unified_card(card);
+    }
+
     #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 5);
+    fn it_creates_a_card_with_all_properties_when_a_create_unified_card_command_is_received(){
+        let test_env = initialize_test_env();
+        let titel = "a card".to_string();
+        let description = "a description".to_string();
+        let unified_card = CardUnifiedDTO {
+            title: Some(titel.clone()),
+            description: Some(description.clone()),
+            longitude: 52.0,
+            latitude: 9.0,
+            icon_name: "icon_default".to_string(),
+            ..CardUnifiedDTO::default()
+        };
+
+        let created_card = create_unified_card(unified_card).expect("failed to create card!");
+        assert_ne!(created_card.id, None);
+        assert_eq!(created_card.title.unwrap(), titel);
+        assert_eq!(created_card.description.unwrap(), description);
+        assert_eq!(created_card.longitude, 52.0);
+        assert_eq!(created_card.latitude, 9.0);
+        assert_eq!(created_card.icon_name, "icon_default");
+        assert!(created_card.stack_id.is_none());
+    }
+    fn initialize_test_env() -> TestDb{
+        TestDb::initialize()
+    }
+    #[test]
+    fn it_is_able_to_query_card_by_using_geo_boundaries(){
+        let test_env = initialize_test_env();
+        let want_title = String::from("My wanted Card");
+        given_database_has_card(CardUnifiedDTO::default());
+        given_database_has_card(CardUnifiedDTO { title: Some(want_title.clone()), longitude: 10., latitude: 10., ..Default::default()});
+        let result = read_cards_in_area(CardinalDirections{north:11.0, east:11.0, south: 9., west:9.}).expect("could not read cards in area!");
+        assert_eq!(result.iter().len(), 1);
+        let card = result.get(0).expect("No card found in the result");
+        let got_title = card.title.as_ref().expect("No card title in the result");
+        assert_eq!(got_title, &want_title);
     }
 }

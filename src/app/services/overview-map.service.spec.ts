@@ -208,10 +208,12 @@ describe("OverviewMapService", () => {
     ]);
     await service.updateMapBounds(testLatLngBounds);
     expect(service.mainLayerGroup.getLayers().length).toBe(2);
-    // @ts-ignore
-    expect(service.mainLayerGroup.getLayers()[0].markerId === 0).toBe(true);
-    // @ts-ignore
-    expect(service.mainLayerGroup.getLayers()[1].markerId === 1).toBe(true);
+    expect(
+      (service.mainLayerGroup.getLayers()[0] as MarkerAM).markerId === 0,
+    ).toBe(true);
+    expect(
+      (service.mainLayerGroup.getLayers()[1] as MarkerAM).markerId === 1,
+    ).toBe(true);
   });
 
   it("should load card after marker was selected", async () => {

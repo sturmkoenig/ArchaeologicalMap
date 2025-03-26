@@ -1,8 +1,9 @@
 use app::last_insert_rowid;
-use app::models::{CardDTO,  Marker, NewCard};
+use app::models::{CardDTO, Marker, NewCard};
 use app::schema::cards::{id, title};
 use app::schema::{self, marker};
 use app::{models::Card, schema::cards};
+use diesel::associations::HasTable;
 use diesel::select;
 use diesel::sqlite::SqliteConnection;
 use diesel::{prelude::*, QueryDsl};

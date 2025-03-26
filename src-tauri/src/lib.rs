@@ -1,3 +1,4 @@
+use std::env;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
@@ -23,7 +24,12 @@ pub mod models;
 pub mod schema;
 
 pub fn establish_connection() -> SqliteConnection {
-    let connection_path = get_path_local_dir(String::from("am.db"));
+    let connection_path;
+    match env::var("DB_PATH") {
+        Ok(s) => connection_path = s,
+        _ => connection_path = "am.db".to_string()
+    }
+    let connection_path = get_path_local_dir(connection_path);
     let database_url = connection_path.to_str().unwrap();
 
     SqliteConnection::establish(database_url)
