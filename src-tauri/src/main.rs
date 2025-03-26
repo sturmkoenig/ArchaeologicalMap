@@ -6,7 +6,6 @@ extern crate diesel;
 extern crate diesel_migrations;
 
 pub mod persistence;
-use app::models::{CardUnified, CardinalDirections, ImageDTO};
 use app::models::Marker;
 use app::models::MarkerDTO;
 use app::models::NewImage;
@@ -14,7 +13,8 @@ use app::models::NewStack;
 use app::models::Stack;
 use app::models::StackDTO;
 use app::models::{CardDTO, CardUnifiedDTO};
-use diesel::{QueryResult, SqliteConnection};
+use app::models::{CardinalDirections, ImageDTO};
+use diesel::SqliteConnection;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use persistence::cards::query_all_cards;
 use persistence::cards::query_card_by_id;
@@ -47,7 +47,7 @@ use app::{establish_connection, models::Card};
 use std::env;
 use std::fs;
 use std::path::Path;
-use tauri::{AppHandle, Error, Manager};
+use tauri::{AppHandle, Manager};
 
 // main.rs
 fn main() {
@@ -73,6 +73,7 @@ fn main() {
             read_card_content,
             delete_card,
 
+            read_cards_in_area,
 
             create_marker,
             read_marker,
@@ -195,6 +196,7 @@ fn create_card(card: CardDTO) -> CardDTO {
     read_card(card_id)
 }
 
+#[tauri::command]
 fn read_cards_in_area(cardinal_directions: CardinalDirections) -> Result<Vec<CardUnifiedDTO>, String> {
     let conn = &mut establish_connection();
 
@@ -492,9 +494,9 @@ fn update_image_name(image_id: i32, new_name: String) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{create_card, create_unified_card, read_cards, read_cards_in_area, MIGRATIONS};
+    use crate::{create_unified_card, read_cards_in_area, MIGRATIONS};
     use app::establish_connection;
-    use app::models::{CardDTO, CardUnifiedDTO, CardinalDirections};
+    use app::models::{CardUnifiedDTO, CardinalDirections};
     use diesel_migrations::MigrationHarness;
     use std::default::Default;
     use std::env;

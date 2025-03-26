@@ -35,19 +35,16 @@ export class MarkerService {
     return await invoke("update_marker", { marker: marker });
   }
 
-  async getMarker(markerId: number, loadCard: boolean): Promise<MarkerAM> {
+  async getMarker(markerId: number): Promise<MarkerAM> {
     return this.getMarkerDB(markerId).then((m) => {
       return new MarkerAM(
-        (id: number) => this.cardService.readCard(id),
         [m.latitude, m.longitude],
         {},
         {
-          markerId: m.id!,
           cardId: m.card_id!,
           iconType: m.icon_name,
           radius: m.radius,
           iconSize: this.iconSizeMap.get(m.icon_name),
-          loadCard,
         },
       );
     });
@@ -57,10 +54,7 @@ export class MarkerService {
     return invoke("read_marker", { id: id });
   }
 
-  async getMarkerAMInArea(
-    bounds: LatLngBounds,
-    loadCard: boolean,
-  ): Promise<MarkerAM[]> {
+  async getMarkerAMInArea(bounds: LatLngBounds): Promise<MarkerAM[]> {
     const markersDB = await this.cardService.readMarkersInArea({
       north: bounds.getNorth(),
       east: bounds.getEast(),
@@ -69,16 +63,13 @@ export class MarkerService {
     });
     return markersDB.map((m) => {
       return new MarkerAM(
-        (id: number) => this.cardService.readCard(id),
         [m.latitude, m.longitude],
         {},
         {
-          markerId: m.id!,
-          cardId: m.card_id!,
-          iconType: m.icon_name,
+          cardId: m.id,
           radius: m.radius,
+          iconType: m.icon_name,
           iconSize: this.iconSizeMap.get(m.icon_name),
-          loadCard,
         },
       );
     });

@@ -2,6 +2,7 @@ use crate::schema::{cards, image, marker, stack, card_new};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CardinalDirections {
     pub north: f32,
     pub east: f32,

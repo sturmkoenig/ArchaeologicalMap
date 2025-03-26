@@ -67,20 +67,18 @@ class MockNgZone extends NgZone {
 describe("OverviewMapService", () => {
   function createTestMarkerAM(marker: Partial<MarkerDB>): MarkerAM {
     return new MarkerAM(
-      () =>
-        Promise.resolve({
-          id: 1,
-          title: "My test Title",
-          description: "a worthwile point on the map",
-          markers: [],
-          region_image_id: 1,
-          stack_id: 1,
-        }),
+      //() =>
+      //  Promise.resolve({
+      //    id: 1,
+      //    markers: [],
+      //    region_image_id: 1,
+      //    stack_id: 1,
+      //  }),
       [0, 0],
       {},
       {
-        markerId: marker.id ?? 0,
-        cardId: marker.card_id ?? 0,
+        //markerId: marker.id ?? 0,
+        cardId: marker.id ?? 0,
         iconType: marker.icon_name ?? "iconMiscRed",
         radius: marker.radius,
       },
@@ -157,7 +155,7 @@ describe("OverviewMapService", () => {
     expect(service.mainLayerGroup.getLayers().length).toBe(1);
     const marker = service.mainLayerGroup.getLayers()[0];
     if (isMarkerAM(marker)) {
-      expect(marker.markerId === 1).toBe(true);
+      expect(marker.cardId === 1).toBe(true);
     } else {
       fail("marker in mainLayerGroup is not of correct type");
     }
@@ -209,10 +207,10 @@ describe("OverviewMapService", () => {
     await service.updateMapBounds(testLatLngBounds);
     expect(service.mainLayerGroup.getLayers().length).toBe(2);
     expect(
-      (service.mainLayerGroup.getLayers()[0] as MarkerAM).markerId === 0,
+      (service.mainLayerGroup.getLayers()[0] as MarkerAM).cardId === 0,
     ).toBe(true);
     expect(
-      (service.mainLayerGroup.getLayers()[1] as MarkerAM).markerId === 1,
+      (service.mainLayerGroup.getLayers()[1] as MarkerAM).cardId === 1,
     ).toBe(true);
   });
 
@@ -267,6 +265,7 @@ describe("OverviewMapService", () => {
     expect(cardServiceMock.deleteMarker).toHaveBeenCalled();
   });
 
+  // TODO: add marker to card is obsolete
   it("should add marker to selected card", async () => {
     markerServiceMock.createNewMarker.mockResolvedValue(
       updatedCardMarkerLayer.markerDB,
@@ -285,9 +284,10 @@ describe("OverviewMapService", () => {
     expect(service.selectedLayerGroup.getLayers().length).toBe(1);
     expect(service.mainLayerGroup.getLayers().length).toBe(1);
     expect(service.selectedMarker()?.cardId).toBe(10);
-    expect(service.selectedMarker()?.markerId).toBe(11);
+    expect(service.selectedMarker()?.cardId).toBe(11);
   });
 
+  // TODO: behavior changed!
   it("should delete edit card correctly", async () => {
     //initialize state
     const testMarker1 = createTestMarkerAM({ id: 0, card_id: testCard.id });
@@ -326,7 +326,7 @@ describe("OverviewMapService", () => {
     expect(service.mainLayerGroup.getLayers().length).toBe(1);
     const marker = service.mainLayerGroup.getLayers()[0];
     if (isMarkerAM(marker)) {
-      expect(marker.markerId).toBe(2);
+      expect(marker.cardId).toBe(2);
       expect(marker.cardId).toBe(testCard.id! + 1);
     } else {
       fail("marker in mainLayerGroup is not of correct type!");

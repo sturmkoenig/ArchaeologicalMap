@@ -146,8 +146,6 @@ describe("OverviewMapComponent", () => {
       description: "",
       markers: [
         {
-          id: 0,
-          card_id: 0,
           longitude: expect.any(Number),
           latitude: expect.any(Number),
           radius: 0,

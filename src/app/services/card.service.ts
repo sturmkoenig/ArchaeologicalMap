@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { invoke } from "@tauri-apps/api/core";
-import { CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
+import { Card, CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
 import { Stack } from "@app/model/stack";
 
 @Injectable({
@@ -30,13 +30,8 @@ export class CardService {
   readCards(): Promise<CardDB[]> {
     return invoke("read_cards", {});
   }
-  readMarkersInArea(directions: CardinalDirection): Promise<MarkerDB[]> {
-    return invoke("read_markers_in_area", {
-      north: directions.north,
-      east: directions.east,
-      south: directions.south,
-      west: directions.west,
-    });
+  readMarkersInArea(directions: CardinalDirection): Promise<Card[]> {
+    return invoke("read_cards_in_area", { cardinalDirections: directions });
   }
 
   readCardsInArea(directions: CardinalDirection): Promise<CardDB[]> {

@@ -21,6 +21,17 @@ export interface NewCard {
   stackId?: number;
 }
 
+export interface Card {
+  id?: number;
+  title: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  region_image_id?: number;
+  icon_name: keyof typeof ICONS;
+  radius: number;
+  stack_id?: number | null;
+}
 export interface CardDB {
   id?: number;
   title: string;

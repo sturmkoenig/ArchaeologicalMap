@@ -159,7 +159,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async onDeleteSelectedMarker() {
-    if (!this.overviewMapService.selectedMarker()?.markerId) {
+    if (!this.overviewMapService.selectedMarker()?.cardId) {
       throw new Error("marker does not exist");
     }
 
