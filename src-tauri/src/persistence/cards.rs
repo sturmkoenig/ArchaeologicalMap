@@ -33,7 +33,7 @@ pub fn query_card_by_id(conn: &mut SqliteConnection, card_id: i32) -> CardDTO {
     let card: Card = cards::table
         .find(card_id)
         .first(conn)
-        .expect("Error loading sqlite");
+        .expect(&format!("Error loading sqlite, could not load card_id {}", card_id));
     let markers: Vec<Marker> = marker::table
         .filter(marker::card_id.eq(card_id))
         .load(conn)

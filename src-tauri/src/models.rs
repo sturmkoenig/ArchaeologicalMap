@@ -19,7 +19,7 @@ pub struct CardDTO {
     pub stack_id: Option<i32>,
     pub region_image_id: Option<i32>,
 }
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 pub struct CardUnifiedDTO {
     pub id: Option<i32>,
     pub title: Option<String>,

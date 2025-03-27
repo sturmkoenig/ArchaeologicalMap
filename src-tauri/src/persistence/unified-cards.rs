@@ -6,12 +6,8 @@ use app::models::{CardUnified, CardUnifiedDTO, CardinalDirections, Marker, NewUn
 use app::schema::card_new::dsl::card_new;
 use app::schema::card_new::{latitude, longitude};
 
-pub fn query_unified_card_by_id(conn: &mut SqliteConnection, card_id: i32) -> Option<CardUnifiedDTO>{
-    let card: Option<CardUnified> = card_new::find(card_new::table(), card_id).first(conn).ok();
-    match card {
-        Some(c) => Some(CardUnifiedDTO::from(c)),
-        None => None
-    }
+pub fn query_unified_card_by_id(conn: &mut SqliteConnection, card_id: i32) -> QueryResult<CardUnifiedDTO>{
+    card_new::find(card_new::table(), card_id).first::<CardUnified>(conn).map(CardUnifiedDTO::from)
 }
 
 pub fn query_create_unified_card(conn: &mut SqliteConnection, card_unified_dto: CardUnifiedDTO) -> i32 {

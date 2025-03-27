@@ -10,7 +10,6 @@ CREATE TABLE card_new (
     icon_name VARCHAR DEFAULT 'iconDefault' NOT NULL,
     FOREIGN KEY (stack_id) REFERENCES stack(id)
 );
-
 INSERT INTO card_new
 WITH ranked_cards AS (
     SELECT
@@ -28,12 +27,18 @@ WITH ranked_cards AS (
                 CAST((ROW_NUMBER() OVER (
                     PARTITION BY m.card_id
                     ORDER BY m.id
-                )) AS TEXT)
+                    )) AS TEXT)
             ELSE ''
-        END as new_title
+            END as new_title,
+        CASE
+            WHEN ROW_NUMBER() OVER (PARTITION BY m.card_id ORDER BY m.id) = 1 THEN
+                m.card_id
+            ELSE
+                m.card_id * 100000 + ROW_NUMBER() OVER (PARTITION BY m.card_id ORDER BY m.id)
+            END as new_card_id
     FROM marker m
-    JOIN cards c ON m.card_id = c.id
+             JOIN cards c ON m.card_id = c.id
 )
 SELECT
-marker_id as id, new_title as title, description, stack_id, latitude, longitude, radius, icon_name
+    new_card_id as id, new_title as title, description, stack_id, latitude, longitude, radius, icon_name
 FROM ranked_cards;

@@ -74,6 +74,7 @@ fn main() {
             delete_card,
 
             read_cards_in_area,
+            read_card_by_id,
 
             create_marker,
             read_marker,
@@ -204,10 +205,16 @@ fn read_cards_in_area(cardinal_directions: CardinalDirections) -> Result<Vec<Car
         res.into_iter().map(CardUnifiedDTO::from).collect::<Vec<CardUnifiedDTO>>()).map_err(|err| err.to_string())
 }
 
-fn create_unified_card(card: CardUnifiedDTO) -> Option<CardUnifiedDTO> {
+#[tauri::command]
+fn read_card_by_id(id: i32) -> Result<CardUnifiedDTO, String> {
+    let conn = &mut establish_connection();
+    query_unified_card_by_id(conn, id).map_err(|err| err.to_string())
+}
+
+fn create_unified_card(card: CardUnifiedDTO) -> Result<CardUnifiedDTO, String> {
     let conn = &mut establish_connection();
     let card_id = query_create_unified_card(conn, card);
-    query_unified_card_by_id(conn, card_id)
+    query_unified_card_by_id(conn, card_id).map_err(|err| err.to_string())
 }
 
 // TODO may be moved to frontend
@@ -494,12 +501,15 @@ fn update_image_name(image_id: i32, new_name: String) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{create_unified_card, read_cards_in_area, MIGRATIONS};
+    use crate::{create_unified_card, read_card_by_id, read_cards_in_area, MIGRATIONS};
     use app::establish_connection;
     use app::models::{CardUnifiedDTO, CardinalDirections};
     use diesel_migrations::MigrationHarness;
     use std::default::Default;
     use std::env;
+    use std::fs;
+    use serial_test::serial;
+    use uuid::Uuid;
 
     struct TestDb {
        name: String
@@ -507,11 +517,13 @@ mod tests {
 
     impl TestDb {
         fn initialize() -> Self {
-            env::set_var("DB_PATH", "testing.db");
+            let unique_db_name = format!("testing_{}.db", Uuid::new_v4());
+            println!("unique name: {}", unique_db_name.clone() );
+            env::set_var("DB_PATH", unique_db_name.clone());
             let conn = &mut establish_connection();
             let err = conn.run_pending_migrations(MIGRATIONS);
             Self {
-                name: "testing.db".to_string()
+                name: unique_db_name
             }
         }
 
@@ -520,13 +532,15 @@ mod tests {
         fn drop(&mut self) {
             let conn = &mut establish_connection();
             let err = conn.revert_all_migrations(MIGRATIONS);
+            fs::remove_file(&self.name).expect("Failed to remove test database file");
         }
     }
-    fn given_database_has_card(card: CardUnifiedDTO){
-        create_unified_card(card);
+    fn given_database_has_card(card: CardUnifiedDTO) -> CardUnifiedDTO{
+        create_unified_card(card.clone()).expect(&format!("Error creating card {:?}", card))
     }
 
     #[test]
+    #[serial]
     fn it_creates_a_card_with_all_properties_when_a_create_unified_card_command_is_received(){
         let test_env = initialize_test_env();
         let titel = "a card".to_string();
@@ -553,6 +567,7 @@ mod tests {
         TestDb::initialize()
     }
     #[test]
+    #[serial]
     fn it_is_able_to_query_card_by_using_geo_boundaries(){
         let test_env = initialize_test_env();
         let want_title = String::from("My wanted Card");
@@ -563,5 +578,31 @@ mod tests {
         let card = result.get(0).expect("No card found in the result");
         let got_title = card.title.as_ref().expect("No card title in the result");
         assert_eq!(got_title, &want_title);
+    }
+    #[test]
+    #[serial]
+    fn it_is_able_to_query_a_card_by_using_its_id(){
+        let test_env = initialize_test_env();
+        let want_card = CardUnifiedDTO{
+            id: None,
+            title: Some("My Title".to_string()),
+            description: Some("My Description".to_string()),
+            longitude:  2.690451,
+            latitude: 48.405937,
+            radius: Some(25.0),
+            icon_name: "IconMiscRed".to_string(),
+            ..Default::default()
+        };
+        let card_id = given_database_has_card(want_card.clone()).id.expect("id is empty");
+        let got_card = read_card_by_id(card_id).expect(&format!("Could not read card with id {}", card_id));
+        assert_eq!(got_card, CardUnifiedDTO{id: Some(card_id),..want_card});
+    }
+    #[test]
+    #[serial]
+    fn it_should_exit_gracefully_when_id_was_not_found(){
+        let test_env = initialize_test_env();
+        let got_card = read_card_by_id(1);
+        assert!(got_card.is_err());
+        assert_eq!(got_card.unwrap_err(), "Record not found");
     }
 }
