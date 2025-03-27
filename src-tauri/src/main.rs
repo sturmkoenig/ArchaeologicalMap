@@ -6,7 +6,7 @@ extern crate diesel;
 extern crate diesel_migrations;
 
 pub mod persistence;
-use app::models::Marker;
+use app::models::{CardUnified, Marker};
 use app::models::MarkerDTO;
 use app::models::NewImage;
 use app::models::NewStack;
@@ -42,9 +42,10 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use crate::persistence::images::query_update_image;
 use crate::persistence::stacks::query_stack_by_id;
-use crate::persistence::unified_cards::{query_cards_in_geological_area, query_create_unified_card, query_unified_card_by_id};
+use crate::persistence::unified_cards::{query_cards_in_geological_area, query_create_unified_card, query_unified_card_by_id, query_update_unified_card};
 use app::{establish_connection, models::Card};
 use std::env;
+use std::fmt::Error;
 use std::fs;
 use std::path::Path;
 use tauri::{AppHandle, Manager};
@@ -203,6 +204,26 @@ fn read_cards_in_area(cardinal_directions: CardinalDirections) -> Result<Vec<Car
 
     query_cards_in_geological_area(conn, cardinal_directions).map(|res|
         res.into_iter().map(CardUnifiedDTO::from).collect::<Vec<CardUnifiedDTO>>()).map_err(|err| err.to_string())
+}
+
+#[tauri::command]
+fn update_card_unified(card: CardUnifiedDTO) -> Result<bool, String> {
+    let conn = &mut establish_connection();
+    let id = card.id.ok_or("id is missing".to_string())?;
+
+    query_update_unified_card(
+        conn,
+        CardUnified {
+            id,
+            title: card.title.unwrap_or("".to_string()),
+            description: card.description.unwrap_or("".to_string()),
+            stack_id: card.stack_id,
+            latitude: card.latitude,
+            longitude: card.longitude,
+            radius: card.radius.unwrap_or(0.0),
+            icon_name: card.icon_name
+        },
+    ).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
@@ -501,7 +522,7 @@ fn update_image_name(image_id: i32, new_name: String) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{create_unified_card, read_card_by_id, read_cards_in_area, MIGRATIONS};
+    use crate::{create_unified_card, read_card_by_id, read_cards_in_area, update_card_unified, MIGRATIONS};
     use app::establish_connection;
     use app::models::{CardUnifiedDTO, CardinalDirections};
     use diesel_migrations::MigrationHarness;
@@ -604,5 +625,35 @@ mod tests {
         let got_card = read_card_by_id(1);
         assert!(got_card.is_err());
         assert_eq!(got_card.unwrap_err(), "Record not found");
+    }
+    #[test]
+    #[serial]
+    fn it_should_update_a_card(){
+        let test_env = initialize_test_env();
+        let want_card = CardUnifiedDTO{
+            id: None,
+            title: Some("My Title".to_string()),
+            description: Some("My Description".to_string()),
+            longitude:  2.690451,
+            latitude: 48.405937,
+            radius: Some(25.0),
+            icon_name: "IconMiscRed".to_string(),
+            ..Default::default()
+        };
+        let card_id = given_database_has_card(want_card.clone()).id.expect("id is empty");
+        let update_card = CardUnifiedDTO {
+            id: Some(card_id),
+            title: Some("My new Title".to_string()),
+            description: Some("a updated description, including more depth and details".to_string()),
+            longitude: 1.337,
+            latitude: -1.5,
+            radius: Some(99.9),
+            icon_name: "iconLimesSpecial".to_string(),
+            ..want_card
+        };
+        let update_result =update_card_unified(update_card.clone()).expect("update failed!");
+        assert!(update_result);
+        let got_card = read_card_by_id(card_id).expect("card not found");
+        assert_eq!(got_card, update_card);
     }
 }

@@ -1,6 +1,7 @@
 use crate::schema::{cards, image, marker, stack, card_new};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
+use crate::schema::cards::region_image_id;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CardinalDirections {
@@ -125,7 +126,7 @@ pub struct Card {
     pub region_image_id: Option<i32>,
 }
 
-#[derive(Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]
+#[derive(Identifiable,Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]
 #[diesel(table_name = card_new)]
 pub struct CardUnified {
     pub id:  i32,
