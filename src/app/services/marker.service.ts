@@ -1,8 +1,8 @@
 import { Injectable } from "@angular/core";
-import { Circle, Icon, LatLng, LatLngBounds, Layer, Marker } from "leaflet";
-import { CardDB, MarkerDB } from "src/app/model/card";
+import { LatLng, LatLngBounds, Layer, Marker } from "leaflet";
+import { Card, CardDB, MarkerDB } from "src/app/model/card";
 import { CardService } from "./card.service";
-import { IconKeys, ICONS, IconService } from "./icon.service";
+import { IconKeys, IconService } from "./icon.service";
 import { invoke } from "@tauri-apps/api/core";
 import { createCardDetailsWindow } from "../util/window-util";
 import { MarkerAM } from "@app/model/markerAM";
@@ -61,15 +61,15 @@ export class MarkerService {
       south: bounds.getSouth(),
       west: bounds.getWest(),
     });
-    return markersDB.map((m) => {
+    return markersDB.map((card) => {
       return new MarkerAM(
-        [m.latitude, m.longitude],
+        [card.latitude, card.longitude],
         {},
         {
-          cardId: m.id,
-          radius: m.radius,
-          iconType: m.icon_name,
-          iconSize: this.iconSizeMap.get(m.icon_name),
+          cardId: card.id,
+          radius: card.radius,
+          iconType: card.icon_name,
+          iconSize: this.iconSizeMap.get(card.icon_name),
         },
       );
     });
@@ -77,45 +77,6 @@ export class MarkerService {
 
   createNewMarker(cardId: number, newMarker: MarkerDB): Promise<MarkerDB> {
     return invoke("create_marker", { newMarker: newMarker, cardId: cardId });
-  }
-
-  markerToMapLayer(markerDB: MarkerDB, cardDB: CardDB): CardMarkerLayer {
-    const icon: Icon = new Icon({
-      iconUrl: ICONS[markerDB.icon_name].toString(),
-      iconSize: [20, 20],
-      popupAnchor: [0, 0],
-    });
-    const iconMarker: Marker = new Marker(
-      [markerDB.latitude, markerDB.longitude],
-      {
-        icon,
-        interactive: true,
-      },
-    );
-
-    iconMarker.bindPopup(MarkerService.createPopupHTML(markerDB, cardDB));
-
-    if (markerDB.radius !== 0.0) {
-      const circle = new Circle([markerDB.latitude, markerDB.longitude], {
-        className: "fade-in",
-        radius: markerDB.radius,
-      });
-      return {
-        card: cardDB,
-        markerDB: markerDB,
-        markerId: markerDB.id ?? 0,
-        marker: iconMarker,
-        radius: circle,
-      };
-    } else {
-      return {
-        card: cardDB,
-        markerDB: markerDB,
-        markerId: markerDB.id ?? 0,
-        marker: iconMarker,
-        radius: null,
-      };
-    }
   }
 
   getBounds(markers: MarkerDB[]): LatLngBounds {
@@ -130,18 +91,5 @@ export class MarkerService {
     const southWest = new LatLng(min_lat.latitude, min_lng.longitude);
     const northEast = new LatLng(max_lat.latitude, max_lng.longitude);
     return new LatLngBounds(southWest, northEast);
-  }
-
-  static createPopupHTML(marker: MarkerDB, card: CardDB): HTMLDivElement {
-    const div: HTMLDivElement = document.createElement("div");
-    div.innerHTML =
-      `<h4>` + card.title + `</h4>` + `<p>` + card.description + `</p>`;
-    const button = document.createElement("button");
-    button.innerHTML = "Info-Seite Zeigen";
-    button.onclick = () => {
-      createCardDetailsWindow(marker.card_id!);
-    };
-    div.appendChild(button);
-    return div;
   }
 }

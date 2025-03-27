@@ -8,6 +8,7 @@ import {
 import { Card, MarkerDB } from "@app/model/card";
 import { ICONS } from "@service/icon.service";
 import { RadiusVisibility } from "@app/model/marker";
+import { createCardDetailsWindow } from "@app/util/window-util";
 
 export class MarkerAM extends Marker {
   private _title: string;
@@ -144,5 +145,20 @@ export class MarkerAM extends Marker {
     this.setLatLng([card.latitude, card.longitude]);
     this.setRadius(card.radius);
     this.setIconType(card.icon_name);
+  }
+  createPopup() {
+    const div: HTMLDivElement = document.createElement("div");
+    div.innerHTML =
+      `<h4>` + this._title + `</h4>` + `<p>` + this._description + `</p>`;
+    const button = document.createElement("button");
+    button.innerHTML = "Info-Seite Zeigen";
+    button.onclick = () => {
+      createCardDetailsWindow(this.cardId ?? 0);
+    };
+    div.appendChild(button);
+    return div;
+  }
+  override bindPopup() {
+    return super.bindPopup(this.createPopup());
   }
 }

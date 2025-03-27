@@ -30,7 +30,7 @@ export interface Card {
   region_image_id?: number;
   icon_name: keyof typeof ICONS;
   radius: number;
-  stack_id?: number | null;
+  stack_id?: number;
 }
 export interface CardDB {
   id?: number;

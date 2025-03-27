@@ -52,12 +52,7 @@ export class OverviewMapService {
         this.selectedMarker()!.visibilityOfRadius(RadiusVisibility.always);
         this.cardService.readCard(this.selectedMarker()!.cardId).then((c) => {
           this.editCard.set(c);
-          this.selectedMarker()?.bindPopup(
-            MarkerService.createPopupHTML(
-              this.selectedMarker()!.toMarkerDB(),
-              c,
-            ),
-          );
+          this.selectedMarker()?.bindPopup();
           this.selectedMarker()!.openPopup();
         });
       }

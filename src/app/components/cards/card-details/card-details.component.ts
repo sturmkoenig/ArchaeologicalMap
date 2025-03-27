@@ -3,7 +3,6 @@ import { ActivatedRoute } from "@angular/router";
 import { emit, listen } from "@tauri-apps/api/event";
 
 import { MatDialog } from "@angular/material/dialog";
-import { MatSnackBar } from "@angular/material/snack-bar";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Observable } from "rxjs";
 import { EditorComponent } from "@app/layout/editor/editor.component";
@@ -21,6 +20,7 @@ import { ImageEntity } from "@app/model/image";
 export class CardDetailsComponent implements OnInit {
   cardId!: number;
   card$!: Observable<CardDB | undefined>;
+  stackId?: number;
 
   @ViewChild(EditorComponent)
   editor!: EditorComponent;
@@ -32,7 +32,6 @@ export class CardDetailsComponent implements OnInit {
     private route: ActivatedRoute,
     private markerService: MarkerService,
     public dialog: MatDialog,
-    private _snackBar: MatSnackBar,
     private cardContentService: CardContentService,
     public cardDetailsStore: CardDetailsStore,
   ) {
@@ -55,11 +54,12 @@ export class CardDetailsComponent implements OnInit {
       const cardId = params.get("id");
       if (cardId) {
         this.cardId = Number(cardId);
+      } else {
+        console.error("cardId not provided!");
       }
       this.cardDetailsStore.loadStackOfCards(this.cardId);
       this.cardContentService.setCardId(this.cardId);
       listen(`set-focus-to-${cardId}`, async () => {
-        console.log(cardId);
         await appWindow.setFocus();
       });
     });

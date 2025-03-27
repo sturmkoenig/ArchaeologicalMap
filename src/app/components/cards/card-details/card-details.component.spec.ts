@@ -15,7 +15,6 @@ import { RouterTestingHarness } from "@angular/router/testing";
 import { StackService } from "@service/stack.service";
 import { Stack } from "@app/model/stack";
 import { LatLngBounds } from "leaflet";
-import { MarkerAM } from "@app/model/markerAM";
 
 jest.mock("quill-image-resize-module", () => {
   // Provide any mock implementation if necessary
@@ -63,7 +62,7 @@ const testStack = {
 };
 
 const defaultStack: Stack = {
-  id: 0,
+  id: 1,
   image_name: "some flag",
   name: "My testing Stack",
 };
@@ -133,7 +132,13 @@ describe("CardDetailsComponent", () => {
     queryParamsSubject.next({ id: card.id ?? 1 });
   };
 
-  it("should display a card without stack without side-nav", async () => {
+  const givenARegionImageWithId = (regionImageId: number) => {
+    imageServiceMock.readImage.mockResolvedValue(
+      "<svg data-testid='myTestImage'></svg>",
+    );
+  };
+
+  it("should display no side-nav if given card has no stackId", async () => {
     await givenACard(defaultCard);
     const harness = await RouterTestingHarness.create("/cards/details/1");
     harness.detectChanges();
@@ -142,12 +147,6 @@ describe("CardDetailsComponent", () => {
     const sideNav = getElementByDataTestId("stack-side-nav", harness);
     expect(sideNav).toBeFalsy();
   });
-
-  const givenARegionImageWithId = (regionImageId: number) => {
-    imageServiceMock.readImage.mockResolvedValue(
-      "<svg data-testid='myTestImage'></svg>",
-    );
-  };
 
   // it("should show card image for a card", async () => {
   //   const regionImageId = 1;
@@ -161,7 +160,9 @@ describe("CardDetailsComponent", () => {
   it("should display a side-nav and highlight the current card when the card is in a stack", async () => {
     givenAStackWithCards([testStack.firstCard, testStack.secondCard]);
     await givenACard(testStack.firstCard);
-    const harness = await RouterTestingHarness.create("/cards/details/2");
+    const harness = await RouterTestingHarness.create(
+      "/cards/details/2?stackId=1",
+    );
     harness.detectChanges();
     expect(getElementByDataTestId("stack-side-nav", harness)).toBeTruthy();
     expect(
@@ -181,7 +182,9 @@ describe("CardDetailsComponent", () => {
   it("should navigate to next card in stack", async () => {
     givenAStackWithCards([testStack.firstCard, testStack.secondCard]);
     await givenACard(testStack.firstCard);
-    const harness = await RouterTestingHarness.create("/cards/details/2");
+    const harness = await RouterTestingHarness.create(
+      "/cards/details/2?stackId=1",
+    );
     harness.detectChanges();
     expect(getElementByDataTestId("next-card-button", harness)).toBeTruthy();
     expect(getElementByDataTestId("previous-card-button", harness)).toBeFalsy();
@@ -193,7 +196,9 @@ describe("CardDetailsComponent", () => {
       defaultStack,
     );
     await givenACard(testStack.firstCard);
-    const harness = await RouterTestingHarness.create("/cards/details/2");
+    const harness = await RouterTestingHarness.create(
+      "/cards/details/2?stackId=1",
+    );
     harness.detectChanges();
     expect(
       getElementByDataTestId("stack-title", harness).nativeElement.textContent,
@@ -203,7 +208,9 @@ describe("CardDetailsComponent", () => {
   it("should be able to navigate to the previous card", async () => {
     givenAStackWithCards([testStack.firstCard, testStack.secondCard]);
     await givenACard(testStack.secondCard);
-    const harness = await RouterTestingHarness.create("/cards/details/3");
+    const harness = await RouterTestingHarness.create(
+      "/cards/details/3?stackId=1",
+    );
     harness.detectChanges();
     expect(getElementByDataTestId("next-card-button", harness)).toBeFalsy();
     expect(
@@ -211,6 +218,7 @@ describe("CardDetailsComponent", () => {
     ).toBeTruthy();
   });
 
+  // TODO: Obsolete
   it("should pan to multiple markers of a card", async () => {
     const givenMarkerOne: MarkerDB = {
       icon_name: "iconBorderLimesRed",
