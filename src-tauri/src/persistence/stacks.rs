@@ -10,7 +10,6 @@ use app::{
 };
 use diesel::expression_methods::ExpressionMethods;
 use diesel::{select, QueryDsl, SqliteConnection};
-use app::schema::stack::id;
 
 pub fn query_create_stack(conn: &mut SqliteConnection, new_stack: &NewStack) -> Stack {
     diesel::insert_into(stack::table)

@@ -1,7 +1,6 @@
-use crate::schema::{cards, image, marker, stack, card_new};
+use crate::schema::{card_new, cards, image, marker, stack};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
-use crate::schema::cards::region_image_id;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CardinalDirections {

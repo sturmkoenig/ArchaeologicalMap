@@ -1,9 +1,8 @@
-use std::env;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
+use std::env;
 
 use std::path::PathBuf;
-use tauri::menu::NativeIcon::Path;
 use tauri_api::path::data_dir;
 
 diesel::define_sql_function! (fn last_insert_rowid() -> diesel::sql_types::Integer);

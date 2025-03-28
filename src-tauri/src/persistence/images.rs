@@ -4,10 +4,10 @@ use app::{
     schema::image,
 };
 use diesel::expression_methods::ExpressionMethods;
-use diesel::{select, sql_function, QueryDsl, TextExpressionMethods};
-use diesel::{sql_query, SqliteConnection};
+use diesel::SqliteConnection;
+use diesel::{define_sql_function, select, QueryDsl, TextExpressionMethods};
 
-sql_function!(fn last_insert_rowid() -> Integer);
+define_sql_function!(fn last_insert_rowid() -> Integer);
 
 pub fn query_create_image(conn: &mut SqliteConnection, new_image: &NewImage) -> i32 {
     diesel::insert_into(image::table)
