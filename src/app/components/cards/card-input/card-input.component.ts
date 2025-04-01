@@ -7,7 +7,7 @@ import {
   SimpleChanges,
   ViewChild,
 } from "@angular/core";
-import { Card } from "@app/model/card";
+import { Card, CardMetaData } from "@app/model/card";
 import { StackStore } from "@app/state/stack.store";
 import { Observable } from "rxjs";
 import { Stack } from "@app/model/stack";
@@ -134,13 +134,13 @@ import { AsyncPipe, NgForOf } from "@angular/common";
 })
 export class CardInputComponent implements OnChanges {
   @Input()
-  card?: Card;
+  card?: CardMetaData;
 
   @ViewChild("cardInput")
   cardForm?: NgForm;
 
   @Output()
-  cardChange: EventEmitter<Card> = new EventEmitter();
+  cardChange: EventEmitter<CardMetaData> = new EventEmitter();
   stacks$: Observable<Stack[]>;
 
   image?: ImageEntity;

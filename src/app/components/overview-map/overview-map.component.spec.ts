@@ -10,7 +10,7 @@ import { RightSidebarComponent } from "@app/layout/right-sidebar/right-sidebar.c
 import { IconSizeSettingsComponent } from "@app/components/overview-map/map-settings/icon-size-settings/icon-size-settings.component";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { By } from "@angular/platform-browser";
-import { CardDB } from "src/app/model/card";
+import { Card } from "src/app/model/card";
 import * as TauriEvent from "@tauri-apps/api/event";
 import { MapSettings, SettingService } from "@service/setting.service";
 import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
@@ -58,6 +58,7 @@ describe("OverviewMapComponent", () => {
   let cardServiceMock: {
     createCard: jest.Mock;
     readCard: jest.Mock;
+    updateCard: jest.Mock;
     deleteCard: jest.Mock;
     deleteMarker: jest.Mock;
   };
@@ -96,6 +97,7 @@ describe("OverviewMapComponent", () => {
     markerServiceMock.getMarkerAMInArea.mockResolvedValue([]);
     cardServiceMock = {
       createCard: jest.fn(),
+      updateCard: jest.fn(),
       readCard: jest.fn(),
       deleteCard: jest.fn(),
       deleteMarker: jest.fn(),
@@ -180,18 +182,6 @@ describe("OverviewMapComponent", () => {
     });
   });
 
-  it("should delete marker", async () => {
-    givenTheCard(testCardA);
-    whenIClickAButton("add-new-card");
-    await whenIClickTheMap();
-
-    await component.onDeleteSelectedMarker();
-
-    expect(cardServiceMock.deleteMarker).toHaveBeenCalledWith(testCardA.id!);
-    expect(component.selectedLayerGroup.getLayers()).toHaveLength(0);
-    expect(component.mainLayerGroup.getLayers()).toHaveLength(0);
-  });
-
   it("should move existing marker", async () => {
     givenTheCard(testCardA);
     whenIClickAButton("add-new-card");
@@ -200,14 +190,32 @@ describe("OverviewMapComponent", () => {
     component.onMoveExistingMarker();
     await whenIClickTheMap();
 
-    expect(markerServiceMock.updateMarker).toHaveBeenCalled();
+    expect(cardServiceMock.updateCard).toHaveBeenCalled();
+  });
+
+  it("should not update icon size different icon types", async () => {
+    givenTheCard(testCardA);
+    whenIClickAButton("add-new-card");
+    await whenIClickTheMap();
+    component.onUpdateIconSize({
+      iconType: "iconMiscBlack",
+      iconSize: 40,
+    });
+    const layer: MarkerAM =
+      component.selectedLayerGroup.getLayers()[0] as MarkerAM;
+    expect((layer.getIcon().options as DivIconOptions).html).toMatch(
+      "width: 20px; height: 20px",
+    );
   });
 
   it("should update icon size of selected layer correctly", async () => {
     givenTheCard(testCardA);
     whenIClickAButton("add-new-card");
     await whenIClickTheMap();
-    component.onUpdateIconSize({ iconType: "iconMiscRed", iconSize: 40 });
+    component.onUpdateIconSize({
+      iconType: "iconMiscRed",
+      iconSize: 40,
+    });
     const layer: MarkerAM =
       component.selectedLayerGroup.getLayers()[0] as MarkerAM;
     expect((layer.getIcon().options as DivIconOptions).html).toMatch(
@@ -228,43 +236,27 @@ describe("OverviewMapComponent", () => {
       1,
     );
 
-    component.onUpdateIconSize({ iconType: "iconMiscRed", iconSize: 40 });
+    await component.onUpdateIconSize({
+      iconType: "iconMiscRed",
+      iconSize: 40,
+    });
     const layer: MarkerAM = component.mainLayerGroup.getLayers()[0] as MarkerAM;
-    expect((layer.getIcon().options as DivIconOptions).html).toMatch(
+    expect((layer.getIcon().options as DivIconOptions).html).toContain(
       "width: 40px; height: 40px",
     );
   });
 
-  const testCardA: CardDB = {
+  const testCardA: Card = {
     id: 1,
     title: "a",
     description: "a's description",
-    markers: [
-      {
-        latitude: 1,
-        longitude: 1,
-        id: 1,
-        radius: 0,
-        icon_name: "iconMiscRed",
-      },
-    ],
-  };
-  const testCardB: CardDB = {
-    id: 1,
-    title: "b",
-    description: "b's description",
-    markers: [
-      {
-        latitude: 1,
-        longitude: 1,
-        id: 1,
-        radius: 0,
-        icon_name: "iconMiscRed",
-      },
-    ],
+    latitude: 1,
+    longitude: 1,
+    radius: 0,
+    icon_name: "iconMiscRed",
   };
 
-  const givenTheCard = (card: CardDB) => {
+  const givenTheCard = (card: Card) => {
     cardServiceMock.createCard.mockResolvedValue(card);
     cardServiceMock.readCard.mockResolvedValue(card);
   };

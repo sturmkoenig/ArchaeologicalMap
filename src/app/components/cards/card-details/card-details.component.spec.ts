@@ -8,13 +8,12 @@ import { ImageService } from "@service/image.service";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { provideRouter, RouterModule } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
-import { CardDB, MarkerDB } from "@app/model/card";
+import { Card, CardDB, MarkerDB } from "@app/model/card";
 import { By } from "@angular/platform-browser";
 import { emit, listen } from "@tauri-apps/api/event";
 import { RouterTestingHarness } from "@angular/router/testing";
 import { StackService } from "@service/stack.service";
 import { Stack } from "@app/model/stack";
-import { LatLngBounds } from "leaflet";
 
 jest.mock("quill-image-resize-module", () => {
   // Provide any mock implementation if necessary
@@ -37,29 +36,37 @@ jest.mock("@tauri-apps/api/webviewWindow", () => ({
   },
 }));
 
-const defaultCard: CardDB = {
+const defaultCard: Card = {
   description: "A simple test card",
   id: 1,
-  markers: [],
-  stack_id: null,
+  icon_name: "iconBorderLimesRed",
+  radius: 0,
+  latitude: 0,
+  longitude: 0,
   title: "A simple title",
 };
-const testStack = {
-  firstCard: {
+const testStack: Card[] = [
+  {
     description: "",
     id: 2,
     stack_id: 1,
-    markers: [],
+    radius: 0,
+    latitude: 0,
+    longitude: 0,
+    icon_name: "iconBorderLimesRed",
     title: "A. First card.",
   },
-  secondCard: {
+  {
     description: "",
     id: 3,
     stack_id: 1,
-    markers: [],
+    radius: 0,
+    latitude: 0,
+    longitude: 0,
+    icon_name: "iconBorderLimesRed",
     title: "B. Last card.",
   },
-};
+];
 
 const defaultStack: Stack = {
   id: 1,
@@ -158,8 +165,8 @@ describe("CardDetailsComponent", () => {
   // });
 
   it("should display a side-nav and highlight the current card when the card is in a stack", async () => {
-    givenAStackWithCards([testStack.firstCard, testStack.secondCard]);
-    await givenACard(testStack.firstCard);
+    givenAStackWithCards(testStack);
+    await givenACard(testStack[0]);
     const harness = await RouterTestingHarness.create(
       "/cards/details/2?stackId=1",
     );
@@ -180,8 +187,8 @@ describe("CardDetailsComponent", () => {
   });
 
   it("should navigate to next card in stack", async () => {
-    givenAStackWithCards([testStack.firstCard, testStack.secondCard]);
-    await givenACard(testStack.firstCard);
+    givenAStackWithCards(testStack);
+    await givenACard(testStack[0]);
     const harness = await RouterTestingHarness.create(
       "/cards/details/2?stackId=1",
     );
@@ -191,11 +198,8 @@ describe("CardDetailsComponent", () => {
   });
 
   it("should display the current stack's name", async () => {
-    givenAStackWithCards(
-      [testStack.firstCard, testStack.secondCard],
-      defaultStack,
-    );
-    await givenACard(testStack.firstCard);
+    givenAStackWithCards(testStack, defaultStack);
+    await givenACard(testStack[0]);
     const harness = await RouterTestingHarness.create(
       "/cards/details/2?stackId=1",
     );
@@ -206,8 +210,8 @@ describe("CardDetailsComponent", () => {
   });
 
   it("should be able to navigate to the previous card", async () => {
-    givenAStackWithCards([testStack.firstCard, testStack.secondCard]);
-    await givenACard(testStack.secondCard);
+    givenAStackWithCards(testStack);
+    await givenACard(testStack[1]);
     const harness = await RouterTestingHarness.create(
       "/cards/details/3?stackId=1",
     );
@@ -249,7 +253,7 @@ describe("CardDetailsComponent", () => {
     );
   };
 
-  const givenAStackWithCards = (cards: CardDB[], stack = defaultStack) => {
+  const givenAStackWithCards = (cards: Card[], stack = defaultStack) => {
     cardServiceMock.getAllCardsForStack.mockResolvedValue({ stack, cards });
   };
   const whenIClickAButton = async (

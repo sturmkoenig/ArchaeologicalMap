@@ -32,24 +32,21 @@ export class MarkerAM extends Marker {
   constructor(
     latlng: LatLngExpression,
     options?: MarkerOptions,
+    card?: Partial<Card>,
     amOptions?: {
-      radius?: number;
-      cardId?: number;
       iconType?: keyof typeof ICONS;
       iconSize?: number;
-      description?: string;
-      title?: string;
     },
   ) {
     super(latlng, options);
-    this._description = amOptions?.description ?? "";
-    this._title = amOptions?.title ?? "";
-    this._cardId = amOptions?.cardId ?? 0;
-    this._iconType = amOptions?.iconType ?? "iconBorderLimesBlack";
+    this._description = card?.description ?? "";
+    this._title = card?.title ?? "";
+    this._cardId = card?.id ?? 0;
+    this._iconType = card?.icon_name ?? "iconBorderLimesBlack";
     this._iconSize = amOptions?.iconSize ?? 20;
-    if (amOptions?.radius) {
+    if (card?.radius) {
       this._radiusLayer = new Circle(latlng, {
-        radius: amOptions.radius ?? 0,
+        radius: card.radius ?? 0,
         opacity: 0,
         fillOpacity: 0,
       });
@@ -121,10 +118,14 @@ export class MarkerAM extends Marker {
   }
 
   setIconSize(size: number): void {
+    console.log("setIconSize", size);
     this._iconSize = size;
     this.setIconType(this.iconType);
   }
 
+  /**
+   * @deprecated
+   */
   toMarkerDB(): MarkerDB {
     return {
       latitude: this.getLatLng().lat,
@@ -154,6 +155,7 @@ export class MarkerAM extends Marker {
     this.setRadius(card.radius);
     this.setIconType(card.icon_name);
   }
+
   createPopup() {
     const div: HTMLDivElement = document.createElement("div");
     div.innerHTML =

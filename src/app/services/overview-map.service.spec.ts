@@ -1,53 +1,22 @@
 import { TestBed } from "@angular/core/testing";
 import { OverviewMapService } from "./overview-map.service";
-import { CardMarkerLayer, MarkerService } from "./marker.service";
-import { Circle, LatLngBounds, Marker, MarkerClusterGroup } from "leaflet";
+import { MarkerService } from "./marker.service";
+import { LatLng, LatLngBounds, MarkerClusterGroup } from "leaflet";
 import { NgZone } from "@angular/core";
 import { isMarkerAM } from "../model/marker";
 import { CardService } from "./card.service";
-import { CardDB, MarkerDB } from "../model/card";
+import { Card, MarkerDB } from "../model/card";
 import { OverviewMapComponent } from "@app/components/overview-map/overview-map.component";
 import { MarkerAM } from "@app/model/markerAM";
 
-const testCard: CardDB = {
+const testCard: Card = {
   id: 0,
   title: "test updated",
   description: "test",
-  markers: [
-    {
-      latitude: 0,
-      longitude: 0,
-      radius: 0,
-      icon_name: "iconMiscRed",
-    },
-  ],
-};
-
-const updatedCardMarkerLayer: CardMarkerLayer = {
-  card: {
-    id: 0,
-    title: "test updated",
-    description: "test",
-    markers: [
-      {
-        latitude: 0,
-        longitude: 0,
-        radius: 0,
-        icon_name: "iconMiscRed",
-      },
-    ],
-  },
-  marker: new Marker([99, 99]),
-  markerId: 0,
-  markerDB: {
-    id: 11,
-    card_id: 10,
-    latitude: 0,
-    longitude: 0,
-    radius: 0,
-    icon_name: "iconMiscRed",
-  },
-  radius: new Circle([0, 0], { radius: 0 }),
+  latitude: 0,
+  longitude: 0,
+  radius: 0,
+  icon_name: "iconMiscRed",
 };
 
 class MockNgZone extends NgZone {
@@ -55,35 +24,26 @@ class MockNgZone extends NgZone {
     super({ enableLongStackTrace: false });
   }
 
-  override run(fn: () => any): any {
+  override run<T>(fn: () => T): T {
     return fn();
   }
 
-  override runOutsideAngular(fn: () => any): any {
+  override runOutsideAngular<T>(fn: () => T): T {
     return fn();
   }
 }
 
 describe("OverviewMapService", () => {
-  function createTestMarkerAM(marker: Partial<MarkerDB>): MarkerAM {
-    return new MarkerAM(
-      //() =>
-      //  Promise.resolve({
-      //    id: 1,
-      //    markers: [],
-      //    region_image_id: 1,
-      //    stack_id: 1,
-      //  }),
+  const createTestMarkerAM = (marker: Partial<MarkerDB>): MarkerAM =>
+    new MarkerAM(
       [0, 0],
       {},
       {
-        //markerId: marker.id ?? 0,
-        cardId: marker.id ?? 0,
-        iconType: marker.icon_name ?? "iconMiscRed",
+        id: marker.id ?? 0,
+        icon_name: marker.icon_name ?? "iconMiscRed",
         radius: marker.radius,
       },
     );
-  }
   let service!: OverviewMapService;
   let markerServiceMock!: {
     getMarkerAMInArea: jest.Mock;
@@ -166,11 +126,11 @@ describe("OverviewMapService", () => {
     markerServiceMock.getMarkerAMInArea.mockResolvedValue([testMarker]);
     await service.updateMapBounds(testLatLngBounds);
     expect(service.mainLayerGroup.getLayers().length).toBe(1);
-    service.changeSelectedMarkerAM(testMarker);
+    service.changeSelectedMarker(testMarker);
     TestBed.flushEffects();
     expect(service.selectedLayerGroup.getLayers().length).toBe(1);
     expect(service.mainLayerGroup.getLayers().length).toBe(0);
-    service.changeSelectedMarkerAM(testMarker);
+    service.changeSelectedMarker(testMarker);
     TestBed.flushEffects();
     expect(service.selectedLayerGroup.getLayers().length).toBe(1);
     expect(service.mainLayerGroup.getLayers().length).toBe(0);
@@ -182,7 +142,7 @@ describe("OverviewMapService", () => {
     await service.updateMapBounds(testLatLngBounds);
     expect(service.mainLayerGroup.getLayers().length).toBe(1);
 
-    service.changeSelectedMarkerAM(testMarker);
+    service.changeSelectedMarker(testMarker);
     TestBed.flushEffects();
     expect(service.selectedLayerGroup.getLayers().length).toBe(1);
     expect(service.mainLayerGroup.getLayers().length).toBe(0);
@@ -230,7 +190,7 @@ describe("OverviewMapService", () => {
     const testMarker = createTestMarkerAM({ id: 0, card_id: 0, radius: 1 });
     markerServiceMock.getMarkerAMInArea.mockResolvedValue([testMarker]);
     await service.updateMapBounds(testLatLngBounds);
-    service.changeSelectedMarkerAM(testMarker);
+    service.changeSelectedMarker(testMarker);
     TestBed.flushEffects();
     expect(service.selectedLayerGroup.getLayers().length).toBe(1);
     expect(service.mainLayerGroup.getLayers().length).toBe(0);
@@ -244,25 +204,11 @@ describe("OverviewMapService", () => {
       markers: [{ id: 1 }],
     };
     cardServiceMock.createCard.mockResolvedValue(cardMock);
-    await service.addNewCard([0, 0]);
+    await service.addNewCard(new LatLng(0, 0));
     TestBed.flushEffects();
     expect(service.selectedLayerGroup.getLayers().length).toBe(1);
     expect(cardServiceMock.createCard).toHaveBeenCalled();
     expect(service.editCard()).toEqual(cardMock);
-  });
-
-  it("should delete selectedLayer correctly", async () => {
-    const testMarker = createTestMarkerAM({ id: 0, card_id: 0, radius: 1 });
-    markerServiceMock.getMarkerAMInArea.mockResolvedValue([testMarker]);
-    await service.updateMapBounds(testLatLngBounds);
-    service.changeSelectedMarkerAM(testMarker);
-    TestBed.flushEffects();
-    expect(service.selectedLayerGroup.getLayers().length).toBe(1);
-    expect(service.radiusLayerGroup.getLayers().length).toBe(1);
-    await service.deleteSelectedMarker();
-    TestBed.flushEffects();
-    expect(service.selectedLayerGroup.getLayers().length).toBe(0);
-    expect(cardServiceMock.deleteMarker).toHaveBeenCalled();
   });
 
   // TODO: behavior changed!
@@ -289,7 +235,7 @@ describe("OverviewMapService", () => {
 
     // select marker which has a card that is linked to other displayed markers
     cardServiceMock.readCard.mockReturnValue(testCard);
-    service.changeSelectedMarkerAM(testMarker1);
+    service.changeSelectedMarker(testMarker1);
     TestBed.flushEffects();
     expect(service.selectedLayerGroup.getLayers().length).toBe(1);
 

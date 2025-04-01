@@ -1,13 +1,13 @@
 import { TestBed } from "@angular/core/testing";
 import { MarkerService } from "@service/marker.service";
 import { CardService } from "@service/card.service";
-import { Card, MarkerDB } from "@app/model/card";
+import { Card } from "@app/model/card";
 import { LatLngBounds } from "leaflet";
 import { MarkerAM } from "@app/model/markerAM";
 
 const MockCardService = {
   readCard: () => {},
-  readMarkersInArea: () => {
+  readCardsInArea: () => {
     return Promise.resolve([]);
   },
 };

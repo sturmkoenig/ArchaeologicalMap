@@ -45,3 +45,8 @@ export interface MarkerDB {
   radius: number;
   icon_name: keyof typeof ICONS;
 }
+
+export type CardMetaData = Pick<
+  Card,
+  "title" | "description" | "region_image_id" | "stack_id"
+>;

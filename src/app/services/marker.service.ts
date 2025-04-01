@@ -6,6 +6,9 @@ import { IconKeys, IconService } from "./icon.service";
 import { invoke } from "@tauri-apps/api/core";
 import { MarkerAM } from "@app/model/markerAM";
 
+/**
+ * @deprecated
+ */
 export interface CardMarkerLayer {
   card?: CardDB;
   markerDB: MarkerDB;
@@ -29,28 +32,19 @@ export class MarkerService {
         this.iconSizeMap = iconSizeMap;
       });
   }
-
+  /**
+   * @deprecated
+   */
   async updateMarker(marker: MarkerDB): Promise<void> {
     return await invoke("update_marker", { marker: marker });
   }
 
   async getMarker(markerId: number): Promise<MarkerAM> {
-    return this.getMarkerDB(markerId).then((m) => {
-      return new MarkerAM(
-        [m.latitude, m.longitude],
-        {},
-        {
-          cardId: m.card_id!,
-          iconType: m.icon_name,
-          radius: m.radius,
-          iconSize: this.iconSizeMap.get(m.icon_name),
-        },
-      );
+    return this.cardService.readCard(markerId).then((card) => {
+      return new MarkerAM([card.latitude, card.longitude], {}, card, {
+        iconSize: this.iconSizeMap.get(card.icon_name),
+      });
     });
-  }
-
-  getMarkerDB(id: number): Promise<MarkerDB> {
-    return invoke("read_marker", { id: id });
   }
 
   async getMarkerAMInArea(bounds: LatLngBounds): Promise<MarkerAM[]> {
@@ -61,23 +55,15 @@ export class MarkerService {
       west: bounds.getWest(),
     });
     return markersDB.map((card) => {
-      return new MarkerAM(
-        [card.latitude, card.longitude],
-        {},
-        {
-          cardId: card.id,
-          radius: card.radius,
-          iconType: card.icon_name,
-          iconSize: this.iconSizeMap.get(card.icon_name),
-        },
-      );
+      return new MarkerAM([card.latitude, card.longitude], {}, card, {
+        iconSize: this.iconSizeMap.get(card.icon_name),
+      });
     });
   }
 
-  createNewMarker(cardId: number, newMarker: MarkerDB): Promise<MarkerDB> {
-    return invoke("create_marker", { newMarker: newMarker, cardId: cardId });
-  }
-
+  /**
+   * @deprecated
+   */
   getBounds(markers: MarkerDB[]): LatLngBounds {
     const min_lat = markers.reduce((x, y) => (x.latitude < y.latitude ? x : y));
     const min_lng = markers.reduce((x, y) =>

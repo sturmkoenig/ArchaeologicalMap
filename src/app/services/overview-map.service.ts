@@ -2,14 +2,14 @@ import { effect, Injectable, signal, WritableSignal } from "@angular/core";
 import {
   LatLng,
   LatLngBounds,
-  LatLngExpression,
   Layer,
   LayerGroup,
+  marker,
   MarkerClusterGroup,
 } from "leaflet";
 import { MarkerService } from "./marker.service";
 import { isMarkerAM, RadiusVisibility } from "../model/marker";
-import { Card } from "../model/card";
+import { Card, CardMetaData } from "../model/card";
 import { CardService } from "./card.service";
 import { IconKeys, IconService } from "./icon.service";
 import { MarkerAM } from "@app/model/markerAM";
@@ -23,6 +23,9 @@ export class OverviewMapService {
   public showLabels?: boolean;
   iconSizeMap: Map<IconKeys, number> = new Map();
   selectedMarker: WritableSignal<MarkerAM | undefined>;
+  /**
+   * @deprecated
+   */
   editCard: WritableSignal<Card | undefined>;
 
   constructor(
@@ -71,49 +74,35 @@ export class OverviewMapService {
     this.clusterGroup.clearLayers();
   }
 
-  changeSelectedMarkerAM(markerAM: MarkerAM | undefined): void {
-    if (markerAM?.cardId === this.selectedMarker()?.cardId) {
+  changeSelectedMarker(marker?: MarkerAM): void {
+    if (marker?.cardId === this.selectedMarker()?.cardId) {
       return;
     }
     this.selectedLayerGroup.clearLayers();
     this.addLayerToMainLayerGroup(this.selectedMarker());
-    this.selectedMarker.set(markerAM);
+    this.selectedMarker.set(marker);
   }
 
-  async addNewCard(latlng: LatLngExpression): Promise<void> {
-    let newMarker = new MarkerAM(latlng, {}, { iconType: "iconMiscRed" });
+  async addNewCard(latLng: LatLng): Promise<void> {
     const newCard: Card = {
       title: "",
       description: "",
       icon_name: "iconMiscRed",
       radius: 0.0,
-      latitude: newMarker.getLatitude(),
-      longitude: newMarker.getLongitude(),
+      latitude: latLng.lat,
+      longitude: latLng.lng,
     };
     await this.cardService.createCard(newCard).then((c) => {
       this.editCard.set(c);
-      newMarker = new MarkerAM(
-        latlng,
-        {},
-        {
-          cardId: c.id,
-          iconType: "iconMiscRed",
-        },
-      );
-      this.changeSelectedMarkerAM(newMarker);
+      this.changeSelectedMarker(new MarkerAM(latLng, {}, c));
     });
   }
 
-  moveSelectedMarker(latlng: LatLng): void {
-    this.selectedMarker()?.setLatLng(latlng);
+  moveSelectedMarker(latLng: LatLng): void {
+    this.selectedMarker()?.setLatLng(latLng);
     this.selectedMarker.set(this.selectedMarker());
-    this.markerService.updateMarker(this.selectedMarker()!.toMarkerDB());
-  }
-
-  async deleteSelectedMarker(): Promise<void> {
-    this.selectedLayerGroup.clearLayers();
-    await this.cardService.deleteMarker(this.selectedMarker()!.cardId);
-    this.selectedMarker.set(undefined);
+    const updatedCard = this.selectedMarker()?.toCard();
+    if (updatedCard) this.cardService.updateCard(updatedCard);
   }
 
   async reloadSelectedMarker() {
@@ -124,37 +113,30 @@ export class OverviewMapService {
         this.selectedMarker.set(m);
       });
   }
-  updateEditCard(newCard: Card) {
+  updateEditCard(changedCardMetaData: CardMetaData) {
+    const currentCard = this.selectedMarker();
+    if (!currentCard) {
+      return;
+    }
+    console.log("currentCard", currentCard);
+    console.log("changed", changedCardMetaData);
+    const newCard: Card = {
+      ...currentCard.toCard(),
+      ...changedCardMetaData,
+    };
+    console.log("newCard", newCard);
+    console.log("currentCard.toCard()", currentCard.toCard());
+    this.selectedMarker.set(
+      new MarkerAM([newCard.latitude, newCard.longitude], {}, newCard, {
+        iconSize: this.iconSizeMap.get(newCard.icon_name),
+      }),
+    );
     this.editCard.set(newCard);
     this.cardService.updateCard(newCard);
   }
 
-  async addMarkerToSelectedCard(latlng: LatLngExpression): Promise<void> {
-    let newMarker = new MarkerAM(
-      latlng,
-      {},
-      {
-        cardId: this.editCard()?.id,
-        iconType: "iconMiscRed",
-      },
-    );
-    await this.markerService
-      .createNewMarker(this.selectedMarker()!.cardId, newMarker.toMarkerDB())
-      .then((m) => {
-        newMarker = new MarkerAM(
-          latlng,
-          {},
-          {
-            cardId: m.card_id,
-            iconType: "iconMiscRed",
-          },
-        );
-        this.changeSelectedMarkerAM(newMarker);
-      });
-  }
-
   async deleteEditCard(): Promise<void> {
-    const deleteCardId = this.selectedMarker()?.cardId;
+    const deleteCardId = this.editCard()?.id;
     if (deleteCardId === undefined) {
       return;
     }
@@ -169,14 +151,14 @@ export class OverviewMapService {
     });
   }
 
-  addLayerToMainLayerGroup(marker: MarkerAM | undefined): void {
+  addLayerToMainLayerGroup(marker?: MarkerAM): void {
     if (!marker) {
       return;
     }
     this.mainLayerGroup.addLayer(marker);
     this.clusterGroup.addLayer(marker);
     marker.on("click", () => {
-      this.changeSelectedMarkerAM(marker);
+      this.changeSelectedMarker(marker);
     });
 
     if (marker.radiusLayer) {
@@ -235,7 +217,7 @@ export class OverviewMapService {
     });
   }
 
-  hightlightMarker(highlightedMarkerIds: number[]) {
+  highlightMarker(highlightedMarkerIds: number[]) {
     this.clusterGroup
       .getLayers()
       .filter(

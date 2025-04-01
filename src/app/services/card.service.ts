@@ -37,6 +37,7 @@ export class CardService {
   }
 
   updateCard(card: Card): Promise<boolean> {
+    console.log("card updated", card);
     return invoke("update_card_unified", {
       card,
     });
@@ -51,23 +52,5 @@ export class CardService {
       id: id,
     });
     return;
-  }
-
-  /**
-   * @deprecated
-   */
-  deleteMarker(markerId: number): Promise<void> {
-    return invoke("delete_marker", { markerId: markerId });
-  }
-
-  /**
-   * @deprecated
-   */
-  deleteMarkers(removedMarkers: MarkerDB[]) {
-    removedMarkers
-      .filter((marker) => marker.id !== undefined && marker.id !== null)
-      .forEach((marker) => {
-        invoke("delete_marker", { markerId: marker.id! });
-      });
   }
 }
