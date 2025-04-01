@@ -20,7 +20,7 @@ import {
   tileLayer,
 } from "leaflet";
 import "leaflet.markercluster";
-import { CardDB, MarkerDB } from "@app/model/card";
+import { Card, CardDB, MarkerDB } from "@app/model/card";
 import { MapSettings, SettingService } from "@service/setting.service";
 import { MarkerService } from "@service/marker.service";
 import { IconSizeSetting } from "@service/icon.service";
@@ -78,7 +78,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   unlistenPanTo: Promise<UnlistenFn>;
   unlistenPanToBounds: Promise<UnlistenFn>;
   selectedMarker: WritableSignal<MarkerAM | undefined>;
-  editCard: WritableSignal<CardDB | undefined>;
+  editCard: WritableSignal<Card | undefined>;
 
   constructor(
     private markerService: MarkerService,
@@ -197,7 +197,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  updateSelectedCard(newCard: CardDB) {
+  updateSelectedCard(newCard: Card) {
     this.overviewMapService.updateEditCard(newCard);
     // TODO refresh state
   }

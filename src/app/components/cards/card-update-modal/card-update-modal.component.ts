@@ -1,6 +1,6 @@
 import { Component, Inject, Output, EventEmitter } from "@angular/core";
 import { MAT_DIALOG_DATA, MatDialog } from "@angular/material/dialog";
-import { CardDB, MarkerLatLng } from "src/app/model/card";
+import { Card, MarkerLatLng } from "src/app/model/card";
 import { CardService } from "src/app/services/card.service";
 import { CardDeleteDialogComponent } from "./card-delete-dialog/card-delete-dialog.component";
 import { StackStore } from "src/app/state/stack.store";
@@ -75,7 +75,7 @@ import { Stack } from "src/app/model/stack";
   ],
 })
 export class CardUpdateModalComponent {
-  updatedCard: CardDB;
+  updatedCard: Card;
   updatedMarkers: MarkerLatLng[];
   stacks$: Observable<Stack[]>;
 
@@ -86,27 +86,32 @@ export class CardUpdateModalComponent {
   deleted: EventEmitter<boolean> = new EventEmitter();
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public card: { currentCard: CardDB },
+    @Inject(MAT_DIALOG_DATA) public card: { currentCard: Card },
     private cardService: CardService,
     public dialog: MatDialog,
     private stackStore: StackStore,
   ) {
     this.updatedCard = card.currentCard;
-    this.updatedMarkers = this.updatedCard.markers;
+    const updateMarker: MarkerLatLng = {
+      latitude: this.updatedCard.latitude,
+      longitude: this.updatedCard.longitude,
+      icon_name: this.updatedCard.icon_name,
+      radius: this.updatedCard.radius,
+    };
+    this.updatedMarkers = [updateMarker];
     this.stacks$ = stackStore.stacks$;
   }
 
   onUpdate() {
-    this.cardService.updateCard(this.updatedCard, this.updatedMarkers);
-    let removedMarkers = this.updatedCard.markers.filter(
-      (originalMarker) => this.updatedMarkers.indexOf(originalMarker) === -1,
-    );
-    this.cardService.deleteMarkers(removedMarkers);
+    this.cardService.updateCard({
+      ...this.updatedCard,
+      ...this.updatedMarkers[0],
+    });
     this.updated.emit(true);
   }
 
   openDeleteDialog(title: string, id: number) {
-    let dialogRef = this.dialog.open(CardDeleteDialogComponent, {
+    const dialogRef = this.dialog.open(CardDeleteDialogComponent, {
       data: {
         title: title,
         id: id,

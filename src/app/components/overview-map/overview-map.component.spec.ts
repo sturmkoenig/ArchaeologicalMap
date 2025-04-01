@@ -144,14 +144,10 @@ describe("OverviewMapComponent", () => {
     expect(cardServiceMock.createCard).toHaveBeenCalledWith({
       title: "",
       description: "",
-      markers: [
-        {
-          longitude: expect.any(Number),
-          latitude: expect.any(Number),
-          radius: 0,
-          icon_name: "iconMiscRed",
-        },
-      ],
+      longitude: expect.any(Number),
+      latitude: expect.any(Number),
+      radius: 0,
+      icon_name: "iconMiscRed",
     });
     expect(component.selectedLayerGroup.getLayers().length).toBe(1);
   });

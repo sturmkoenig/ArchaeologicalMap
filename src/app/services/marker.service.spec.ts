@@ -43,7 +43,7 @@ describe("MarkerService", () => {
 
   it("should load MarkerAM correctly", async () => {
     jest
-      .spyOn(TestBed.inject(CardService), "readMarkersInArea")
+      .spyOn(TestBed.inject(CardService), "readCardsInArea")
       .mockResolvedValue([testCard]);
     await service
       .getMarkerAMInArea(

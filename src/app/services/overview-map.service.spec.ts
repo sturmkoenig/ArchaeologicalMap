@@ -265,28 +265,6 @@ describe("OverviewMapService", () => {
     expect(cardServiceMock.deleteMarker).toHaveBeenCalled();
   });
 
-  // TODO: add marker to card is obsolete
-  it("should add marker to selected card", async () => {
-    markerServiceMock.createNewMarker.mockResolvedValue(
-      updatedCardMarkerLayer.markerDB,
-    );
-    cardServiceMock.readCard.mockResolvedValue(updatedCardMarkerLayer.card);
-    const testMarker = createTestMarkerAM({ id: 0, card_id: 0 });
-    markerServiceMock.getMarkerAMInArea.mockResolvedValue([testMarker]);
-    await service.updateMapBounds(testLatLngBounds);
-    expect(service.mainLayerGroup.getLayers().length).toBe(1);
-    service.changeSelectedMarkerAM(testMarker);
-    TestBed.flushEffects();
-    expect(service.mainLayerGroup.getLayers().length).toBe(0);
-    expect(service.selectedLayerGroup.getLayers().length).toBe(1);
-    await service.addMarkerToSelectedCard([0, 0]);
-    TestBed.flushEffects();
-    expect(service.selectedLayerGroup.getLayers().length).toBe(1);
-    expect(service.mainLayerGroup.getLayers().length).toBe(1);
-    expect(service.selectedMarker()?.cardId).toBe(10);
-    expect(service.selectedMarker()?.cardId).toBe(11);
-  });
-
   // TODO: behavior changed!
   it("should delete edit card correctly", async () => {
     //initialize state

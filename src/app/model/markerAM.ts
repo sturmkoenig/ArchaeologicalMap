@@ -94,6 +94,14 @@ export class MarkerAM extends Marker {
     this.on("hover", () => {});
   }
 
+  getLatitude(): number {
+    return this.getLatLng().lat;
+  }
+
+  getLongitude(): number {
+    return this.getLatLng().lng;
+  }
+
   setRadius(radius: number | undefined): void {
     if (!radius || radius === 0) {
       this._radiusLayer = undefined;

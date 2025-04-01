@@ -1,10 +1,9 @@
 import { Injectable } from "@angular/core";
 import { LatLng, LatLngBounds, Layer, Marker } from "leaflet";
-import { Card, CardDB, MarkerDB } from "src/app/model/card";
+import { CardDB, MarkerDB } from "src/app/model/card";
 import { CardService } from "./card.service";
 import { IconKeys, IconService } from "./icon.service";
 import { invoke } from "@tauri-apps/api/core";
-import { createCardDetailsWindow } from "../util/window-util";
 import { MarkerAM } from "@app/model/markerAM";
 
 export interface CardMarkerLayer {
@@ -55,7 +54,7 @@ export class MarkerService {
   }
 
   async getMarkerAMInArea(bounds: LatLngBounds): Promise<MarkerAM[]> {
-    const markersDB = await this.cardService.readMarkersInArea({
+    const markersDB = await this.cardService.readCardsInArea({
       north: bounds.getNorth(),
       east: bounds.getEast(),
       south: bounds.getSouth(),

@@ -218,39 +218,6 @@ describe("CardDetailsComponent", () => {
     ).toBeTruthy();
   });
 
-  // TODO: Obsolete
-  it("should pan to multiple markers of a card", async () => {
-    const givenMarkerOne: MarkerDB = {
-      icon_name: "iconBorderLimesRed",
-      radius: 0,
-      id: 1,
-      latitude: 0,
-      longitude: 0,
-    };
-    const givenMarkerTwo: MarkerDB = {
-      icon_name: "iconBorderLimesRed",
-      radius: 0,
-      id: 2,
-      latitude: 0,
-      longitude: 0,
-    };
-    const givenBounds = new LatLngBounds([0, 0], [0, 0]);
-    markerServiceMock.getBounds.mockReturnValue(givenBounds);
-    await givenACard({
-      ...defaultCard,
-      markers: [givenMarkerOne, givenMarkerTwo],
-    });
-    const harness = await RouterTestingHarness.create("/cards/details/1");
-    harness.detectChanges();
-    whenIClickAButton("show-on-map-button", harness);
-    expect(emit).toHaveBeenCalledWith("panToBounds", {
-      minLat: givenBounds.getSouthWest().lat,
-      minLng: givenBounds.getSouthWest().lng,
-      maxLat: givenBounds.getNorthEast().lat,
-      maxLng: givenBounds.getNorthEast().lng,
-      markerIds: [givenMarkerOne.id, givenMarkerTwo.id],
-    });
-  });
   it("should pan to a single marker of a card", async () => {
     const givenMarker: MarkerDB = {
       icon_name: "iconBorderLimesRed",

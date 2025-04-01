@@ -7,60 +7,38 @@ import { Stack } from "@app/model/stack";
   providedIn: "root",
 })
 export class CardService {
-  getAllCardsForStack(
+  async getAllCardsForStack(
     stack_id: number,
-  ): Promise<{ stack: Stack; cards: CardDB[] }> {
-    return invoke<[Stack, CardDB[]]>("get_cards_in_stack", {
+  ): Promise<{ stack: Stack; cards: Card[] }> {
+    const result = await invoke<[Stack, Card[]]>("read_cards_in_stack", {
       stackId: stack_id,
-    }).then((result) => {
-      return { stack: result[0], cards: result[1] };
     });
+    return { stack: result[0], cards: result[1] };
   }
 
-  createCard(newCard: CardDB): Promise<CardDB> {
-    return invoke("create_card", {
-      card: {
-        title: newCard.title,
-        description: newCard.description,
-        markers: newCard.markers,
-      },
+  createCard(card: Card): Promise<Card> {
+    return invoke("create_unified_card", {
+      card,
     });
   }
-
-  readCards(): Promise<CardDB[]> {
-    return invoke("read_cards", {});
-  }
-  readMarkersInArea(directions: CardinalDirection): Promise<Card[]> {
+  readCardsInArea(directions: CardinalDirection): Promise<Card[]> {
     return invoke("read_cards_in_area", { cardinalDirections: directions });
   }
 
-  readCardsInArea(directions: CardinalDirection): Promise<CardDB[]> {
-    return invoke("read_cards_in_area", {
-      north: directions.north,
-      east: directions.east,
-      south: directions.south,
-      west: directions.west,
-    });
-  }
-
+  /**
+   * @deprecated
+   */
   readCardsPaginated(pageIndex: number, filter: string): Promise<CardDB[]> {
     return invoke("read_cards_paginated", { page: pageIndex, filter: filter });
   }
 
-  readCard(cardId: number): Promise<CardDB> {
-    return invoke("read_card", { id: cardId });
+  readCard(cardId: number): Promise<Card> {
+    return invoke("read_card_by_id", { id: cardId });
   }
 
-  updateCard(updateCard: CardDB, markers?: MarkerDB[]): Promise<boolean> {
-    return invoke("update_card", {
-      card: {
-        id: updateCard.id,
-        title: updateCard.title,
-        description: updateCard.description,
-        markers: markers,
-        stack_id: updateCard.stack_id,
-        region_image_id: updateCard.region_image_id,
-      },
+  updateCard(card: Card): Promise<boolean> {
+    return invoke("update_card_unified", {
+      card,
     });
   }
 
@@ -74,10 +52,17 @@ export class CardService {
     });
     return;
   }
+
+  /**
+   * @deprecated
+   */
   deleteMarker(markerId: number): Promise<void> {
     return invoke("delete_marker", { markerId: markerId });
   }
 
+  /**
+   * @deprecated
+   */
   deleteMarkers(removedMarkers: MarkerDB[]) {
     removedMarkers
       .filter((marker) => marker.id !== undefined && marker.id !== null)

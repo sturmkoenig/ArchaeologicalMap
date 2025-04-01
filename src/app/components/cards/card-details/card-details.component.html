@@ -28,13 +28,13 @@
           </button>
         </span>
         <div class="card--content">
-          <ng-container *ngIf="card.markers">
+          <ng-container *ngIf="card">
             <div class="card--content_navigate-to-position-button">
               @if (regionImage$ | async) {
                 <button
                   class="region-image-button"
                   data-testid="show-on-map-button"
-                  (click)="panToLatLng(card.markers)"
+                  (click)="panToLatLng(card)"
                 >
                   <img
                     data-testid="card-region-img"
@@ -45,10 +45,9 @@
               } @else {
                 <button
                   mat-mini-fab
-                  data-testid="card-pan-to-lat-lng-mini-button"
                   color="warn"
                   data-testid="show-on-map-button"
-                  (click)="panToLatLng(card.markers)"
+                  (click)="panToLatLng(card)"
                   aria-label="Example icon button with a home icon"
                 >
                   <mat-icon>pin_drop</mat-icon>

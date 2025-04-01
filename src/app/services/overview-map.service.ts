@@ -9,7 +9,7 @@ import {
 } from "leaflet";
 import { MarkerService } from "./marker.service";
 import { isMarkerAM, RadiusVisibility } from "../model/marker";
-import { CardDB } from "../model/card";
+import { Card } from "../model/card";
 import { CardService } from "./card.service";
 import { IconKeys, IconService } from "./icon.service";
 import { MarkerAM } from "@app/model/markerAM";
@@ -23,7 +23,7 @@ export class OverviewMapService {
   public showLabels?: boolean;
   iconSizeMap: Map<IconKeys, number> = new Map();
   selectedMarker: WritableSignal<MarkerAM | undefined>;
-  editCard: WritableSignal<CardDB | undefined>;
+  editCard: WritableSignal<Card | undefined>;
 
   constructor(
     private markerService: MarkerService,
@@ -34,7 +34,7 @@ export class OverviewMapService {
     this.selectedLayerGroup = new LayerGroup();
     this.radiusLayerGroup = new LayerGroup();
     this.selectedMarker = signal<MarkerAM | undefined>(undefined);
-    this.editCard = signal<CardDB | undefined>(undefined);
+    this.editCard = signal<Card | undefined>(undefined);
     this.iconService
       .getIconSizeSettings()
       .then((iconSizeMap: Map<IconKeys, number>) => {
@@ -82,10 +82,13 @@ export class OverviewMapService {
 
   async addNewCard(latlng: LatLngExpression): Promise<void> {
     let newMarker = new MarkerAM(latlng, {}, { iconType: "iconMiscRed" });
-    const newCard = {
+    const newCard: Card = {
       title: "",
       description: "",
-      markers: [newMarker.toMarkerDB()],
+      icon_name: "iconMiscRed",
+      radius: 0.0,
+      latitude: newMarker.getLatitude(),
+      longitude: newMarker.getLongitude(),
     };
     await this.cardService.createCard(newCard).then((c) => {
       this.editCard.set(c);
@@ -121,9 +124,9 @@ export class OverviewMapService {
         this.selectedMarker.set(m);
       });
   }
-  updateEditCard(newCard: CardDB) {
+  updateEditCard(newCard: Card) {
     this.editCard.set(newCard);
-    this.cardService.updateCard(newCard, []);
+    this.cardService.updateCard(newCard);
   }
 
   async addMarkerToSelectedCard(latlng: LatLngExpression): Promise<void> {

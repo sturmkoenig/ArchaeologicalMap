@@ -6,7 +6,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Observable } from "rxjs";
 import { EditorComponent } from "@app/layout/editor/editor.component";
-import { CardDB, MarkerDB } from "@app/model/card";
+import { Card, MarkerDB } from "@app/model/card";
 import { CardContentService } from "@service/card-content.service";
 import { MarkerService } from "@service/marker.service";
 import { CardDetailsStore } from "@app/state/card-details.store";
@@ -19,12 +19,12 @@ import { ImageEntity } from "@app/model/image";
 })
 export class CardDetailsComponent implements OnInit {
   cardId!: number;
-  card$!: Observable<CardDB | undefined>;
+  card$!: Observable<Card | undefined>;
   stackId?: number;
 
   @ViewChild(EditorComponent)
   editor!: EditorComponent;
-  allCardsInStack$: Observable<CardDB[]>;
+  allCardsInStack$: Observable<Card[]>;
   currentStackId$: Observable<number | undefined>;
   regionImage$: Observable<ImageEntity | undefined>;
 
@@ -70,25 +70,11 @@ export class CardDetailsComponent implements OnInit {
     });
   }
 
-  panToLatLng(marker: MarkerDB[]) {
-    if (marker === null) {
-      return;
-    }
-    if (marker.length === 1) {
-      emit("panTo", {
-        lat: marker[0].latitude,
-        lng: marker[0].longitude,
-        id: marker[0].id ?? 0,
-      });
-    } else {
-      const bounds = this.markerService.getBounds(marker);
-      emit("panToBounds", {
-        minLat: bounds.getSouthWest().lat,
-        minLng: bounds.getSouthWest().lng,
-        maxLat: bounds.getNorthEast().lat,
-        maxLng: bounds.getNorthEast().lng,
-        markerIds: marker.map((marker) => marker.id ?? 0),
-      });
-    }
+  async panToLatLng(card: Card) {
+    return emit("panTo", {
+      lat: card.latitude,
+      lng: card.longitude,
+      id: card.id ?? 0,
+    });
   }
 }

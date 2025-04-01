@@ -14,13 +14,6 @@ export interface MarkerLatLng {
   icon_name: keyof typeof ICONS;
 }
 
-export interface NewCard {
-  title: string;
-  description: string;
-  markers: MarkerLatLng[];
-  stackId?: number;
-}
-
 export interface Card {
   id?: number;
   title: string;
@@ -32,6 +25,7 @@ export interface Card {
   radius: number;
   stack_id?: number;
 }
+/** @deprecated */
 export interface CardDB {
   id?: number;
   title: string;
@@ -41,6 +35,7 @@ export interface CardDB {
   stack_id?: number | null;
 }
 
+/** @deprecated */
 export interface MarkerDB {
   id?: number;
   card_id?: number;
