@@ -6,9 +6,8 @@ import { MatDialog } from "@angular/material/dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Observable } from "rxjs";
 import { EditorComponent } from "@app/layout/editor/editor.component";
-import { Card, MarkerDB } from "@app/model/card";
+import { Card } from "@app/model/card";
 import { CardContentService } from "@service/card-content.service";
-import { MarkerService } from "@service/marker.service";
 import { CardDetailsStore } from "@app/state/card-details.store";
 import { ImageEntity } from "@app/model/image";
 
@@ -20,7 +19,6 @@ import { ImageEntity } from "@app/model/image";
 export class CardDetailsComponent implements OnInit {
   cardId!: number;
   card$!: Observable<Card | undefined>;
-  stackId?: number;
 
   @ViewChild(EditorComponent)
   editor!: EditorComponent;
@@ -30,7 +28,6 @@ export class CardDetailsComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private markerService: MarkerService,
     public dialog: MatDialog,
     private cardContentService: CardContentService,
     public cardDetailsStore: CardDetailsStore,

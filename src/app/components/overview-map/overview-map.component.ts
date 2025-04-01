@@ -22,7 +22,7 @@ import {
   tileLayer,
 } from "leaflet";
 import "leaflet.markercluster";
-import { Card, CardMetaData, MarkerDB } from "@app/model/card";
+import { Card, CardMetaData, LocationData } from "@app/model/card";
 import { MapSettings, SettingService } from "@service/setting.service";
 import { MarkerService } from "@service/marker.service";
 import { IconSizeSetting } from "@service/icon.service";
@@ -167,10 +167,8 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
-  async updateSelectedMarker(newMarker: MarkerDB) {
-    await this.markerService.updateMarker(newMarker).then(() => {
-      this.overviewMapService.reloadSelectedMarker();
-    });
+  async updateSelectedMarker(newMarker: LocationData) {
+    await this.overviewMapService.updateEditCard(newMarker);
   }
 
   onMoveExistingMarker() {

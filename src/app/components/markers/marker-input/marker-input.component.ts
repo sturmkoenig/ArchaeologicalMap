@@ -6,8 +6,13 @@ import {
   Output,
   SimpleChanges,
 } from "@angular/core";
-import { MarkerDB } from "@app/model/card";
-import { ICONS, IconService, iconsSorted } from "@service/icon.service";
+import { LocationData } from "@app/model/card";
+import {
+  IconKeys,
+  ICONS,
+  IconService,
+  iconsSorted,
+} from "@service/icon.service";
 import { MatSelectChange, MatSelectModule } from "@angular/material/select";
 import { MatCheckbox, MatCheckboxChange } from "@angular/material/checkbox";
 import { MatSliderModule } from "@angular/material/slider";
@@ -80,23 +85,22 @@ import { KeyValuePipe, NgForOf } from "@angular/common";
       display: flex;
       flex-direction: column;
     }
+
     .option-icon {
       margin: auto;
       height: 2rem;
     }
 
     mat-button-toggle-group {
-      margin: 20px;
-      margin-top: 0px;
-      margin-bottom: 50px;
+      margin: 0px 20px 50px;
     }
   `,
 })
 export class MarkerInputComponent implements OnChanges {
   @Input()
-  marker?: MarkerDB;
+  marker?: LocationData;
   @Output()
-  markerChange: EventEmitter<MarkerDB> = new EventEmitter();
+  markerChange: EventEmitter<LocationData> = new EventEmitter();
   @Output()
   markerMove: EventEmitter<boolean> = new EventEmitter();
   icons = ICONS;
@@ -119,10 +123,9 @@ export class MarkerInputComponent implements OnChanges {
 
   setIcon(newIcon: MatSelectChange) {
     this.selectedIconCategory = newIcon.value;
-    const iconName: any = IconService.getIconNameByPath(
+    this.marker!.icon_name = IconService.getIconNameByPath(
       iconsSorted[this.selectedIconCategory][0],
     );
-    this.marker!.icon_name = iconName;
     this.markerChange.emit(this.marker);
   }
   setIconVariant(iconName: keyof typeof ICONS) {

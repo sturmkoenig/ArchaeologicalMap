@@ -113,19 +113,15 @@ export class OverviewMapService {
         this.selectedMarker.set(m);
       });
   }
-  updateEditCard(changedCardMetaData: CardMetaData) {
+  updateEditCard(changedCardMetaData: Partial<Card>) {
     const currentCard = this.selectedMarker();
     if (!currentCard) {
       return;
     }
-    console.log("currentCard", currentCard);
-    console.log("changed", changedCardMetaData);
     const newCard: Card = {
       ...currentCard.toCard(),
       ...changedCardMetaData,
     };
-    console.log("newCard", newCard);
-    console.log("currentCard.toCard()", currentCard.toCard());
     this.selectedMarker.set(
       new MarkerAM([newCard.latitude, newCard.longitude], {}, newCard, {
         iconSize: this.iconSizeMap.get(newCard.icon_name),

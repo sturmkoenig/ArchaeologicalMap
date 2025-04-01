@@ -50,3 +50,7 @@ export type CardMetaData = Pick<
   Card,
   "title" | "description" | "region_image_id" | "stack_id"
 >;
+export type LocationData = Pick<
+  Card,
+  "latitude" | "longitude" | "radius" | "icon_name"
+>;
