@@ -10,6 +10,7 @@ diesel::table! {
         longitude -> Float,
         radius -> Float,
         icon_name -> Text,
+        region_image_id -> Nullable<Integer>,
     }
 }
 
@@ -61,6 +62,7 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(card_new -> image (region_image_id));
 diesel::joinable!(card_new -> stack (stack_id));
 diesel::joinable!(cards -> image (region_image_id));
 diesel::joinable!(cards -> stack (stack_id));

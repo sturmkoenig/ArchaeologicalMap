@@ -59,7 +59,10 @@ pub struct NewUnifiedCard<'a> {
     pub latitude: f32,
     pub radius: f32,
     pub icon_name: &'a str,
+    pub stack_id: Option<i32>,
+    pub region_image_id: Option<i32>
 }
+
 impl Default for NewUnifiedCard<'_> {
     fn default() -> Self {
         NewUnifiedCard {
@@ -69,6 +72,8 @@ impl Default for NewUnifiedCard<'_> {
             latitude: 0.0,
             radius: 0.0,
             icon_name: "",
+            stack_id: None,
+            region_image_id: None
         }
     }
 }
@@ -136,6 +141,7 @@ pub struct CardUnified {
     pub longitude:  f32,
     pub radius:  f32,
     pub icon_name:  String,
+    pub region_image_id: Option<i32>,
 }
 
 #[derive(Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]
@@ -204,7 +210,7 @@ impl From<CardUnified> for CardUnifiedDTO {
             radius: Some(c.radius),
             icon_name: c.icon_name,
             stack_id: c.stack_id,
-            region_image_id: None
+            region_image_id: c.region_image_id
         }
     }
 }

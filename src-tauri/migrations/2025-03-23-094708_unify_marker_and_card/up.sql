@@ -8,7 +8,9 @@ CREATE TABLE card_new (
     longitude REAL NOT NULL,
     radius REAL NOT NULL,
     icon_name VARCHAR DEFAULT 'iconDefault' NOT NULL,
-    FOREIGN KEY (stack_id) REFERENCES stack(id)
+    region_image_id INTEGER,
+    FOREIGN KEY (stack_id) REFERENCES stack(id),
+    FOREIGN KEY (region_image_id) REFERENCES image(id)
 );
 INSERT INTO card_new
 WITH ranked_cards AS (
@@ -17,6 +19,7 @@ WITH ranked_cards AS (
         m.id as marker_id,
         c.description,
         c.stack_id,
+        c.region_image_id,
         m.latitude,
         m.longitude,
         m.radius,
@@ -40,5 +43,5 @@ WITH ranked_cards AS (
              JOIN cards c ON m.card_id = c.id
 )
 SELECT
-    new_card_id as id, new_title as title, description, stack_id, latitude, longitude, radius, icon_name
+    new_card_id as id, new_title as title, description, stack_id, latitude, longitude, radius, icon_name, region_image_id
 FROM ranked_cards;

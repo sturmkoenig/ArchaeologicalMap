@@ -1,16 +1,22 @@
 use app::models::{CardUnified, CardUnifiedDTO, CardinalDirections, NewUnifiedCard};
 use app::schema::card_new::dsl::card_new;
 use app::schema::card_new::{latitude, longitude};
-use app::last_insert_rowid;
+use app::schema;
 use diesel::associations::HasTable;
 use diesel::ExpressionMethods;
-use diesel::{select, QueryDsl, QueryResult, RunQueryDsl, SqliteConnection};
+use diesel::{QueryDsl, QueryResult, RunQueryDsl, SqliteConnection};
 
 pub fn query_unified_card_by_id(conn: &mut SqliteConnection, card_id: i32) -> QueryResult<CardUnifiedDTO>{
     card_new::find(card_new::table(), card_id).first::<CardUnified>(conn).map(CardUnifiedDTO::from)
 }
 
-pub fn query_create_unified_card(conn: &mut SqliteConnection, card_unified_dto: CardUnifiedDTO) -> i32 {
+
+pub fn query_unified_cards_in_stack(conn: &mut SqliteConnection, stack_id: i32) -> QueryResult<Vec<CardUnified>> {
+   card_new::table().filter(schema::card_new::stack_id.eq(stack_id))
+       .load(conn)
+}
+
+pub fn query_create_unified_card(conn: &mut SqliteConnection, card_unified_dto: CardUnifiedDTO) -> QueryResult<CardUnified> {
     let new_card = NewUnifiedCard {
         title: &card_unified_dto.title.unwrap_or_default(),
         description: &card_unified_dto.description.unwrap_or_default(),
@@ -18,16 +24,13 @@ pub fn query_create_unified_card(conn: &mut SqliteConnection, card_unified_dto: 
         latitude: card_unified_dto.latitude,
         radius: card_unified_dto.radius.unwrap_or_default(),
         icon_name: card_unified_dto.icon_name.as_str(),
+        stack_id: card_unified_dto.stack_id,
+        region_image_id: card_unified_dto.region_image_id
     };
 
     diesel::insert_into(card_new::table())
-        .values(&new_card)
-        .execute(conn)
-        .expect("error inserting entity");
-
-    select(last_insert_rowid())
-        .first(conn)
-        .expect("error getting id")
+        .values(new_card)
+        .get_result(conn)
 }
 
 pub fn query_cards_in_geological_area(conn: &mut SqliteConnection, cardinal_directions: CardinalDirections) -> QueryResult<Vec<CardUnified>> {

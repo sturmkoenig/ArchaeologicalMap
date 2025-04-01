@@ -42,7 +42,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use crate::persistence::images::query_update_image;
 use crate::persistence::stacks::query_stack_by_id;
-use crate::persistence::unified_cards::{query_cards_in_geological_area, query_create_unified_card, query_unified_card_by_id, query_update_unified_card};
+use crate::persistence::unified_cards::{query_cards_in_geological_area, query_create_unified_card, query_unified_card_by_id, query_unified_cards_in_stack, query_update_unified_card};
 use app::{establish_connection, models::Card};
 use std::env;
 use std::fs;
@@ -74,7 +74,10 @@ fn main() {
             delete_card,
 
             read_cards_in_area,
+            read_cards_in_stack,
             read_card_by_id,
+            update_card_unified,
+            create_unified_card,
 
             create_marker,
             read_marker,
@@ -98,7 +101,7 @@ fn main() {
         .setup(|_app| {
             let data_path = app_dir().unwrap();
             if !data_path.exists() {
-                std::fs::create_dir_all(data_path)?;
+                fs::create_dir_all(data_path)?;
             }
 
             let conn = &mut establish_connection();
@@ -218,7 +221,8 @@ fn update_card_unified(card: CardUnifiedDTO) -> Result<bool, String> {
             latitude: card.latitude,
             longitude: card.longitude,
             radius: card.radius.unwrap_or(0.0),
-            icon_name: card.icon_name
+            icon_name: card.icon_name,
+            region_image_id: card.region_image_id,
         },
     ).map_err(|err| err.to_string())
 }
@@ -229,10 +233,10 @@ fn read_card_by_id(id: i32) -> Result<CardUnifiedDTO, String> {
     query_unified_card_by_id(conn, id).map_err(|err| err.to_string())
 }
 
+#[tauri::command]
 fn create_unified_card(card: CardUnifiedDTO) -> Result<CardUnifiedDTO, String> {
     let conn = &mut establish_connection();
-    let card_id = query_create_unified_card(conn, card);
-    query_unified_card_by_id(conn, card_id).map_err(|err| err.to_string())
+    query_create_unified_card(conn, card).map(CardUnifiedDTO::from).map_err(|err| err.to_string())
 }
 
 // TODO may be moved to frontend
@@ -342,7 +346,7 @@ fn read_marker(id: i32) -> Marker {
     let conn = &mut establish_connection();
     query_marker_by_id(conn, id)
 }
-// TODO Add mehtod that sends number of entries!
+// TODO Add method that sends number of entries!
 
 #[tauri::command]
 fn update_marker(marker: Marker) {
@@ -359,6 +363,15 @@ fn read_all_stacks() -> Vec<StackDTO> {
         stack_dtos.push(StackDTO::from(stack.clone()))
     }
     stack_dtos
+}
+
+#[tauri::command]
+fn read_cards_in_stack(stack_id: i32) ->  Result<(StackDTO, Vec<CardUnifiedDTO>), String>{
+    println!("stack_id: {}", stack_id);
+    let conn = &mut establish_connection();
+    let cards = query_unified_cards_in_stack(conn, stack_id).map(|cards| cards.into_iter().map(CardUnifiedDTO::from).collect()).map_err(|err| err.to_string())?;
+    let stack = query_stack_by_id(conn, stack_id);
+    Ok((StackDTO::from(stack), cards))
 }
 
 #[tauri::command]
@@ -519,29 +532,47 @@ fn update_image_name(image_id: i32, new_name: String) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{create_unified_card, read_card_by_id, read_cards_in_area, update_card_unified, MIGRATIONS};
+    use crate::{create_stack, create_unified_card, read_card_by_id, read_cards_in_area, read_cards_in_stack, update_card_unified, MIGRATIONS};
     use app::establish_connection;
-    use app::models::{CardUnifiedDTO, CardinalDirections};
+    use app::models::{CardUnifiedDTO, CardinalDirections, NewStack};
     use diesel_migrations::MigrationHarness;
     use serial_test::serial;
     use std::default::Default;
     use std::env;
     use std::fs;
-    use uuid::Uuid;
+
+    fn given_test_card() -> CardUnifiedDTO {
+        CardUnifiedDTO{
+            id: None,
+            title: Some("My Title".to_string()),
+            description: Some("My Description".to_string()),
+            longitude:  2.690451,
+            latitude: 48.405937,
+            radius: Some(25.0),
+            icon_name: "IconMiscRed".to_string(),
+            ..Default::default()
+        }
+    }
+    fn given_new_stack() -> NewStack {
+       NewStack {
+            name: "My French Stack".to_string(),
+            image_name: "french-flag.png".to_string()
+        }
+    }
+
 
     struct TestDb {
        name: String
     }
-
     impl TestDb {
         fn initialize() -> Self {
-            let unique_db_name = format!("testing_{}.db", Uuid::new_v4());
-            println!("unique name: {}", unique_db_name.clone() );
-            env::set_var("DB_PATH", unique_db_name.clone());
+            let db_name = "testing.db".to_string();
+            println!("unique name: {}", db_name.clone() );
+            env::set_var("DB_PATH", db_name.clone());
             let conn = &mut establish_connection();
             conn.run_pending_migrations(MIGRATIONS).expect("Error running migrations");
             Self {
-                name: unique_db_name
+                name: db_name
             }
         }
 
@@ -553,12 +584,19 @@ mod tests {
             fs::remove_file(&self.name).expect("Failed to remove test database file");
         }
     }
+
     fn given_database_has_card(card: CardUnifiedDTO) -> CardUnifiedDTO{
         create_unified_card(card.clone()).expect(&format!("Error creating card {:?}", card))
     }
-
     fn initialize_test_env() -> TestDb{
         TestDb::initialize()
+    }
+
+    fn given_a_stack(stack: Option<NewStack>) -> i32 {
+        match stack {
+            Some(stack) => create_stack(stack).id,
+            None => create_stack(given_new_stack()).id
+        }
     }
     #[test]
     #[serial]
@@ -571,6 +609,8 @@ mod tests {
             description: Some(description.clone()),
             longitude: 52.0,
             latitude: 9.0,
+            stack_id: Some(1),
+            region_image_id: Some(1),
             icon_name: "icon_default".to_string(),
             ..CardUnifiedDTO::default()
         };
@@ -578,13 +618,13 @@ mod tests {
         let created_card = create_unified_card(unified_card).expect("failed to create card!");
         assert_ne!(created_card.id, None);
         assert_eq!(created_card.title.unwrap(), titel);
+        assert_eq!(created_card.region_image_id.unwrap(), 1);
+        assert_eq!(created_card.stack_id.unwrap(), 1);
         assert_eq!(created_card.description.unwrap(), description);
         assert_eq!(created_card.longitude, 52.0);
         assert_eq!(created_card.latitude, 9.0);
         assert_eq!(created_card.icon_name, "icon_default");
-        assert!(created_card.stack_id.is_none());
     }
-
     #[test]
     #[serial]
     fn it_is_able_to_query_card_by_using_geo_boundaries(){
@@ -602,16 +642,7 @@ mod tests {
     #[serial]
     fn it_is_able_to_query_a_card_by_using_its_id(){
         let _test_env = initialize_test_env();
-        let want_card = CardUnifiedDTO{
-            id: None,
-            title: Some("My Title".to_string()),
-            description: Some("My Description".to_string()),
-            longitude:  2.690451,
-            latitude: 48.405937,
-            radius: Some(25.0),
-            icon_name: "IconMiscRed".to_string(),
-            ..Default::default()
-        };
+        let want_card = given_test_card().clone();
         let card_id = given_database_has_card(want_card.clone()).id.expect("id is empty");
         let got_card = read_card_by_id(card_id).expect(&format!("Could not read card with id {}", card_id));
         assert_eq!(got_card, CardUnifiedDTO{id: Some(card_id),..want_card});
@@ -624,20 +655,12 @@ mod tests {
         assert!(got_card.is_err());
         assert_eq!(got_card.unwrap_err(), "Record not found");
     }
+
     #[test]
     #[serial]
     fn it_should_update_a_card(){
         let _test_env = initialize_test_env();
-        let want_card = CardUnifiedDTO{
-            id: None,
-            title: Some("My Title".to_string()),
-            description: Some("My Description".to_string()),
-            longitude:  2.690451,
-            latitude: 48.405937,
-            radius: Some(25.0),
-            icon_name: "IconMiscRed".to_string(),
-            ..Default::default()
-        };
+        let want_card = given_test_card().clone();
         let card_id = given_database_has_card(want_card.clone()).id.expect("id is empty");
         let update_card = CardUnifiedDTO {
             id: Some(card_id),
@@ -653,5 +676,18 @@ mod tests {
         assert!(update_result);
         let got_card = read_card_by_id(card_id).expect("card not found");
         assert_eq!(got_card, update_card);
+    }
+
+    #[test]
+    #[serial]
+    fn it_should_retrieve_all_cards_in_a_stack(){
+        let _test_env = initialize_test_env();
+        let stack_id = given_a_stack(None);
+        let number_of_cards_in_stack = 2;
+        given_database_has_card(CardUnifiedDTO{ stack_id: Some(stack_id), ..given_test_card().clone()});
+        given_database_has_card(CardUnifiedDTO{ stack_id: Some(stack_id), ..given_test_card().clone()});
+        given_database_has_card(CardUnifiedDTO{ stack_id: Some(stack_id+1), ..given_test_card().clone()});
+        let (stack, got_cards_in_stack) = read_cards_in_stack(stack_id).expect("Error reading cards in stack");
+        assert_eq!(got_cards_in_stack.iter().len(), number_of_cards_in_stack);
     }
 }
