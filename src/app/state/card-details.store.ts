@@ -71,7 +71,6 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
     }
     return state.currentCard;
   });
-
   readonly currentImage$ = this.select((state) => {
     if (state.status === status.loading) {
       return undefined;
@@ -111,6 +110,11 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
     } else {
       return state.currentStackId;
     }
+  });
+  readonly resetState$ = this.updater((state) => {
+    return {
+      status: status.loading,
+    };
   });
   readonly setAllCards = this.updater(
     (state, newState: Extract<CardDetailsState, { status: status.loaded }>) => {

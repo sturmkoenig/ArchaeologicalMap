@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { invoke } from "@tauri-apps/api/core";
 import { Card, CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
 import { Stack } from "@app/model/stack";
+import { emit } from "@tauri-apps/api/event";
 
 @Injectable({
   providedIn: "root",
@@ -37,9 +38,12 @@ export class CardService {
   }
 
   updateCard(card: Card): Promise<boolean> {
-    console.log("card updated", card);
-    return invoke("update_card_unified", {
+    return invoke<boolean>("update_card_unified", {
       card,
+    }).then(async (success: boolean) => {
+      await emit("card-changed", card);
+      console.log("emit", card);
+      return success;
     });
   }
 
