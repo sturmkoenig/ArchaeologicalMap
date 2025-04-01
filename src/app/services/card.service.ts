@@ -42,7 +42,6 @@ export class CardService {
       card,
     }).then(async (success: boolean) => {
       await emit("card-changed", card);
-      console.log("emit", card);
       return success;
     });
   }

@@ -118,7 +118,6 @@ export class MarkerAM extends Marker {
   }
 
   setIconSize(size: number): void {
-    console.log("setIconSize", size);
     this._iconSize = size;
     this.setIconType(this.iconType);
   }

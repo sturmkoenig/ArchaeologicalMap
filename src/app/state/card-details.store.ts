@@ -111,7 +111,7 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
       return state.currentStackId;
     }
   });
-  readonly resetState$ = this.updater((state) => {
+  readonly resetState$ = this.updater((_) => {
     return {
       status: status.loading,
     };
