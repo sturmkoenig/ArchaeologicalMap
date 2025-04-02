@@ -41,13 +41,7 @@ import { Stack } from "src/app/model/stack";
     </div>
     <div mat-dialog-actions>
       <button mat-button color="primary" mat-dialog-close>Abbrechen</button>
-      <button
-        mat-button
-        color="primary"
-        mat-dialog-close
-        cdkFocusInitial
-        (click)="onUpdate()"
-      >
+      <button mat-button color="primary" mat-dialog-close (click)="onUpdate()">
         Speichern
       </button>
       <button

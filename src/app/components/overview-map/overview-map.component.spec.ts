@@ -83,15 +83,13 @@ describe("OverviewMapComponent", () => {
       },
     };
 
-    readFileMock = (readFile as jest.Mock).mockImplementation(
-      async (...args) => {
-        const textEncoder = new TextEncoder();
-        return Promise.resolve(textEncoder.encode(JSON.stringify(mapSettings)));
-      },
-    );
+    readFileMock = (readFile as jest.Mock).mockImplementation(async (..._) => {
+      const textEncoder = new TextEncoder();
+      return Promise.resolve(textEncoder.encode(JSON.stringify(mapSettings)));
+    });
 
     writeTextFileMock = (writeTextFile as jest.Mock).mockImplementation(
-      async (fileName: string, settings: string, options: unknown) =>
+      async (fileName: string, settings: string, _: unknown) =>
         Promise.resolve((mapSettings = JSON.parse(settings))),
     );
     markerServiceMock.getMarkerAMInArea.mockResolvedValue([]);

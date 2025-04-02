@@ -60,7 +60,7 @@ export class CardDetailsComponent implements OnInit {
         await appWindow.setFocus();
       });
     });
-    listen("card-changed", (event) => {
+    listen("card-changed", (_) => {
       // TODO only reload if changed card is in stack!
       this.cardDetailsStore.resetState$();
       this.cardDetailsStore.loadStackOfCards(this.cardId);

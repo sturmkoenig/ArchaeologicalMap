@@ -7,12 +7,7 @@ import {
   SimpleChanges,
 } from "@angular/core";
 import { LocationData } from "@app/model/card";
-import {
-  IconKeys,
-  ICONS,
-  IconService,
-  iconsSorted,
-} from "@service/icon.service";
+import { ICONS, IconService, iconsSorted } from "@service/icon.service";
 import { MatSelectChange, MatSelectModule } from "@angular/material/select";
 import { MatCheckbox, MatCheckboxChange } from "@angular/material/checkbox";
 import { MatSliderModule } from "@angular/material/slider";
@@ -41,25 +36,25 @@ import { KeyValuePipe, NgForOf } from "@angular/common";
       <div>
         <div class="marker-input">
           <mat-checkbox
-            [checked]="marker.radius === 0.0"
+            [checked]="this.marker.radius === 0.0"
             (change)="onExact($event)"
             >Exakt</mat-checkbox
           >
           <mat-slider
-            [disabled]="marker.radius === 0.0"
+            [disabled]="this.marker.radius === 0.0"
             [max]="1000"
             [min]="100"
           >
             <input
               matSliderThumb
-              [ngModel]="marker.radius"
+              [ngModel]="this.marker.radius"
               (ngModelChange)="onChangeCircleRadius($event)"
             />
           </mat-slider>
           <mat-form-field>
             <mat-label>Icons</mat-label>
             <mat-select
-              [(value)]="marker.icon_name"
+              [(value)]="this.marker.icon_name"
               (selectionChange)="setIcon($event)"
             >
               <mat-option

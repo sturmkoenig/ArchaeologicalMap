@@ -1,4 +1,4 @@
-import { ICONS } from "../services/icon.service";
+import { ICONS } from "@service/icon.service";
 
 export interface CardinalDirection {
   north: number;

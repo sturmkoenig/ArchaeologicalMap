@@ -1,5 +1,5 @@
 import { CardDetailsComponent } from "@app/components/cards/card-details/card-details.component";
-import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { TestBed } from "@angular/core/testing";
 import { MarkerService } from "@service/marker.service";
 import { CardContentService } from "@service/card-content.service";
 import { CardDetailsStore } from "@app/state/card-details.store";
@@ -8,9 +8,9 @@ import { ImageService } from "@service/image.service";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { provideRouter, RouterModule } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
-import { Card, CardDB, MarkerDB } from "@app/model/card";
+import { Card, LocationData } from "@app/model/card";
 import { By } from "@angular/platform-browser";
-import { emit, listen } from "@tauri-apps/api/event";
+import { emit } from "@tauri-apps/api/event";
 import { RouterTestingHarness } from "@angular/router/testing";
 import { StackService } from "@service/stack.service";
 import { Stack } from "@app/model/stack";
@@ -23,6 +23,7 @@ jest.mock("quill-image-resize-module", () => {
 jest.mock("@tauri-apps/api/window", () => ({
   getCurrentWindow: () => ({
     setFocus: jest.fn(),
+    onCloseRequested: jest.fn(),
   }),
 }));
 jest.mock("@tauri-apps/api/event", () => ({
@@ -75,7 +76,6 @@ const defaultStack: Stack = {
 };
 
 describe("CardDetailsComponent", () => {
-  let fixture: ComponentFixture<CardDetailsComponent>;
   const markerServiceMock = {
     getBounds: jest.fn(),
   };
@@ -96,7 +96,6 @@ describe("CardDetailsComponent", () => {
   const imageServiceMock = {
     readImage: jest.fn(),
   };
-  const listenMock = listen as jest.Mock;
   const queryParamsSubject: BehaviorSubject<{ id: number }> =
     new BehaviorSubject({ id: 1 });
 
@@ -132,17 +131,11 @@ describe("CardDetailsComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  const givenACard = async (card: Partial<CardDB>) => {
+  const givenACard = async (card: Partial<Card>) => {
     cardServiceMock.readCard.mockResolvedValue({
       ...card,
     });
     queryParamsSubject.next({ id: card.id ?? 1 });
-  };
-
-  const givenARegionImageWithId = (regionImageId: number) => {
-    imageServiceMock.readImage.mockResolvedValue(
-      "<svg data-testid='myTestImage'></svg>",
-    );
   };
 
   it("should display no side-nav if given card has no stackId", async () => {
@@ -223,16 +216,15 @@ describe("CardDetailsComponent", () => {
   });
 
   it("should pan to a single marker of a card", async () => {
-    const givenMarker: MarkerDB = {
+    const givenMarker: LocationData = {
       icon_name: "iconBorderLimesRed",
       radius: 0,
-      id: 1,
       latitude: 0,
       longitude: 0,
     };
     await givenACard({
       ...defaultCard,
-      markers: [givenMarker],
+      ...givenMarker,
     });
     const harness = await RouterTestingHarness.create("/cards/details/1");
     harness.detectChanges();

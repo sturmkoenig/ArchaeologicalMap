@@ -4,12 +4,11 @@ import {
   LatLngBounds,
   Layer,
   LayerGroup,
-  marker,
   MarkerClusterGroup,
 } from "leaflet";
 import { MarkerService } from "./marker.service";
 import { isMarkerAM, RadiusVisibility } from "../model/marker";
-import { Card, CardMetaData } from "../model/card";
+import { Card } from "../model/card";
 import { CardService } from "./card.service";
 import { IconKeys, IconService } from "./icon.service";
 import { MarkerAM } from "@app/model/markerAM";
@@ -132,7 +131,7 @@ export class OverviewMapService {
   }
 
   async deleteEditCard(): Promise<void> {
-    const deleteCardId = this.editCard()?.id;
+    const deleteCardId = this.selectedMarker()?.cardId;
     if (deleteCardId === undefined) {
       return;
     }

@@ -10,7 +10,7 @@ import {
   switchMap,
   tap,
 } from "rxjs";
-import { Card, CardDB } from "../model/card";
+import { Card } from "../model/card";
 import { CardService } from "@service/card.service";
 import { ImageEntity } from "../model/image";
 import { ImageService } from "@service/image.service";

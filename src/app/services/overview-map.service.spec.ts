@@ -5,19 +5,9 @@ import { LatLng, LatLngBounds, MarkerClusterGroup } from "leaflet";
 import { NgZone } from "@angular/core";
 import { isMarkerAM } from "../model/marker";
 import { CardService } from "./card.service";
-import { Card, MarkerDB } from "../model/card";
+import { Card } from "../model/card";
 import { OverviewMapComponent } from "@app/components/overview-map/overview-map.component";
 import { MarkerAM } from "@app/model/markerAM";
-
-const testCard: Card = {
-  id: 0,
-  title: "test updated",
-  description: "test",
-  latitude: 0,
-  longitude: 0,
-  radius: 0,
-  icon_name: "iconMiscRed",
-};
 
 class MockNgZone extends NgZone {
   constructor() {
@@ -34,16 +24,36 @@ class MockNgZone extends NgZone {
 }
 
 describe("OverviewMapService", () => {
-  const createTestMarkerAM = (marker: Partial<MarkerDB>): MarkerAM =>
+  const givenCardsInMapView = (cards: Partial<Card>[]): MarkerAM[] => {
+    const mockMarkers: MarkerAM[] = cards.map((card) => givenMarker(card));
+    markerServiceMock.getMarkerAMInArea.mockResolvedValue(mockMarkers);
+    return mockMarkers;
+  };
+
+  const givenMarker = (card: Partial<Card>): MarkerAM =>
     new MarkerAM(
       [0, 0],
       {},
       {
-        id: marker.id ?? 0,
-        icon_name: marker.icon_name ?? "iconMiscRed",
-        radius: marker.radius,
+        id: card.id ?? 0,
+        icon_name: card.icon_name ?? "iconMiscRed",
+        radius: card.radius,
       },
     );
+
+  const whenIReloadTheMap = async () => {
+    await service.updateMapBounds(testLatLngBounds);
+  };
+
+  const whenIDeleteTheSelectedCard = async () => {
+    await service.deleteEditCard();
+    TestBed.flushEffects();
+  };
+  const whenIClickAMarkerOnTheMap = (marker: MarkerAM) => {
+    service.changeSelectedMarker(marker);
+    TestBed.flushEffects();
+  };
+
   let service!: OverviewMapService;
   let markerServiceMock!: {
     getMarkerAMInArea: jest.Mock;
@@ -91,27 +101,23 @@ describe("OverviewMapService", () => {
 
   it("should add layer with same id only once", async () => {
     markerServiceMock.getMarkerAMInArea.mockResolvedValue([
-      createTestMarkerAM({ id: 0, card_id: 0 }),
+      givenMarker({ id: 0 }),
     ]);
-    await service.updateMapBounds(testLatLngBounds);
+    await whenIReloadTheMap();
     expect(service.mainLayerGroup.getLayers().length).toBe(1);
     markerServiceMock.getMarkerAMInArea.mockResolvedValue([
-      createTestMarkerAM({ id: 0, card_id: 0 }),
+      givenMarker({ id: 0 }),
     ]);
     await service.updateMapBounds(testLatLngBounds);
     expect(service.mainLayerGroup.getLayers().length).toBe(1);
   });
 
   it("should remove layer when not in bounds", async () => {
-    markerServiceMock.getMarkerAMInArea.mockResolvedValue([
-      createTestMarkerAM({ id: 0, card_id: 0 }),
-    ]);
-    await service.updateMapBounds(testLatLngBounds);
+    givenCardsInMapView([{ id: 0 }]);
+    await whenIReloadTheMap();
     expect(service.mainLayerGroup.getLayers().length).toBe(1);
-    markerServiceMock.getMarkerAMInArea.mockResolvedValue([
-      createTestMarkerAM({ id: 1, card_id: 0 }),
-    ]);
-    await service.updateMapBounds(testLatLngBounds);
+    givenCardsInMapView([{ id: 1 }]);
+    await whenIReloadTheMap();
     expect(service.mainLayerGroup.getLayers().length).toBe(1);
     const marker = service.mainLayerGroup.getLayers()[0];
     if (isMarkerAM(marker)) {
@@ -122,28 +128,23 @@ describe("OverviewMapService", () => {
   });
 
   it("should do nothing if the same marker is selected twice", async () => {
-    const testMarker = createTestMarkerAM({ id: 0, card_id: 0 });
-    markerServiceMock.getMarkerAMInArea.mockResolvedValue([testMarker]);
-    await service.updateMapBounds(testLatLngBounds);
+    const [testMarker] = givenCardsInMapView([{ id: 0 }]);
+    await whenIReloadTheMap();
     expect(service.mainLayerGroup.getLayers().length).toBe(1);
-    service.changeSelectedMarker(testMarker);
-    TestBed.flushEffects();
+    whenIClickAMarkerOnTheMap(testMarker);
     expect(service.selectedLayerGroup.getLayers().length).toBe(1);
     expect(service.mainLayerGroup.getLayers().length).toBe(0);
-    service.changeSelectedMarker(testMarker);
-    TestBed.flushEffects();
+    whenIClickAMarkerOnTheMap(testMarker);
     expect(service.selectedLayerGroup.getLayers().length).toBe(1);
     expect(service.mainLayerGroup.getLayers().length).toBe(0);
   });
 
-  it("should not readd selectedLayer to mainLayerGroup when main layer is reset ", async () => {
-    const testMarker = createTestMarkerAM({ id: 0, card_id: 0 });
-    markerServiceMock.getMarkerAMInArea.mockResolvedValue([testMarker]);
-    await service.updateMapBounds(testLatLngBounds);
+  it("should not read selectedLayer to mainLayerGroup when main layer is reset ", async () => {
+    const [testMarker] = givenCardsInMapView([{ id: 0 }]);
+    await whenIReloadTheMap();
     expect(service.mainLayerGroup.getLayers().length).toBe(1);
 
-    service.changeSelectedMarker(testMarker);
-    TestBed.flushEffects();
+    whenIClickAMarkerOnTheMap(testMarker);
     expect(service.selectedLayerGroup.getLayers().length).toBe(1);
     expect(service.mainLayerGroup.getLayers().length).toBe(0);
 
@@ -156,15 +157,15 @@ describe("OverviewMapService", () => {
 
   it("should add new layers", async () => {
     markerServiceMock.getMarkerAMInArea.mockResolvedValue([
-      createTestMarkerAM({ id: 0, card_id: 0 }),
+      givenMarker({ id: 0 }),
     ]);
     await service.updateMapBounds(testLatLngBounds);
     expect(service.mainLayerGroup.getLayers().length).toBe(1);
     markerServiceMock.getMarkerAMInArea.mockResolvedValue([
-      createTestMarkerAM({ id: 0, card_id: 0 }),
-      createTestMarkerAM({ id: 1, card_id: 0 }),
+      givenMarker({ id: 0 }),
+      givenMarker({ id: 1 }),
     ]);
-    await service.updateMapBounds(testLatLngBounds);
+    await whenIReloadTheMap();
     expect(service.mainLayerGroup.getLayers().length).toBe(2);
     expect(
       (service.mainLayerGroup.getLayers()[0] as MarkerAM).cardId === 0,
@@ -187,11 +188,9 @@ describe("OverviewMapService", () => {
         },
       ],
     });
-    const testMarker = createTestMarkerAM({ id: 0, card_id: 0, radius: 1 });
-    markerServiceMock.getMarkerAMInArea.mockResolvedValue([testMarker]);
-    await service.updateMapBounds(testLatLngBounds);
-    service.changeSelectedMarker(testMarker);
-    TestBed.flushEffects();
+    const [testMarker] = givenCardsInMapView([{ id: 0, radius: 1 }]);
+    await whenIReloadTheMap();
+    whenIClickAMarkerOnTheMap(testMarker);
     expect(service.selectedLayerGroup.getLayers().length).toBe(1);
     expect(service.mainLayerGroup.getLayers().length).toBe(0);
   });
@@ -213,47 +212,23 @@ describe("OverviewMapService", () => {
 
   // TODO: behavior changed!
   it("should delete edit card correctly", async () => {
-    //initialize state
-    const testMarker1 = createTestMarkerAM({ id: 0, card_id: testCard.id });
-    const testMarker2 = createTestMarkerAM({
-      id: 1,
-      card_id: testCard.id,
-      radius: 1,
-    });
-    const testMarker3 = createTestMarkerAM({
-      id: 2,
-      card_id: 1,
-    });
-    markerServiceMock.getMarkerAMInArea.mockResolvedValue([
-      testMarker1,
-      testMarker2,
-      testMarker3,
+    const markers = givenCardsInMapView([
+      { id: 0 },
+      { id: 1, radius: 1 },
+      { id: 2 },
     ]);
-    await service.updateMapBounds(testLatLngBounds);
+
+    await whenIReloadTheMap();
     expect(service.mainLayerGroup.getLayers().length).toBe(3);
     expect(service.radiusLayerGroup.getLayers().length).toBe(1);
 
-    // select marker which has a card that is linked to other displayed markers
-    cardServiceMock.readCard.mockReturnValue(testCard);
-    service.changeSelectedMarker(testMarker1);
-    TestBed.flushEffects();
+    whenIClickAMarkerOnTheMap(markers[0]);
     expect(service.selectedLayerGroup.getLayers().length).toBe(1);
 
-    // delete card
-    await service.deleteEditCard();
-    TestBed.flushEffects();
+    await whenIDeleteTheSelectedCard();
     expect(cardServiceMock.deleteCard).toHaveBeenCalled();
 
-    //selected should be empty
     expect(service.selectedLayerGroup.getLayers().length).toBe(0);
-    // all markers with card_id should have been removed
-    expect(service.mainLayerGroup.getLayers().length).toBe(1);
-    const marker = service.mainLayerGroup.getLayers()[0];
-    if (isMarkerAM(marker)) {
-      expect(marker.cardId).toBe(2);
-      expect(marker.cardId).toBe(testCard.id! + 1);
-    } else {
-      fail("marker in mainLayerGroup is not of correct type!");
-    }
+    expect(service.mainLayerGroup.getLayers().length).toBe(2);
   });
 });

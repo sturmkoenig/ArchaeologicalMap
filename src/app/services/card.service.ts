@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { invoke } from "@tauri-apps/api/core";
-import { Card, CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
+import { Card, CardDB, CardinalDirection } from "src/app/model/card";
 import { Stack } from "@app/model/stack";
 import { emit } from "@tauri-apps/api/event";
 
