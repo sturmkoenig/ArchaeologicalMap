@@ -8,7 +8,6 @@ import {
   switchMap,
   tap,
 } from "rxjs";
-import { CardService } from "./card.service";
 
 @Injectable({
   providedIn: "root",
@@ -18,7 +17,7 @@ export class CardContentService {
   public cardId: BehaviorSubject<number> = new BehaviorSubject(0);
   public cardContent: BehaviorSubject<string | undefined>;
 
-  constructor(private cardService: CardService) {
+  constructor() {
     this.cardContent = new BehaviorSubject<string | undefined>(undefined);
     this.cardId
       .pipe(

@@ -1,4 +1,11 @@
-import { effect, Injectable, signal, WritableSignal } from "@angular/core";
+import {
+  computed,
+  effect,
+  Injectable,
+  Signal,
+  signal,
+  WritableSignal,
+} from "@angular/core";
 import {
   LatLng,
   LatLngBounds,
@@ -22,10 +29,7 @@ export class OverviewMapService {
   public showLabels?: boolean;
   iconSizeMap: Map<IconKeys, number> = new Map();
   selectedMarker: WritableSignal<MarkerAM | undefined>;
-  /**
-   * @deprecated
-   */
-  editCard: WritableSignal<Card | undefined>;
+  editCard: Signal<Card | undefined>;
 
   constructor(
     private markerService: MarkerService,
@@ -36,7 +40,7 @@ export class OverviewMapService {
     this.selectedLayerGroup = new LayerGroup();
     this.radiusLayerGroup = new LayerGroup();
     this.selectedMarker = signal<MarkerAM | undefined>(undefined);
-    this.editCard = signal<Card | undefined>(undefined);
+    this.editCard = computed(() => this.selectedMarker()?.toCard());
     this.iconService
       .getIconSizeSettings()
       .then((iconSizeMap: Map<IconKeys, number>) => {
@@ -52,11 +56,8 @@ export class OverviewMapService {
           this.radiusLayerGroup.addLayer(this.selectedMarker()!.radiusLayer!);
         }
         this.selectedMarker()!.visibilityOfRadius(RadiusVisibility.always);
-        this.cardService.readCard(this.selectedMarker()!.cardId).then((c) => {
-          this.editCard.set(c);
-          this.selectedMarker()?.bindPopup();
-          this.selectedMarker()!.openPopup();
-        });
+        this.selectedMarker()?.bindPopup();
+        this.selectedMarker()!.openPopup();
       }
     });
   }
@@ -92,7 +93,6 @@ export class OverviewMapService {
       longitude: latLng.lng,
     };
     await this.cardService.createCard(newCard).then((c) => {
-      this.editCard.set(c);
       this.changeSelectedMarker(new MarkerAM(latLng, {}, c));
     });
   }
@@ -126,7 +126,6 @@ export class OverviewMapService {
         iconSize: this.iconSizeMap.get(newCard.icon_name),
       }),
     );
-    this.editCard.set(newCard);
     this.cardService.updateCard(newCard);
   }
 
@@ -136,7 +135,6 @@ export class OverviewMapService {
       return;
     }
     await this.cardService.deleteCard(deleteCardId);
-    this.editCard.set(undefined);
     this.selectedLayerGroup.clearLayers();
     this.selectedMarker.set(undefined);
     this.mainLayerGroup.eachLayer((l) => {

@@ -1,21 +1,9 @@
 import { Injectable } from "@angular/core";
-import { LatLng, LatLngBounds, Layer, Marker } from "leaflet";
-import { CardDB, MarkerDB } from "src/app/model/card";
+import { LatLng, LatLngBounds } from "leaflet";
+import { LocationData, MarkerDB } from "src/app/model/card";
 import { CardService } from "./card.service";
 import { IconKeys, IconService } from "./icon.service";
-import { invoke } from "@tauri-apps/api/core";
 import { MarkerAM } from "@app/model/markerAM";
-
-/**
- * @deprecated
- */
-export interface CardMarkerLayer {
-  card?: CardDB;
-  markerDB: MarkerDB;
-  markerId: number;
-  marker: Marker;
-  radius: Layer | null;
-}
 
 @Injectable({
   providedIn: "root",
@@ -31,12 +19,6 @@ export class MarkerService {
       .then((iconSizeMap: Map<IconKeys, number>) => {
         this.iconSizeMap = iconSizeMap;
       });
-  }
-  /**
-   * @deprecated
-   */
-  async updateMarker(marker: MarkerDB): Promise<void> {
-    return await invoke("update_marker", { marker: marker });
   }
 
   async getMarker(markerId: number): Promise<MarkerAM> {
@@ -64,7 +46,7 @@ export class MarkerService {
   /**
    * @deprecated
    */
-  getBounds(markers: MarkerDB[]): LatLngBounds {
+  getBounds(markers: LocationData[]): LatLngBounds {
     const min_lat = markers.reduce((x, y) => (x.latitude < y.latitude ? x : y));
     const min_lng = markers.reduce((x, y) =>
       x.longitude < y.longitude ? x : y,

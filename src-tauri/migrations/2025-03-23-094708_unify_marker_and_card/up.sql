@@ -12,6 +12,7 @@ CREATE TABLE card_new (
     FOREIGN KEY (stack_id) REFERENCES stack(id),
     FOREIGN KEY (region_image_id) REFERENCES image(id)
 );
+
 INSERT INTO card_new
 WITH ranked_cards AS (
     SELECT

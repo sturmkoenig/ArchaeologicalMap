@@ -150,7 +150,7 @@ describe("OverviewMapService", () => {
 
     markerServiceMock.getMarkerAMInArea.mockResolvedValue([testMarker]);
     service.resetMainLayerGroup();
-    await service.updateMapBounds(testLatLngBounds);
+    await whenIReloadTheMap();
     expect(service.mainLayerGroup.getLayers().length).toBe(0);
     expect(service.selectedLayerGroup.getLayers().length).toBe(1);
   });
@@ -176,17 +176,13 @@ describe("OverviewMapService", () => {
   });
 
   it("should load card after marker was selected", async () => {
-    cardServiceMock.readCard.mockReturnValue({
+    cardServiceMock.readCard.mockResolvedValue({
       title: "test",
       description: "test",
-      markers: [
-        {
-          latitude: 0,
-          longitude: 0,
-          radius: 0,
-          icon_name: "iconMiscRed",
-        },
-      ],
+      latitude: 0,
+      longitude: 0,
+      radius: 0,
+      icon_name: "iconMiscRed",
     });
     const [testMarker] = givenCardsInMapView([{ id: 0, radius: 1 }]);
     await whenIReloadTheMap();
@@ -200,7 +196,10 @@ describe("OverviewMapService", () => {
       id: 0,
       title: "",
       description: "",
-      markers: [{ id: 1 }],
+      latitude: 0,
+      longitude: 0,
+      radius: 0,
+      icon_name: "iconMiscRed",
     };
     cardServiceMock.createCard.mockResolvedValue(cardMock);
     await service.addNewCard(new LatLng(0, 0));
@@ -210,7 +209,6 @@ describe("OverviewMapService", () => {
     expect(service.editCard()).toEqual(cardMock);
   });
 
-  // TODO: behavior changed!
   it("should delete edit card correctly", async () => {
     const markers = givenCardsInMapView([
       { id: 0 },

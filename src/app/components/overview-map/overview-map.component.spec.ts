@@ -68,6 +68,10 @@ describe("OverviewMapComponent", () => {
   let iconServiceMock: { getIconSizeSettings: jest.Mock };
 
   beforeEach(async () => {
+    window.location = {
+      ...window.location,
+      reload: jest.fn(),
+    };
     jest
       .spyOn(TauriEvent, "listen")
       .mockImplementation((_eventName, _handler) => Promise.resolve(jest.fn()));

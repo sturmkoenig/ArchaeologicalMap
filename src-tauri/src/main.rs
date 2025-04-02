@@ -6,32 +6,21 @@ extern crate diesel;
 extern crate diesel_migrations;
 
 pub mod persistence;
+use app::models::CardUnified;
 use app::models::MarkerDTO;
 use app::models::NewImage;
 use app::models::NewStack;
 use app::models::Stack;
 use app::models::StackDTO;
 use app::models::{CardDTO, CardUnifiedDTO};
-use app::models::{CardUnified, Marker};
 use app::models::{CardinalDirections, ImageDTO};
-use diesel::SqliteConnection;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
-use persistence::cards::query_all_cards;
-use persistence::cards::query_card_by_id;
-use persistence::cards::query_cards_in_stack;
 use persistence::cards::query_cards_paginated;
 use persistence::cards::query_count_cards;
-use persistence::cards::query_create_card;
 use persistence::cards::query_delete_card;
-use persistence::cards::query_update_card;
 use persistence::images::query_create_image;
-use persistence::markers::query_create_marker;
 use persistence::markers::query_delete_all_markers_for_card;
-use persistence::markers::query_delete_marker;
 use persistence::markers::query_join_markers;
-use persistence::markers::query_marker_by_id;
-use persistence::markers::query_markers_in_geological_area;
-use persistence::markers::query_update_marker;
 use persistence::stacks::query_all_stacks;
 use persistence::stacks::query_create_stack;
 use persistence::stacks::query_delete_stack;
@@ -42,8 +31,8 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use crate::persistence::images::query_update_image;
 use crate::persistence::stacks::query_stack_by_id;
-use crate::persistence::unified_cards::{query_cards_in_geological_area, query_create_unified_card, query_unified_card_by_id, query_unified_cards_in_stack, query_update_unified_card};
-use app::{establish_connection, models::Card};
+use crate::persistence::unified_cards::{query_cards_in_geological_area, query_create_unified_card, query_set_image_to_null, query_unified_card_by_id, query_unified_cards_in_stack, query_update_unified_card};
+use app::establish_connection;
 use std::env;
 use std::fs;
 use std::path::Path;
@@ -63,11 +52,7 @@ fn main() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .invoke_handler(tauri::generate_handler![
-            create_card,
-            read_card,
-            read_cards,
             read_cards_paginated,
-            update_card,
             count_cards,
             write_card_content,
             read_card_content,
@@ -79,17 +64,10 @@ fn main() {
             update_card_unified,
             create_unified_card,
 
-            create_marker,
-            read_marker,
-            read_markers_in_area,
-            update_marker,
-            delete_marker,
-
             create_stack,
             update_stack,
             delete_stack,
             read_all_stacks,
-            get_cards_in_stack,
 
             create_image,
             read_image,
@@ -145,12 +123,6 @@ fn main() {
 }
 
 #[tauri::command]
-fn read_cards() -> Vec<Card> {
-    let conn = &mut establish_connection();
-    query_all_cards(conn)
-}
-
-#[tauri::command]
 fn read_cards_paginated(page: i64, filter: String) -> Vec<CardDTO> {
     let conn = &mut establish_connection();
     let cards = query_cards_paginated(conn, page, filter);
@@ -179,23 +151,6 @@ fn read_cards_paginated(page: i64, filter: String) -> Vec<CardDTO> {
         })
     }
     card_dtos
-}
-
-#[tauri::command]
-fn read_card(id: i32) -> CardDTO {
-    let conn = &mut establish_connection();
-    query_card_by_id(conn, id)
-}
-
-#[tauri::command]
-fn create_card(card: CardDTO) -> CardDTO {
-    let conn = &mut establish_connection();
-    let card_id = query_create_card(&card, conn);
-
-    for marker in card.markers.iter() {
-        query_create_marker(conn, card_id, marker);
-    }
-    read_card(card_id)
 }
 
 #[tauri::command]
@@ -264,54 +219,6 @@ fn write_card_content(app_handle: tauri::AppHandle, id: String, content: String)
     fs::write(content_dir, content).expect("error opening file");
 }
 
-// updates card. Markers send with the card are updated as well when they have an id.
-// If the send marker has no id, it will be created. If a marker is missing from the card
-// it is not deleted!
-#[tauri::command]
-fn update_card(card: CardDTO) -> bool {
-    let conn = &mut establish_connection();
-    if card.id.is_none() {
-        return false;
-    }
-    query_update_card(
-        conn,
-        Card {
-            id: card.id.unwrap(),
-            title: card.title,
-            description: card.description,
-            stack_id: card.stack_id,
-            region_image_id: card.region_image_id,
-        },
-    );
-    create_markers_from_marker_dtos(card.id.unwrap(), card.markers, conn);
-
-    return true;
-}
-
-fn create_markers_from_marker_dtos(
-    card_id: i32,
-    markers: Vec<MarkerDTO>,
-    conn: &mut SqliteConnection,
-) {
-    for marker in markers.iter() {
-        match marker.id {
-            Some(id) => query_update_marker(
-                conn,
-                Marker {
-                    id,
-                    card_id,
-                    latitude: marker.latitude,
-                    longitude: marker.longitude,
-                    radius: marker.radius,
-                    icon_name: marker.icon_name.clone(),
-                },
-            ),
-            None => {
-                let _ = query_create_marker(conn, card_id, marker);
-            }
-        }
-    }
-}
 
 #[tauri::command]
 fn count_cards() -> i64 {
@@ -326,33 +233,6 @@ fn delete_card(id: i32) {
     let _ = query_delete_card(conn, id);
 }
 
-#[tauri::command]
-fn delete_marker(marker_id: i32) {
-    let conn = &mut establish_connection();
-    query_delete_marker(conn, marker_id);
-}
-
-
-
-#[tauri::command]
-fn read_markers_in_area(north: f32, east: f32, south: f32, west: f32) -> Vec<Marker> {
-    let conn = &mut establish_connection();
-    let results = query_markers_in_geological_area(conn, north, east, south, west);
-    results
-}
-
-#[tauri::command]
-fn read_marker(id: i32) -> Marker {
-    let conn = &mut establish_connection();
-    query_marker_by_id(conn, id)
-}
-// TODO Add method that sends number of entries!
-
-#[tauri::command]
-fn update_marker(marker: Marker) {
-    let conn = &mut establish_connection();
-    query_update_marker(conn, marker);
-}
 
 #[tauri::command]
 fn read_all_stacks() -> Vec<StackDTO> {
@@ -375,15 +255,6 @@ fn read_cards_in_stack(stack_id: i32) ->  Result<(StackDTO, Vec<CardUnifiedDTO>)
 }
 
 #[tauri::command]
-fn get_cards_in_stack(stack_id: i32) ->  (StackDTO, Vec<CardDTO>){
-    println!("stack_id: {}", stack_id);
-    let conn = &mut establish_connection();
-    let cards = query_cards_in_stack(conn, stack_id);
-    let stack = query_stack_by_id(conn, stack_id);
-    (StackDTO::from(stack), cards)
-}
-
-#[tauri::command]
 fn create_stack(stack: NewStack) -> Stack {
     let conn = &mut establish_connection();
     query_create_stack(conn, &stack)
@@ -393,12 +264,6 @@ fn create_stack(stack: NewStack) -> Stack {
 fn update_stack(updated_stack: Stack) -> Stack {
     let conn = &mut establish_connection();
     query_update_stack(conn, &updated_stack)
-}
-
-#[tauri::command]
-fn create_marker(new_marker: MarkerDTO, card_id: i32) -> Marker {
-    let conn = &mut establish_connection();
-    query_create_marker(conn, card_id, &new_marker)
 }
 
 #[tauri::command]
@@ -465,7 +330,7 @@ fn read_image(image_id: i32) -> ImageDTO {
 fn delete_image(app_handle: AppHandle, image_name: &str, image_id: i32) -> Result<(), String> {
     let conn = &mut establish_connection();
     let image = persistence::images::query_read_image(conn, image_id);
-    persistence::cards::query_set_image_to_null(conn, image_id)?;
+    query_set_image_to_null(conn, image_id).map_err(|err| err.to_string())?;
     persistence::images::query_delete_image(conn, image_id)?;
     let delete_path = app_handle
         .path()
@@ -482,7 +347,7 @@ fn delete_image(app_handle: AppHandle, image_name: &str, image_id: i32) -> Resul
             return Err(e.to_string());
         }
     };
-    return Ok(());
+    Ok(())
 }
 
 #[tauri::command]

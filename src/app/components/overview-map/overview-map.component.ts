@@ -81,7 +81,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   unlistenPanToBounds: Promise<UnlistenFn>;
   selectedMarker: WritableSignal<MarkerAM | undefined>;
   cardMetadata: Signal<CardMetaData | undefined>;
-  editCard: WritableSignal<Card | undefined>;
+  editCard: Signal<Card | undefined>;
 
   constructor(
     private markerService: MarkerService,

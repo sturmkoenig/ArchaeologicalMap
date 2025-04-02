@@ -3,7 +3,7 @@ use app::{
     models::{Marker, MarkerDTO, NewMarker},
     schema::{
         self,
-        marker::{self, latitude, longitude},
+        marker::{self},
     },
 };
 use diesel::{prelude::*, QueryDsl};
@@ -37,30 +37,6 @@ pub fn query_create_marker(
         .expect("error reading newly created marker from db")
 }
 
-pub fn query_all_markers(conn: &mut SqliteConnection) -> Vec<Marker> {
-    marker::table
-        .load::<Marker>(conn)
-        .expect("Error could not fetch markers from database")
-}
-
-pub fn query_update_marker(conn: &mut SqliteConnection, updated_marker: Marker) {
-    diesel::update(marker::table)
-        .filter(schema::marker::id.eq(updated_marker.id))
-        .set(updated_marker)
-        .execute(conn)
-        .expect("Error while updating marker");
-}
-
-pub fn query_delete_marker(conn: &mut SqliteConnection, marker_id: i32) {
-    let result =
-        diesel::delete(marker::table.filter(schema::marker::id.eq(marker_id))).execute(conn);
-    if let Err(e) = result {
-        panic!(
-            "Error deleting marker with id: {}, produced error {}",
-            marker_id, e
-        )
-    }
-}
 
 pub fn query_delete_all_markers_for_card(conn: &mut SqliteConnection, card_id: i32) {
     let result =
@@ -73,27 +49,6 @@ pub fn query_delete_all_markers_for_card(conn: &mut SqliteConnection, card_id: i
     }
 }
 
-pub fn query_markers_in_geological_area(
-    conn: &mut SqliteConnection,
-    north: f32,
-    east: f32,
-    south: f32,
-    west: f32,
-) -> Vec<Marker> {
-    marker::table
-        .filter(latitude.le(north))
-        .filter(longitude.le(east))
-        .filter(latitude.ge(south))
-        .filter(longitude.ge(west))
-        .load::<Marker>(conn)
-        .expect("Error loading")
-}
-pub fn query_marker_by_id(conn: &mut SqliteConnection, marker_id: i32) -> Marker {
-    marker::table
-        .filter(schema::marker::id.eq(marker_id))
-        .first(conn)
-        .expect("Error loading marker")
-}
 
 pub fn query_join_markers(conn: &mut SqliteConnection, card_id: i32) -> Vec<Marker> {
     marker::table
