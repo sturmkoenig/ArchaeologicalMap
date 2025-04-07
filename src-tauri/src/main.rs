@@ -31,7 +31,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use crate::persistence::images::query_update_image;
 use crate::persistence::stacks::query_stack_by_id;
-use crate::persistence::unified_cards::{query_cards_in_geological_area, query_create_unified_card, query_set_image_to_null, query_unified_card_by_id, query_unified_cards_in_stack, query_update_unified_card};
+use crate::persistence::unified_cards::{query_cards_in_geological_area, query_create_unified_card, query_set_image_to_null, query_unified_card_by_id, query_unified_card_by_title, query_unified_cards_in_stack, query_update_unified_card};
 use app::establish_connection;
 use std::env;
 use std::fs;
@@ -60,6 +60,7 @@ fn main() {
 
             read_cards_in_area,
             read_cards_in_stack,
+            read_cards_by_title,
             read_card_by_id,
             update_card_unified,
             create_unified_card,
@@ -255,6 +256,12 @@ fn read_cards_in_stack(stack_id: i32) ->  Result<(StackDTO, Vec<CardUnifiedDTO>)
 }
 
 #[tauri::command]
+fn read_cards_by_title(title: String) -> Result<Vec<CardUnifiedDTO>, String> {
+    let conn = &mut establish_connection();
+    query_unified_card_by_title(conn, title).map(|cards| cards.into_iter().map(CardUnifiedDTO::from).collect()).map_err(|err| err.to_string())
+}
+
+#[tauri::command]
 fn create_stack(stack: NewStack) -> Stack {
     let conn = &mut establish_connection();
     query_create_stack(conn, &stack)
@@ -397,7 +404,7 @@ fn update_image_name(image_id: i32, new_name: String) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{create_stack, create_unified_card, read_card_by_id, read_cards_in_area, read_cards_in_stack, update_card_unified, MIGRATIONS};
+    use crate::{create_stack, create_unified_card, read_card_by_id, read_cards_by_title, read_cards_in_area, read_cards_in_stack, update_card_unified, MIGRATIONS};
     use app::establish_connection;
     use app::models::{CardUnifiedDTO, CardinalDirections, NewStack};
     use diesel_migrations::MigrationHarness;
@@ -405,6 +412,7 @@ mod tests {
     use std::default::Default;
     use std::env;
     use std::fs;
+    use assertor::{assert_that, IteratorAssertion};
 
     fn given_test_card() -> CardUnifiedDTO {
         CardUnifiedDTO{
@@ -555,4 +563,28 @@ mod tests {
         let (stack, got_cards_in_stack) = read_cards_in_stack(stack_id).expect("Error reading cards in stack");
         assert_eq!(got_cards_in_stack.iter().len(), number_of_cards_in_stack);
     }
+
+    #[test]
+    #[serial]
+    fn it_should_retrieve_a_list_of_cards_with_matching_title_sorted_by_title(){
+        let _test_env = initialize_test_env();
+        let stack_id = given_a_stack(None);
+        let number_of_cards_in_stack = 2;
+        let title_monument_z = "Monument in Zentral Afrika".to_string();
+        let title_monument_a = "Monument in Ahrenshausen".to_string();
+        let title_church_a = "Kirche in Ahrenshausen".to_string();
+        given_database_has_card(CardUnifiedDTO{ title: Some(title_monument_z.clone()), ..given_test_card().clone()});
+        given_database_has_card(CardUnifiedDTO{title: Some(title_monument_a.clone()), ..given_test_card().clone()});
+        given_database_has_card(CardUnifiedDTO{ title: Some(title_church_a.clone()), ..given_test_card().clone()});
+        let mut got_titles: Vec<String> = read_cards_by_title("Monument".to_string()).expect("Error could not retrieve cards with title").into_iter().map(|card| card.title.unwrap()).collect();
+        let mut want_titles: Vec<String> = vec![ title_monument_a.clone(), title_monument_z.clone()];
+        assert_that!(got_titles.into_iter()).contains_exactly_in_order(want_titles.into_iter());
+
+        got_titles = read_cards_by_title("Ahre".to_string()).expect("Error could not retrieve cards with title").into_iter().map(|card| card.title.unwrap()).collect();
+        want_titles =  vec![title_church_a, title_monument_a];
+        assert_that!(got_titles.into_iter()).contains_exactly_in_order(want_titles.into_iter());
+
+    }
+
+
 }

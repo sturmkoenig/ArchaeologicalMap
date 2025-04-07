@@ -66,6 +66,7 @@ checksum = "34ac096ce696dc2fcabef30516bb13c0a68a11d30131d3df6f04711467681b04"
 name = "app"
 version = "0.1.0"
 dependencies = [
+ "assertor",
  "diesel",
  "diesel_migrations",
  "serde",
@@ -84,7 +85,6 @@ dependencies = [
  "tauri-plugin-process",
  "tauri-plugin-shell",
  "tauri-plugin-store",
- "uuid",
 ]
 
 [[package]]
@@ -124,6 +124,15 @@ dependencies = [
  "wayland-client",
  "wayland-protocols",
  "zbus 5.2.0",
+]
+
+[[package]]
+name = "assertor"
+version = "0.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4b02f2af4042fbbed4d5732c517666629512c574c8e2edb5cfe2cf8a86564d52"
+dependencies = [
+ "num-traits",
 ]
 
 [[package]]

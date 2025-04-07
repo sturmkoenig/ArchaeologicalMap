@@ -3,7 +3,7 @@ use app::schema;
 use app::schema::card_new::dsl::card_new;
 use app::schema::card_new::{latitude, longitude};
 use diesel::associations::HasTable;
-use diesel::ExpressionMethods;
+use diesel::{ExpressionMethods, TextExpressionMethods};
 use diesel::{QueryDsl, QueryResult, RunQueryDsl, SqliteConnection};
 
 pub fn query_unified_card_by_id(
@@ -22,6 +22,12 @@ pub fn query_unified_cards_in_stack(
     card_new::table()
         .filter(schema::card_new::stack_id.eq(stack_id))
         .load(conn)
+}
+pub fn query_unified_card_by_title(
+conn: &mut SqliteConnection,
+title: String
+) -> QueryResult<Vec<CardUnified>> {
+    card_new::table().filter(schema::card_new::title.like(format!("%{}%", title))).order_by(schema::card_new::title).get_results(conn)
 }
 
 pub fn query_create_unified_card(

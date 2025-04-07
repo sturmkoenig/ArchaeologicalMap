@@ -30,8 +30,8 @@ tauri-plugin-http = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-notification = "2"
 tauri-api = "0.7.6"
-uuid = { version = "1.11.0", features = ["v4"] }
 serial_test = "3.2.0"
+assertor = "0.0.3"
 
 [features]
 # by default Tauri runs in production mode
