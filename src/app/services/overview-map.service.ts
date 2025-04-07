@@ -50,6 +50,7 @@ export class OverviewMapService {
     effect(() => {
       this.selectedLayerGroup.clearLayers();
       if (this.selectedMarker()) {
+        this.radiusLayerGroup.clearLayers();
         this.removeLayerFromMainLayerGroup(this.selectedMarker()!);
         this.selectedMarker()!.addTo(this.selectedLayerGroup);
         if (this.selectedMarker()?.radiusLayer) {
