@@ -11,10 +11,9 @@ import { PageEvent } from "@angular/material/paginator";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { Observable, Subject, Subscription, debounceTime, from } from "rxjs";
-import { CardDB } from "src/app/model/card";
-import { CardService } from "src/app/services/card.service";
-import { IconService } from "src/app/services/icon.service";
-import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal.component";
+import { CardDB } from "@app/model/card";
+import { CardService } from "@service/card.service";
+import { CardUpdateModalComponent } from "@app/components/cards/card-update-modal/card-update-modal.component";
 
 @Component({
   selector: "app-card-list",
@@ -192,7 +191,6 @@ export class CardListComponent implements OnInit {
   constructor(
     private cardService: CardService,
     public dialog: MatDialog,
-    public iconService: IconService,
     private _snackBar: MatSnackBar,
   ) {
     this.cardService

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Inject, Output } from "@angular/core";
 import { MAT_DIALOG_DATA } from "@angular/material/dialog";
-import { CardService } from "src/app/services/card.service";
+import { CardService } from "@service/card.service";
 
 @Component({
   selector: "app-card-delete-dialog",

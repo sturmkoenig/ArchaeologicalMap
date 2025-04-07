@@ -1,11 +1,11 @@
 import { Component, Inject, Output, EventEmitter } from "@angular/core";
 import { MAT_DIALOG_DATA, MatDialog } from "@angular/material/dialog";
-import { Card, MarkerLatLng } from "src/app/model/card";
-import { CardService } from "src/app/services/card.service";
-import { CardDeleteDialogComponent } from "./card-delete-dialog/card-delete-dialog.component";
-import { StackStore } from "src/app/state/stack.store";
+import { Card, MarkerLatLng } from "@app/model/card";
+import { CardService } from "@service/card.service";
+import { CardDeleteDialogComponent } from "@app/components/cards/card-update-modal/card-delete-dialog/card-delete-dialog.component";
+import { StackStore } from "@app/state/stack.store";
 import { Observable } from "rxjs";
-import { Stack } from "src/app/model/stack";
+import { Stack } from "@app/model/stack";
 
 @Component({
   selector: "app-card-update-modal",
