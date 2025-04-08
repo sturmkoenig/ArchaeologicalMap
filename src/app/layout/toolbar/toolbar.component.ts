@@ -29,10 +29,10 @@ import { Component, EventEmitter, Output } from "@angular/core";
 })
 export class ToolbarComponent {
   @Output()
-  onMenu = new EventEmitter<MouseEvent>();
+  menu = new EventEmitter<MouseEvent>();
   checked: boolean = false;
 
   onMenuClicked(event: MouseEvent) {
-    this.onMenu.emit(event);
+    this.menu.emit(event);
   }
 }

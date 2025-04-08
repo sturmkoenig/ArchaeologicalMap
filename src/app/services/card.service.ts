@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { invoke } from "@tauri-apps/api/core";
-import { Card, CardDB, CardinalDirection } from "src/app/model/card";
+import { Card, CardinalDirection } from "src/app/model/card";
 import { Stack } from "@app/model/stack";
 import { emit } from "@tauri-apps/api/event";
 
@@ -26,15 +26,12 @@ export class CardService {
     return invoke("read_cards_in_area", { cardinalDirections: directions });
   }
 
-  /**
-   * @deprecated
-   */
-  readCardsPaginated(pageIndex: number, filter: string): Promise<CardDB[]> {
-    return invoke("read_cards_paginated", { page: pageIndex, filter: filter });
-  }
-
   readCard(cardId: number): Promise<Card> {
     return invoke("read_card_by_id", { id: cardId });
+  }
+
+  readCardByTitle(titleFilter: string): Promise<Card[]> {
+    return invoke("read_cards_by_title", { title: titleFilter });
   }
 
   updateCard(card: Card): Promise<boolean> {

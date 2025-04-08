@@ -7,16 +7,34 @@ import {
 } from "@angular/animations";
 import { Component, OnInit } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
-import { PageEvent } from "@angular/material/paginator";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { Observable, Subject, Subscription, debounceTime, from } from "rxjs";
-import { CardDB } from "@app/model/card";
+import { debounceTime, from, Observable, Subject, Subscription } from "rxjs";
+import { Card } from "@app/model/card";
 import { CardService } from "@service/card.service";
-import { CardUpdateModalComponent } from "@app/components/cards/card-update-modal/card-update-modal.component";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { MatIconModule } from "@angular/material/icon";
+import { MatButtonModule } from "@angular/material/button";
+import { MatTableModule } from "@angular/material/table";
+import { MatFormField, MatLabel } from "@angular/material/form-field";
+import { CommonModule } from "@angular/common";
+import { MatInputModule } from "@angular/material/input";
+import { emit } from "@tauri-apps/api/event";
 
 @Component({
+  standalone: true,
   selector: "app-card-list",
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    MatInputModule,
+    MatLabel,
+    MatButtonModule,
+    MatTableModule,
+    MatFormField,
+  ],
   template: `
     <div class="list-container">
       <mat-form-field>
@@ -25,6 +43,7 @@ import { CardUpdateModalComponent } from "@app/components/cards/card-update-moda
           matInput
           type="text"
           [(ngModel)]="filter"
+          data-test-id="title-search-input"
           (keydown)="inputChanged()"
         />
         <button
@@ -73,26 +92,26 @@ import { CardUpdateModalComponent } from "@app/components/cards/card-update-moda
           <ng-container matColumnDef="expandedDetail">
             <td
               mat-cell
-              *matCellDef="let element"
+              *matCellDef="let card"
               [attr.colspan]="columnsToDisplayWithExpand.length"
             >
               <div
                 class="expanded-card--actions"
                 [@detailExpand]="
-                  element === expandedElement ? 'expanded' : 'collapsed'
+                  card === expandedElement ? 'expanded' : 'collapsed'
                 "
               >
                 <button
                   mat-button
                   color="primary"
-                  (click)="openUpdateDialog(element)"
+                  (click)="showCardOnMap(card)"
                 >
-                  Bearbeiten
+                  Auf Karte Zeigen
                 </button>
                 <button
                   mat-raised-button
                   color="accent"
-                  (click)="goToDetailsPage(element.id!)"
+                  (click)="goToDetailsPage(card.id!)"
                 >
                   Info-Seite öffnen
                 </button>
@@ -102,12 +121,11 @@ import { CardUpdateModalComponent } from "@app/components/cards/card-update-moda
           <tr mat-header-row *matHeaderRowDef="columnsToDisplayWithExpand"></tr>
           <tr
             mat-row
-            *matRowDef="let element; columns: columnsToDisplayWithExpand"
+            *matRowDef="let card; columns: columnsToDisplayWithExpand"
             class="card-row"
-            [class.expanded-row]="expandedElement === element"
-            (click)="
-              expandedElement = expandedElement === element ? null : element
-            "
+            data-test-id="table-row"
+            [class.expanded-row]="expandedElement === card"
+            (click)="expandedElement = expandedElement === card ? null : card"
           ></tr>
           <tr
             mat-row
@@ -116,14 +134,6 @@ import { CardUpdateModalComponent } from "@app/components/cards/card-update-moda
           ></tr>
         </ng-container>
       </table>
-      <mat-paginator
-        [length]="numCards"
-        [pageSizeOptions]="[1000]"
-        [pageIndex]="pageIndex"
-        (page)="changePage($event)"
-        aria-label="Select page"
-      >
-      </mat-paginator>
     </div>
   `,
   animations: [
@@ -177,16 +187,15 @@ import { CardUpdateModalComponent } from "@app/components/cards/card-update-moda
   ],
 })
 export class CardListComponent implements OnInit {
-  allCards: Observable<CardDB[]>;
+  allCards: Observable<Card[]>;
   numCards: number = 0;
   filter: string = "";
   modelChanged: Subject<string> = new Subject<string>();
   subscription!: Subscription;
   displayedColumns = ["title", "description"];
   columnsToDisplayWithExpand = [...this.displayedColumns, "expand"];
-  expandedElement: CardDB | null;
+  expandedElement: Card | null;
   debounceTime = 500;
-  pageIndex: number = 0;
 
   constructor(
     private cardService: CardService,
@@ -196,17 +205,15 @@ export class CardListComponent implements OnInit {
     this.cardService
       .getNumberOfCards()
       .then((count) => (this.numCards = count));
-    this.allCards = from(this.cardService.readCardsPaginated(0, ""));
+    this.allCards = from(this.cardService.readCardByTitle(""));
     this.expandedElement = null;
   }
 
-  ngOnInit(): void {
+  async ngOnInit() {
     this.subscription = this.modelChanged
       .pipe(debounceTime(this.debounceTime))
-      .subscribe((filter) => {
-        this.allCards = from(
-          this.cardService.readCardsPaginated(this.pageIndex, filter),
-        );
+      .subscribe(async (filter) => {
+        this.allCards = from(this.cardService.readCardByTitle(filter));
       });
   }
 
@@ -224,31 +231,11 @@ export class CardListComponent implements OnInit {
     });
   }
 
-  changePage($event: PageEvent) {
-    this.allCards = from(
-      this.cardService.readCardsPaginated($event.pageIndex, ""),
-    );
-  }
-
-  openUpdateDialog(currentCard: CardDB) {
-    const dialogRef = this.dialog.open(CardUpdateModalComponent, {
-      data: {
-        currentCard,
-      },
-      enterAnimationDuration: "200ms",
-      exitAnimationDuration: "150ms",
-    });
-    dialogRef.componentInstance.deleted.subscribe((data: boolean) => {
-      if (data) {
-        this._snackBar.open("Seite gelöscht", "⌫");
-        dialogRef.close();
-        this.inputChanged();
-      }
-    });
-    dialogRef.componentInstance.updated.subscribe((data: boolean) => {
-      if (data) {
-        this._snackBar.open("Änderungen gespeichert!", "💾");
-      }
+  showCardOnMap(card: Card) {
+    return emit("panTo", {
+      lat: card.latitude,
+      lng: card.longitude,
+      id: card.id,
     });
   }
 }

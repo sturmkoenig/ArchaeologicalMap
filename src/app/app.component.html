@@ -4,31 +4,10 @@
 />
 
 <div class="app-container">
-  <app-toolbar class="app-toolbar" (onMenu)="drawer.toggle()"></app-toolbar>
+  <app-toolbar class="app-toolbar" (menu)="drawer.toggle()"></app-toolbar>
   <mat-drawer-container class="example-container">
     <mat-drawer #drawer class="example-sidenav" mode="side">
-      <mat-list class="navigation-container">
-        <mat-list-item class="navigation-item" (click)="goMap()">
-          <div class="navigation-item-content">
-            <span class="nav-icon material-symbols-outlined"> map </span>
-            Map
-          </div>
-        </mat-list-item>
-        <mat-list-item class="navigation-item" (click)="goList()">
-          <div class="navigation-item-content">
-            <span class="nav-icon material-symbols-outlined"> list </span>
-            List
-          </div>
-        </mat-list-item>
-        <mat-list-item class="navigation-item" (click)="goStacksList()">
-          <div class="navigation-item-content">
-            <span class="nav-icon material-symbols-outlined">
-              collections_bookmark
-            </span>
-            Stacks
-          </div>
-        </mat-list-item>
-      </mat-list>
+      <app-card-list></app-card-list>
     </mat-drawer>
 
     <mat-drawer-content>

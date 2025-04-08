@@ -38,10 +38,6 @@ import { MatDividerModule } from "@angular/material/divider";
 import { MatStepperModule } from "@angular/material/stepper";
 import { LeafletModule } from "@bluehalo/ngx-leaflet";
 import { CardDetailsComponent } from "./components/cards/card-details/card-details.component";
-import { CardListComponent } from "./components/cards/card-list/card-list.component";
-import { CardDeleteDialogComponent } from "./components/cards/card-update-modal/card-delete-dialog/card-delete-dialog.component";
-import { CardUpdateModalComponent } from "./components/cards/card-update-modal/card-update-modal.component";
-import { PositionPickerComponent } from "./components/cards/card-wizzard/position-picker/position-picker.component";
 import { StackDisplayComponent } from "./components/stacks/stack-list/stack-list.component";
 import { EditorComponent } from "./layout/editor/editor.component";
 import { FilterPipe } from "./layout/editor/filter.pipe";
@@ -57,19 +53,16 @@ import { OverviewMapService } from "@service/overview-map.service";
 import { NgOptimizedImage } from "@angular/common";
 import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
 import { MapSettingsComponent } from "./components/overview-map/map-settings/map-settings.component";
+import { CardListComponent } from "@app/components/cards/card-list/card-list.component";
 
 @NgModule({
   declarations: [
     AppComponent,
     MapComponent,
     ToolbarComponent,
-    CardListComponent,
     CardDetailsComponent,
-    PositionPickerComponent,
-    CardUpdateModalComponent,
     EditorComponent,
     FilterPipe,
-    CardDeleteDialogComponent,
     StackDisplayComponent,
   ],
   bootstrap: [AppComponent],
@@ -108,6 +101,7 @@ import { MapSettingsComponent } from "./components/overview-map/map-settings/map
     LeafletModule,
     NgOptimizedImage,
     MapSettingsComponent,
+    CardListComponent,
   ],
   providers: [
     StackStore,

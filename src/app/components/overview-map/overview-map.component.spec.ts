@@ -58,6 +58,7 @@ describe("OverviewMapComponent", () => {
   let cardServiceMock: {
     createCard: jest.Mock;
     readCard: jest.Mock;
+    readCardsPaginated: jest.Mock;
     updateCard: jest.Mock;
     deleteCard: jest.Mock;
     deleteMarker: jest.Mock;
@@ -101,6 +102,7 @@ describe("OverviewMapComponent", () => {
       createCard: jest.fn(),
       updateCard: jest.fn(),
       readCard: jest.fn(),
+      readCardsPaginated: jest.fn(),
       deleteCard: jest.fn(),
       deleteMarker: jest.fn(),
     };
@@ -278,8 +280,9 @@ describe("OverviewMapComponent", () => {
   };
 
   const whenIUseASlider = async (testId: string, newSliderValue: string) => {
-    const slider = fixture.debugElement.query(By.css(`[data-testid="${testId}`))
-      .nativeElement as HTMLInputElement;
+    const slider = fixture.debugElement.query(
+      By.css(`[data-testid="${testId}"]`),
+    ).nativeElement as HTMLInputElement;
     slider.value = newSliderValue;
     slider.dispatchEvent(new Event("input"));
     slider.dispatchEvent(new Event("dragEnd"));

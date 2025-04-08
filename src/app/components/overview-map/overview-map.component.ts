@@ -24,7 +24,6 @@ import {
 import "leaflet.markercluster";
 import { Card, CardMetaData, LocationData } from "@app/model/card";
 import { MapSettings, SettingService } from "@service/setting.service";
-import { MarkerService } from "@service/marker.service";
 import { IconSizeSetting } from "@service/icon.service";
 import { OverviewMapService } from "@service/overview-map.service";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -36,6 +35,8 @@ import { LeafletModule } from "@bluehalo/ngx-leaflet";
 import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
 import { MatButton, MatFabButton } from "@angular/material/button";
 import { MarkerAM } from "@app/model/markerAM";
+import { MatFormField } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
 
 @Component({
   standalone: true,
@@ -48,6 +49,8 @@ import { MarkerAM } from "@app/model/markerAM";
     LeafletMarkerClusterModule,
     MatFabButton,
     MatButton,
+    MatFormField,
+    MatInput,
   ],
   selector: "app-overview-map",
   templateUrl: "overview-map.component.html",
@@ -84,7 +87,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   editCard: Signal<Card | undefined>;
 
   constructor(
-    private markerService: MarkerService,
     private route: ActivatedRoute,
     private ngZone: NgZone,
     private settingsService: SettingService,

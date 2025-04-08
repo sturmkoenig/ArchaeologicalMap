@@ -68,7 +68,7 @@ import { AsyncPipe, NgForOf } from "@angular/common";
           <mat-label>Title:</mat-label>
           <input
             matInput
-            [ngModel]="card?.title ?? ''"
+            [ngModel]="card?.title"
             (ngModelChange)="onTitleChange($event)"
             [ngModelOptions]="{ standalone: true }"
           />
@@ -77,7 +77,7 @@ import { AsyncPipe, NgForOf } from "@angular/common";
           <mat-label>Beschreibung:</mat-label>
           <input
             matInput
-            [ngModel]="card?.description ?? ''"
+            [ngModel]="card?.description"
             (ngModelChange)="onDescriptionChange($event)"
             [ngModelOptions]="{ standalone: true }"
           />
@@ -85,7 +85,7 @@ import { AsyncPipe, NgForOf } from "@angular/common";
         <mat-form-field>
           <mat-label>Stapel:</mat-label>
           <mat-select
-            [value]="card?.stack_id ?? 0"
+            [value]="card?.stack_id"
             (valueChange)="onStackIdChange($event)"
           >
             <mat-option
