@@ -31,7 +31,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use crate::persistence::images::query_update_image;
 use crate::persistence::stacks::query_stack_by_id;
-use crate::persistence::unified_cards::{query_cards_in_geological_area, query_create_unified_card, query_set_image_to_null, query_unified_card_by_id, query_unified_card_by_title, query_unified_cards_in_stack, query_update_unified_card};
+use crate::persistence::unified_cards::{query_cards_in_geological_area, query_create_unified_card, query_delete_unified_card, query_set_image_to_null, query_unified_card_by_id, query_unified_card_by_title, query_unified_cards_in_stack, query_update_unified_card};
 use app::establish_connection;
 use std::env;
 use std::fs;
@@ -230,8 +230,7 @@ fn count_cards() -> i64 {
 #[tauri::command]
 fn delete_card(id: i32) {
     let conn = &mut establish_connection();
-    query_delete_all_markers_for_card(conn, id);
-    let _ = query_delete_card(conn, id);
+    let _ = query_delete_unified_card(conn, id);
 }
 
 

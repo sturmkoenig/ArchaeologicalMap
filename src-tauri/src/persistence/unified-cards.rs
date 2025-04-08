@@ -14,6 +14,12 @@ pub fn query_unified_card_by_id(
         .first::<CardUnified>(conn)
         .map(CardUnifiedDTO::from)
 }
+pub fn query_delete_unified_card(
+    conn: &mut SqliteConnection,
+    id: i32,
+) -> QueryResult<()> {
+    diesel::delete(card_new::table().filter(schema::card_new::id.eq(id))).execute(conn).map(|_| ())
+}
 
 pub fn query_unified_cards_in_stack(
     conn: &mut SqliteConnection,
