@@ -4,13 +4,18 @@
 />
 
 <div class="app-container">
-  <app-toolbar class="app-toolbar" (menu)="drawer.toggle()"></app-toolbar>
   <mat-drawer-container class="example-container">
     <mat-drawer #drawer class="example-sidenav" mode="side">
       <app-card-list></app-card-list>
     </mat-drawer>
 
     <mat-drawer-content>
+      <div class="absolute fixed z-1000 translate-20">
+        <button mat-fab extended (click)="drawer.toggle()">
+          <mat-icon>search</mat-icon>
+          Search
+        </button>
+      </div>
       <div class="main-content">
         <router-outlet></router-outlet>
       </div>

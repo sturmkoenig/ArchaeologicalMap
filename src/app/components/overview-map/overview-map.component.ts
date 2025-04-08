@@ -35,8 +35,6 @@ import { LeafletModule } from "@bluehalo/ngx-leaflet";
 import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
 import { MatButton, MatFabButton } from "@angular/material/button";
 import { MarkerAM } from "@app/model/markerAM";
-import { MatFormField } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
 
 @Component({
   standalone: true,
@@ -49,8 +47,6 @@ import { MatInput } from "@angular/material/input";
     LeafletMarkerClusterModule,
     MatFabButton,
     MatButton,
-    MatFormField,
-    MatInput,
   ],
   selector: "app-overview-map",
   templateUrl: "overview-map.component.html",

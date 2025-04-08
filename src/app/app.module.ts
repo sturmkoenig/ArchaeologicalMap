@@ -18,7 +18,6 @@ import { MatToolbarModule } from "@angular/material/toolbar";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app.component";
-import { ToolbarComponent } from "./layout/toolbar/toolbar.component";
 
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -59,7 +58,6 @@ import { CardListComponent } from "@app/components/cards/card-list/card-list.com
   declarations: [
     AppComponent,
     MapComponent,
-    ToolbarComponent,
     CardDetailsComponent,
     EditorComponent,
     FilterPipe,

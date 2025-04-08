@@ -36,7 +36,7 @@ import { emit } from "@tauri-apps/api/event";
     MatFormField,
   ],
   template: `
-    <div class="list-container">
+    <div class="list-container p-[10px]">
       <mat-form-field>
         <mat-label>Suche...</mat-label>
         <input
