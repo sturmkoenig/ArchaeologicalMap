@@ -11,6 +11,16 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatInputModule } from "@angular/material/input";
 import { MatFormField, MatLabel } from "@angular/material/form-field";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
+import { emit } from "@tauri-apps/api/event";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+
+jest.mock("@tauri-apps/api/event", () => ({
+  emit: jest.fn(),
+}));
+
+jest.mock("@tauri-apps/api/webviewWindow", () => ({
+  WebviewWindow: jest.fn().mockImplementation(() => ({ once: jest.fn() })),
+}));
 
 describe("CardListComponent", () => {
   let component: CardListComponent;
@@ -91,6 +101,7 @@ describe("CardListComponent", () => {
   beforeEach(async () => {
     fixture = TestBed.createComponent(CardListComponent);
     component = fixture.componentInstance;
+    component.debounceTime = 0;
     await fixture.whenStable();
     fixture.detectChanges();
   });
@@ -103,23 +114,78 @@ describe("CardListComponent", () => {
     cardServiceMock.readCardByTitle.mockResolvedValue(testCards);
     await whenISearchForTitle("in");
     expect(cardServiceMock.readCardByTitle).toHaveBeenLastCalledWith("in");
-    thenISeeCardsWithName(testCards.map((card) => card.title));
+    thenISeeCardsWithTitle(testCards.map((card) => card.title));
   });
 
-  const thenISeeCardsWithName = (names: string[]) => {
-    const rows = fixture.debugElement.queryAll(
-      By.css('[data-test-id="table-row"]'),
-    );
-    expect(rows).toHaveLength(names.length);
-  };
-  const whenISearchForTitle = async (titleFilter: string) => {
-    const searchBar: HTMLInputElement = fixture.debugElement.query(
-      By.css('[data-test-id="title-search-input"]'),
-    ).nativeElement;
-    component.filter = titleFilter;
-    searchBar.dispatchEvent(new Event("keydown"));
+  it("should pan to the card on the map when showOnMap button is clicked", async () => {
+    const cardWithPosition: Card = {
+      id: 420,
+      description: "The best boulders in town",
+      icon_name: "iconMiscRed",
+      latitude: 48.404675,
+      longitude: 2.70162,
+      radius: 0,
+      title: "Fontaine Bleau",
+    };
+    cardServiceMock.readCardByTitle.mockResolvedValue([cardWithPosition]);
+    await whenISearchForTitle("Fontaine");
+    thenISeeCardsWithTitle([cardWithPosition.title]);
+    whenIClickTheButton(`nav-to-card-${cardWithPosition.id}`);
+    expect(emit).toHaveBeenCalledWith("panTo", {
+      id: cardWithPosition.id,
+      lat: cardWithPosition.latitude,
+      lng: cardWithPosition.longitude,
+    });
+  });
+  it("should open a card's detail page when pressing the open details page button", async () => {
+    cardServiceMock.readCardByTitle.mockResolvedValue([testCards[0]]);
+    await whenISearchForTitle("Fontaine");
+    thenISeeCardsWithTitle([testCards[0].title]);
+    whenIClickTheButton(`open-details-for-card-${testCards[0].id}`);
+    expect(WebviewWindow).toBeCalledWith(`${testCards[0].id}`, {
+      url: `cards/details/${testCards[0].id}`,
+    });
+  });
+
+  it("should clear the input when clicking on the x-button", async () => {
+    cardServiceMock.readCardByTitle.mockResolvedValue(testCards);
+    await whenISearchForTitle("in");
+    whenIClickTheButton("clear-input");
+    const searchInput = getElementByTestId("title-search-input").nativeElement;
     await fixture.whenStable();
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    expect(searchInput.value).toBe("");
+  });
+
+  const whenIClickTheButton = (buttonTestId: string) => {
+    const button = getElementByTestId(buttonTestId).nativeElement;
+    button.click();
+    fixture.detectChanges();
+  };
+
+  const getElementByTestId = (testId: string) => {
+    const element = fixture.debugElement.query(
+      By.css(`[data-testid="${testId}"]`),
+    );
+    expect(element).toBeTruthy();
+    return element;
+  };
+  const thenISeeCardsWithTitle = (title: string[]) => {
+    const rows = fixture.debugElement.queryAll(
+      By.css('[data-testid="card-row"]'),
+    );
+    expect(rows).toHaveLength(title.length);
+    title.map((name, idx) =>
+      expect(rows[idx].nativeElement.innerHTML).toContain(name),
+    );
+  };
+
+  const whenISearchForTitle = async (titleFilter: string) => {
+    const searchBar: HTMLInputElement =
+      getElementByTestId("title-search-input").nativeElement;
+    searchBar.value = titleFilter;
+    searchBar.dispatchEvent(new Event("input"));
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 0));
     fixture.detectChanges();
   };
 });

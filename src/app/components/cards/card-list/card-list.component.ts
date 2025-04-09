@@ -5,11 +5,10 @@ import {
   transition,
   trigger,
 } from "@angular/animations";
-import { Component, OnInit } from "@angular/core";
+import { Component, model, OnInit } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
-import { MatSnackBar } from "@angular/material/snack-bar";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { debounceTime, from, Observable, Subject, Subscription } from "rxjs";
+import { debounceTime, Subscription } from "rxjs";
 import { Card } from "@app/model/card";
 import { CardService } from "@service/card.service";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
@@ -22,6 +21,7 @@ import { MatInputModule } from "@angular/material/input";
 import { emit } from "@tauri-apps/api/event";
 import { MatDivider } from "@angular/material/divider";
 import { MatTooltip } from "@angular/material/tooltip";
+import { toObservable } from "@angular/core/rxjs-interop";
 
 @Component({
   standalone: true,
@@ -47,23 +47,24 @@ import { MatTooltip } from "@angular/material/tooltip";
           matInput
           type="text"
           [(ngModel)]="filter"
-          data-test-id="title-search-input"
-          (keydown)="inputChanged()"
+          data-testid="title-search-input"
         />
         <button
           *ngIf="filter"
+          data-testid="clear-input"
           matSuffix
           mat-icon-button
           aria-label="Clear"
-          (click)="filter = ''"
+          (click)="filter.set('')"
         >
           <mat-icon>close</mat-icon>
         </button>
       </mat-form-field>
-      @for (card of allCards | async; track card.id; let isLast = $last) {
-        <div class="flex flex-direction items-center">
+      @for (card of allCards; track card.id; let isLast = $last) {
+        <div data-testid="card-row" class="flex flex-direction items-center">
           <span class="flex-1 pl-5">{{ card.title }}</span>
           <button
+            [attr.data-testid]="'nav-to-card-' + card.id"
             class="flex-none"
             mat-icon-button
             color="primary"
@@ -73,6 +74,7 @@ import { MatTooltip } from "@angular/material/tooltip";
             <mat-icon>travel_explore</mat-icon>
           </button>
           <button
+            [attr.data-testid]="'open-details-for-card-' + card.id"
             class="flex-none"
             mat-icon-button
             color="accent"
@@ -98,38 +100,24 @@ import { MatTooltip } from "@angular/material/tooltip";
   ],
 })
 export class CardListComponent implements OnInit {
-  allCards: Observable<Card[]>;
-  numCards: number = 0;
-  filter: string = "";
-  modelChanged: Subject<string> = new Subject<string>();
+  allCards: Card[] = [];
   subscription!: Subscription;
-  displayedColumns = ["title", "description"];
-  columnsToDisplayWithExpand = [...this.displayedColumns, "expand"];
-  expandedElement: Card | null;
-  debounceTime = 500;
+  debounceTime = 300;
+  filter = model<string>("");
 
   constructor(
     private cardService: CardService,
     public dialog: MatDialog,
-    private _snackBar: MatSnackBar,
   ) {
-    this.cardService
-      .getNumberOfCards()
-      .then((count) => (this.numCards = count));
-    this.allCards = from(this.cardService.readCardByTitle(""));
-    this.expandedElement = null;
-  }
-
-  async ngOnInit() {
-    this.subscription = this.modelChanged
+    this.subscription = toObservable(this.filter)
       .pipe(debounceTime(this.debounceTime))
       .subscribe(async (filter) => {
-        this.allCards = from(this.cardService.readCardByTitle(filter));
+        this.allCards = await this.cardService.readCardByTitle(filter);
       });
   }
 
-  inputChanged() {
-    this.modelChanged.next(this.filter);
+  async ngOnInit() {
+    this.allCards = await this.cardService.readCardByTitle("");
   }
 
   goToDetailsPage(cardId: number) {
