@@ -33,7 +33,7 @@ pub fn query_unified_card_by_title(
 conn: &mut SqliteConnection,
 title: String
 ) -> QueryResult<Vec<CardUnified>> {
-    card_new::table().filter(schema::card_new::title.like(format!("%{}%", title))).order_by(schema::card_new::title).get_results(conn)
+    card_new::table().filter(schema::card_new::title.like(format!("%{}%", title))).order_by(schema::card_new::title).limit(1000).get_results(conn)
 }
 
 pub fn query_create_unified_card(
