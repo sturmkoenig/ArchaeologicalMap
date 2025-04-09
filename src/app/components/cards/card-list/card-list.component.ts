@@ -22,6 +22,7 @@ import { emit } from "@tauri-apps/api/event";
 import { MatDivider } from "@angular/material/divider";
 import { MatTooltip } from "@angular/material/tooltip";
 import { toObservable } from "@angular/core/rxjs-interop";
+import { createCardDetailsWindow } from "@app/util/window-util";
 
 @Component({
   standalone: true,
@@ -120,14 +121,8 @@ export class CardListComponent implements OnInit {
     this.allCards = await this.cardService.readCardByTitle("");
   }
 
-  goToDetailsPage(cardId: number) {
-    const webview = new WebviewWindow(cardId.toString(), {
-      url: "cards/details/" + cardId,
-    });
-    webview.once("tauri://error", function (e) {
-      console.error("window creation error: " + JSON.stringify(e));
-      webview.emit("set-focus-to");
-    });
+  async goToDetailsPage(cardId: number) {
+    await createCardDetailsWindow(cardId);
   }
 
   showCardOnMap(card: Card) {
