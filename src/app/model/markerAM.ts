@@ -17,6 +17,7 @@ export class MarkerAM extends Marker {
   private _iconSize: number = 20;
   private _description: string;
   private _cardId: number;
+  private _regionImageId?: number;
 
   get iconType(): keyof typeof ICONS {
     return this._iconType;
@@ -43,6 +44,7 @@ export class MarkerAM extends Marker {
     this._title = card?.title ?? "";
     this._cardId = card?.id ?? 0;
     this._iconType = card?.icon_name ?? "iconBorderLimesBlack";
+    this._regionImageId = card?.region_image_id;
     this._iconSize = amOptions?.iconSize ?? 20;
     if (card?.radius) {
       this._radiusLayer = new Circle(latlng, {
@@ -91,14 +93,6 @@ export class MarkerAM extends Marker {
     this.on("hover", () => {});
   }
 
-  getLatitude(): number {
-    return this.getLatLng().lat;
-  }
-
-  getLongitude(): number {
-    return this.getLatLng().lng;
-  }
-
   setRadius(radius: number | undefined): void {
     if (!radius || radius === 0) {
       this._radiusLayer = undefined;
@@ -140,6 +134,7 @@ export class MarkerAM extends Marker {
       longitude: this.getLatLng().lng,
       icon_name: this._iconType,
       radius: this._radiusLayer?.getRadius() ?? 0,
+      region_image_id: this._regionImageId,
       title: this._title,
       description: this._description,
       id: this._cardId,

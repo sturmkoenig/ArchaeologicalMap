@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   computed,
+  effect,
   NgZone,
   OnDestroy,
   OnInit,
@@ -106,6 +107,11 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
       stack_id: this.editCard()?.stack_id,
       region_image_id: this.editCard()?.region_image_id,
     }));
+
+    effect(() => {
+      console.log(this.cardMetadata());
+    });
+
     this.unlistenPanToBounds = listen(
       "panToBounds",
       (panToBoundsEvent: {
@@ -184,7 +190,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   updateSelectedCard(newCard: CardMetaData) {
     this.overviewMapService.updateEditCard(newCard);
-    // TODO refresh state
   }
 
   onMapReady(map: LeafletMap) {
