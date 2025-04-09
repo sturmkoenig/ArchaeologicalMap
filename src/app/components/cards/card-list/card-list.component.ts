@@ -7,7 +7,6 @@ import {
 } from "@angular/animations";
 import { Component, model, OnInit } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { debounceTime, Subscription } from "rxjs";
 import { Card } from "@app/model/card";
 import { CardService } from "@service/card.service";

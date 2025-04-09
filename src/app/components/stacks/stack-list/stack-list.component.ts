@@ -7,10 +7,14 @@ import { StackStore } from "src/app/state/stack.store";
 import { CommonModule } from "@angular/common";
 import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
+import { MatButtonModule } from "@angular/material/button";
 
+/**
+ * @deprecated
+ */
 @Component({
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatIconModule],
+  imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule],
   selector: "app-stack-display",
   template: `
     <div class="stack-display__container">
