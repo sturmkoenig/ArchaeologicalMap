@@ -20,6 +20,8 @@ import { MatFormField, MatLabel } from "@angular/material/form-field";
 import { CommonModule } from "@angular/common";
 import { MatInputModule } from "@angular/material/input";
 import { emit } from "@tauri-apps/api/event";
+import { MatDivider } from "@angular/material/divider";
+import { MatTooltip } from "@angular/material/tooltip";
 
 @Component({
   standalone: true,
@@ -34,9 +36,11 @@ import { emit } from "@tauri-apps/api/event";
     MatButtonModule,
     MatTableModule,
     MatFormField,
+    MatDivider,
+    MatTooltip,
   ],
   template: `
-    <div class="list-container p-[10px]">
+    <div class="flex flex-col p-2">
       <mat-form-field>
         <mat-label>Suche...</mat-label>
         <input
@@ -56,84 +60,30 @@ import { emit } from "@tauri-apps/api/event";
           <mat-icon>close</mat-icon>
         </button>
       </mat-form-field>
-      <table mat-table [dataSource]="allCards" multiTemplateDataRows>
-        <ng-container matColumnDef="title">
-          <th mat-header-cell *matHeaderCellDef>Title</th>
-          <td mat-cell *matCellDef="let element">
-            <b>{{ element.title }}</b>
-          </td>
-        </ng-container>
-        <ng-container matColumnDef="description">
-          <th mat-header-cell *matHeaderCellDef>Description</th>
-          <td mat-cell *matCellDef="let element">{{ element.description }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="expand">
-          <th mat-header-cell *matHeaderCellDef aria-label="row actions">
-            &nbsp;
-          </th>
-          <td mat-cell *matCellDef="let element">
-            <button
-              mat-icon-button
-              aria-label="expand row"
-              (click)="
-                expandedElement = expandedElement === element ? null : element;
-                $event.stopPropagation()
-              "
-            >
-              @if (expandedElement === element) {
-                <mat-icon>keyboard_arrow_up</mat-icon>
-              } @else {
-                <mat-icon>keyboard_arrow_down</mat-icon>
-              }
-            </button>
-          </td>
-
-          <ng-container matColumnDef="expandedDetail">
-            <td
-              mat-cell
-              *matCellDef="let card"
-              [attr.colspan]="columnsToDisplayWithExpand.length"
-            >
-              <div
-                class="expanded-card--actions"
-                [@detailExpand]="
-                  card === expandedElement ? 'expanded' : 'collapsed'
-                "
-              >
-                <button
-                  mat-button
-                  color="primary"
-                  (click)="showCardOnMap(card)"
-                >
-                  Auf Karte Zeigen
-                </button>
-                <button
-                  mat-raised-button
-                  color="accent"
-                  (click)="goToDetailsPage(card.id!)"
-                >
-                  Info-Seite öffnen
-                </button>
-              </div>
-            </td>
-          </ng-container>
-          <tr mat-header-row *matHeaderRowDef="columnsToDisplayWithExpand"></tr>
-          <tr
-            mat-row
-            *matRowDef="let card; columns: columnsToDisplayWithExpand"
-            class="card-row"
-            data-test-id="table-row"
-            [class.expanded-row]="expandedElement === card"
-            (click)="expandedElement = expandedElement === card ? null : card"
-          ></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: ['expandedDetail']"
-            class="card-detail-row"
-          ></tr>
-        </ng-container>
-      </table>
+      @for (card of allCards | async; track card.id; let isLast = $last) {
+        <div class="flex flex-direction items-center">
+          <span class="flex-1 pl-5">{{ card.title }}</span>
+          <button
+            class="flex-none"
+            mat-icon-button
+            color="primary"
+            matTooltip="Auf Karte zeigen"
+            (click)="showCardOnMap(card)"
+          >
+            <mat-icon>travel_explore</mat-icon>
+          </button>
+          <button
+            class="flex-none"
+            mat-icon-button
+            color="accent"
+            matTooltip="Detail Seite öffnen"
+            (click)="goToDetailsPage(card.id!)"
+          >
+            <mat-icon>article</mat-icon>
+          </button>
+        </div>
+        <mat-divider *ngIf="!isLast"></mat-divider>
+      }
     </div>
   `,
   animations: [
@@ -145,45 +95,6 @@ import { emit } from "@tauri-apps/api/event";
         animate("225ms cubic-bezier(0.4, 0.0, 0.2, 1)"),
       ),
     ]),
-  ],
-  styles: [
-    `
-      button {
-        margin: 0.2rem;
-      }
-
-      .card-row td {
-        border-bottom-width: 0;
-      }
-
-      .list-container {
-        padding-top: 2rem;
-        display: flex;
-        flex-direction: column;
-      }
-      .example-card {
-        z-index: 1000;
-        max-width: 400px;
-        margin-bottom: 8px;
-      }
-      tr {
-        padding-left: 10px;
-      }
-      tr:nth-child(even) {
-        background-color: white;
-      }
-      tr.card-detail-row {
-        height: 0;
-      }
-
-      tr.card-row:not(.expanded-row):hover {
-        background: whitesmoke;
-      }
-
-      tr.card-row:not(.expanded-row):active {
-        background: #efefef;
-      }
-    `,
   ],
 })
 export class CardListComponent implements OnInit {
