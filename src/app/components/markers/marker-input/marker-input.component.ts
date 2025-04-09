@@ -102,7 +102,7 @@ export class MarkerInputComponent implements OnChanges {
   iconsSorted = iconsSorted;
   icon: keyof typeof ICONS = "iconMiscBlack";
   selectedIconCategory!: keyof typeof iconsSorted;
-  constructor(public iconService: IconService) {}
+  constructor() {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (!changes["marker"]) {

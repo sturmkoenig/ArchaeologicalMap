@@ -1,5 +1,10 @@
 <mat-card class="slider-card">
   <mat-card-content>
+    <button mat-flat-button (click)="onAddStack()">Neuen Stapel anlegen</button>
+  </mat-card-content>
+</mat-card>
+<mat-card class="slider-card">
+  <mat-card-content>
     <mat-slide-toggle
       [checked]="mapSettings.showLabels"
       (toggleChange)="changeShowLabels()"

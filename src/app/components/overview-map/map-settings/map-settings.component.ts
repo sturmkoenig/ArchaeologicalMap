@@ -10,6 +10,9 @@ import {
 import { FormsModule } from "@angular/forms";
 import { MatCard, MatCardContent } from "@angular/material/card";
 import { MatSlideToggle } from "@angular/material/slide-toggle";
+import { StackCreatorComponent } from "@app/components/stacks/stack-creator/stack-creator.component";
+import { MatDialog, MatDialogModule } from "@angular/material/dialog";
+import { MatButton } from "@angular/material/button";
 
 @Component({
   selector: "app-map-settings",
@@ -22,7 +25,9 @@ import { MatSlideToggle } from "@angular/material/slide-toggle";
     MatCard,
     MatCardContent,
     MatSlideToggle,
+    MatDialogModule,
     MatSliderModule,
+    MatButton,
   ],
   templateUrl: "./map-settings.component.html",
   styleUrl: "./map-settings.component.css",
@@ -35,7 +40,10 @@ export class MapSettingsComponent implements OnInit {
   @Output()
   mapSettingsChanged: EventEmitter<MapSettings> = new EventEmitter();
 
-  constructor(private settingsService: SettingService) {}
+  constructor(
+    private settingsService: SettingService,
+    private dialog: MatDialog,
+  ) {}
 
   async ngOnInit() {
     const mapSettings = await this.settingsService.getMapSettings();
@@ -76,6 +84,12 @@ export class MapSettingsComponent implements OnInit {
     this.mapSettingsChanged.emit(this.mapSettings);
   }
 
+  onAddStack() {
+    this.dialog.open(StackCreatorComponent, {
+      enterAnimationDuration: "200ms",
+      exitAnimationDuration: "150ms",
+    });
+  }
   async changeDisableClusteringAtZoomLevel() {
     await this.settingsService.updateMapSettings({
       markerClusterGroupOptions: this.mapSettings.markerClusterGroupOptions,

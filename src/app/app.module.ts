@@ -37,7 +37,6 @@ import { MatDividerModule } from "@angular/material/divider";
 import { MatStepperModule } from "@angular/material/stepper";
 import { LeafletModule } from "@bluehalo/ngx-leaflet";
 import { CardDetailsComponent } from "./components/cards/card-details/card-details.component";
-import { StackDisplayComponent } from "./components/stacks/stack-list/stack-list.component";
 import { EditorComponent } from "./layout/editor/editor.component";
 import { FilterPipe } from "./layout/editor/filter.pipe";
 import { MapComponent } from "./layout/map/map.component";
@@ -61,7 +60,6 @@ import { CardListComponent } from "@app/components/cards/card-list/card-list.com
     CardDetailsComponent,
     EditorComponent,
     FilterPipe,
-    StackDisplayComponent,
   ],
   bootstrap: [AppComponent],
   imports: [

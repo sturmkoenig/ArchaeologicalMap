@@ -4,8 +4,13 @@ import { StackCreatorComponent } from "../stack-creator/stack-creator.component"
 import { Stack, StackPost } from "src/app/model/stack";
 import { Observable } from "rxjs";
 import { StackStore } from "src/app/state/stack.store";
+import { CommonModule } from "@angular/common";
+import { MatCardModule } from "@angular/material/card";
+import { MatIconModule } from "@angular/material/icon";
 
 @Component({
+  standalone: true,
+  imports: [CommonModule, MatCardModule, MatIconModule],
   selector: "app-stack-display",
   template: `
     <div class="stack-display__container">

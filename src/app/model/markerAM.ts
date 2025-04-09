@@ -141,15 +141,6 @@ export class MarkerAM extends Marker {
     };
   }
 
-  fromCard(card: Card): void {
-    this._title = card.title;
-    this._description = card.description;
-    this._cardId = card.id ?? 0;
-    this.setLatLng([card.latitude, card.longitude]);
-    this.setRadius(card.radius);
-    this.setIconType(card.icon_name);
-  }
-
   createPopup() {
     const div: HTMLDivElement = document.createElement("div");
     div.innerHTML =
