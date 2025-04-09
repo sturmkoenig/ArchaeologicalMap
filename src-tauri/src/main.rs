@@ -17,9 +17,7 @@ use app::models::{CardinalDirections, ImageDTO};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use persistence::cards::query_cards_paginated;
 use persistence::cards::query_count_cards;
-use persistence::cards::query_delete_card;
 use persistence::images::query_create_image;
-use persistence::markers::query_delete_all_markers_for_card;
 use persistence::markers::query_join_markers;
 use persistence::stacks::query_all_stacks;
 use persistence::stacks::query_create_stack;
@@ -166,7 +164,6 @@ fn read_cards_in_area(cardinal_directions: CardinalDirections) -> Result<Vec<Car
 fn update_card_unified(card: CardUnifiedDTO) -> Result<bool, String> {
     let conn = &mut establish_connection();
     let id = card.id.ok_or("id is missing".to_string())?;
-
     query_update_unified_card(
         conn,
         CardUnified {
@@ -406,12 +403,12 @@ mod tests {
     use crate::{create_stack, create_unified_card, read_card_by_id, read_cards_by_title, read_cards_in_area, read_cards_in_stack, update_card_unified, MIGRATIONS};
     use app::establish_connection;
     use app::models::{CardUnifiedDTO, CardinalDirections, NewStack};
+    use assertor::{assert_that, IteratorAssertion};
     use diesel_migrations::MigrationHarness;
     use serial_test::serial;
     use std::default::Default;
     use std::env;
     use std::fs;
-    use assertor::{assert_that, IteratorAssertion};
 
     fn given_test_card() -> CardUnifiedDTO {
         CardUnifiedDTO{
