@@ -13,10 +13,9 @@ import { MatButtonModule } from "@angular/material/button";
  * @deprecated
  */
 @Component({
-  standalone: true,
-  imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule],
-  selector: "app-stack-display",
-  template: `
+    imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule],
+    selector: "app-stack-display",
+    template: `
     <div class="stack-display__container">
       <div class="gridbox">
         <div *ngFor="let stack of stacks$ | async" class="card-container">
@@ -57,8 +56,8 @@ import { MatButtonModule } from "@angular/material/button";
       </div>
     </div>
   `,
-  styles: [
-    `
+    styles: [
+        `
       .stack-display__container {
         display: flex;
         flex-direction: row;
@@ -105,7 +104,7 @@ import { MatButtonModule } from "@angular/material/button";
         right: 50px;
       }
     `,
-  ],
+    ]
 })
 export class StackDisplayComponent {
   public stacks?: StackPost[];

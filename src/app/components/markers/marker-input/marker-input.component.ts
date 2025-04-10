@@ -18,20 +18,19 @@ import { FormsModule } from "@angular/forms";
 import { KeyValuePipe, NgForOf } from "@angular/common";
 
 @Component({
-  selector: "app-marker-input",
-  standalone: true,
-  imports: [
-    MatCheckbox,
-    MatSliderModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MarkerButtonToggleComponent,
-    MatInputModule,
-    FormsModule,
-    KeyValuePipe,
-    NgForOf,
-  ],
-  template: `
+    selector: "app-marker-input",
+    imports: [
+        MatCheckbox,
+        MatSliderModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MarkerButtonToggleComponent,
+        MatInputModule,
+        FormsModule,
+        KeyValuePipe,
+        NgForOf,
+    ],
+    template: `
     @if (this.marker) {
       <div>
         <div class="marker-input">
@@ -75,7 +74,7 @@ import { KeyValuePipe, NgForOf } from "@angular/common";
       </div>
     }
   `,
-  styles: `
+    styles: `
     .marker-input {
       display: flex;
       flex-direction: column;
@@ -89,7 +88,7 @@ import { KeyValuePipe, NgForOf } from "@angular/common";
     mat-button-toggle-group {
       margin: 0px 20px 50px;
     }
-  `,
+  `
 })
 export class MarkerInputComponent implements OnChanges {
   @Input()

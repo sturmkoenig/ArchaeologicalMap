@@ -37,20 +37,19 @@ import { MatButton, MatFabButton } from "@angular/material/button";
 import { MarkerAM } from "@app/model/markerAM";
 
 @Component({
-  standalone: true,
-  imports: [
-    RightSidebarComponent,
-    CardInputComponent,
-    MapSettingsComponent,
-    MarkerInputComponent,
-    LeafletModule,
-    LeafletMarkerClusterModule,
-    MatFabButton,
-    MatButton,
-  ],
-  selector: "app-overview-map",
-  templateUrl: "overview-map.component.html",
-  styleUrl: "overview-map.component.scss",
+    imports: [
+        RightSidebarComponent,
+        CardInputComponent,
+        MapSettingsComponent,
+        MarkerInputComponent,
+        LeafletModule,
+        LeafletMarkerClusterModule,
+        MatFabButton,
+        MatButton,
+    ],
+    selector: "app-overview-map",
+    templateUrl: "overview-map.component.html",
+    styleUrl: "overview-map.component.scss"
 })
 export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   position?: LatLng;

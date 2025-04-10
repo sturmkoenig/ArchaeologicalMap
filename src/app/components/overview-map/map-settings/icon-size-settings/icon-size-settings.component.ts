@@ -16,19 +16,18 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatCard, MatCardContent } from "@angular/material/card";
 
 @Component({
-  selector: "app-icon-size-settings",
-  standalone: true,
-  imports: [
-    CommonModule,
-    MarkerButtonToggleComponent,
-    MatFormFieldModule,
-    MatIconModule,
-    MatButtonModule,
-    MatInputModule,
-    MatCard,
-    MatCardContent,
-  ],
-  template: `
+    selector: "app-icon-size-settings",
+    imports: [
+        CommonModule,
+        MarkerButtonToggleComponent,
+        MatFormFieldModule,
+        MatIconModule,
+        MatButtonModule,
+        MatInputModule,
+        MatCard,
+        MatCardContent,
+    ],
+    template: `
     <div class="icons-settings">
       @for (iconCategory of iconsSorted | keyvalue; track iconCategory) {
         <mat-card class="icon-settings">
@@ -72,7 +71,7 @@ import { MatCard, MatCardContent } from "@angular/material/card";
       }
     </div>
   `,
-  styles: `
+    styles: `
     .selected-icon-configurator {
       display: flex;
       justify-content: center;
@@ -92,7 +91,7 @@ import { MatCard, MatCardContent } from "@angular/material/card";
       justify-content: center;
       gap: 20px;
     }
-  `,
+  `
 })
 export class IconSizeSettingsComponent {
   icons = ICONS;

@@ -9,10 +9,9 @@ import {
 } from "../../../services/icon.service";
 
 @Component({
-  selector: "app-marker-button-toggle",
-  standalone: true,
-  imports: [CommonModule, MatButtonModule, MatButtonToggleModule],
-  template: `
+    selector: "app-marker-button-toggle",
+    imports: [CommonModule, MatButtonModule, MatButtonToggleModule],
+    template: `
     <mat-button-toggle-group
       name="fontStyle"
       aria-label="Font Style"
@@ -26,7 +25,7 @@ import {
       </mat-button-toggle>
     </mat-button-toggle-group>
   `,
-  styles: `
+    styles: `
     .option-icon {
       margin: auto;
       height: 2rem;
@@ -37,7 +36,7 @@ import {
       margin-top: 0px;
       margin-bottom: 50px;
     }
-  `,
+  `
 })
 export class MarkerButtonToggleComponent {
   @Output()

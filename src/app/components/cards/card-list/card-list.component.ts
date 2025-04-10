@@ -24,22 +24,21 @@ import { toObservable } from "@angular/core/rxjs-interop";
 import { createCardDetailsWindow } from "@app/util/window-util";
 
 @Component({
-  standalone: true,
-  selector: "app-card-list",
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatIconModule,
-    MatInputModule,
-    MatLabel,
-    MatButtonModule,
-    MatTableModule,
-    MatFormField,
-    MatDivider,
-    MatTooltip,
-  ],
-  template: `
+    selector: "app-card-list",
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatIconModule,
+        MatInputModule,
+        MatLabel,
+        MatButtonModule,
+        MatTableModule,
+        MatFormField,
+        MatDivider,
+        MatTooltip,
+    ],
+    template: `
     <div class="flex flex-col p-2">
       <mat-form-field>
         <mat-label>Suche...</mat-label>
@@ -88,16 +87,13 @@ import { createCardDetailsWindow } from "@app/util/window-util";
       }
     </div>
   `,
-  animations: [
-    trigger("detailExpand", [
-      state("collapsed,void", style({ height: "0px", minHeight: "0" })),
-      state("expanded", style({ height: "*" })),
-      transition(
-        "expanded <=> collapsed",
-        animate("225ms cubic-bezier(0.4, 0.0, 0.2, 1)"),
-      ),
-    ]),
-  ],
+    animations: [
+        trigger("detailExpand", [
+            state("collapsed,void", style({ height: "0px", minHeight: "0" })),
+            state("expanded", style({ height: "*" })),
+            transition("expanded <=> collapsed", animate("225ms cubic-bezier(0.4, 0.0, 0.2, 1)")),
+        ]),
+    ]
 })
 export class CardListComponent implements OnInit {
   allCards: Card[] = [];

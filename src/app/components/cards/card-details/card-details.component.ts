@@ -12,9 +12,10 @@ import { CardDetailsStore } from "@app/state/card-details.store";
 import { ImageEntity } from "@app/model/image";
 
 @Component({
-  selector: "app-card-details",
-  templateUrl: "./card-details.component.html",
-  styleUrls: ["./card-details.component.scss"],
+    selector: "app-card-details",
+    templateUrl: "./card-details.component.html",
+    styleUrls: ["./card-details.component.scss"],
+    standalone: false
 })
 export class CardDetailsComponent implements OnInit {
   cardId!: number;

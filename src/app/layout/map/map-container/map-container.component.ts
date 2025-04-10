@@ -6,16 +6,15 @@ import { OverviewMapComponent } from "@app/components/overview-map/overview-map.
 import { MatFabButton } from "@angular/material/button";
 
 @Component({
-  selector: "app-map-container",
-  standalone: true,
-  imports: [
-    CardListComponent,
-    MatSidenavModule,
-    MatIcon,
-    OverviewMapComponent,
-    MatFabButton,
-  ],
-  template: `
+    selector: "app-map-container",
+    imports: [
+        CardListComponent,
+        MatSidenavModule,
+        MatIcon,
+        OverviewMapComponent,
+        MatFabButton,
+    ],
+    template: `
     <div class="flex flex-col h-full">
       <mat-drawer-container class="h-full">
         <mat-drawer #drawer mode="side">
@@ -32,6 +31,6 @@ import { MatFabButton } from "@angular/material/button";
         </mat-drawer-content>
       </mat-drawer-container>
     </div>
-  `,
+  `
 })
 export class MapContainerComponent {}

@@ -28,19 +28,18 @@ import { MatOptionModule } from "@angular/material/core";
 import { AsyncPipe, NgForOf } from "@angular/common";
 
 @Component({
-  standalone: true,
-  imports: [
-    MatSelectModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatOptionModule,
-    FormsModule,
-    AsyncPipe,
-    MatButton,
-    NgForOf,
-  ],
-  selector: "app-card-input",
-  template: `
+    imports: [
+        MatSelectModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatOptionModule,
+        FormsModule,
+        AsyncPipe,
+        MatButton,
+        NgForOf,
+    ],
+    selector: "app-card-input",
+    template: `
     @if (this.card()) {
       <form class="card-input">
         <div class="card-image-editor">
@@ -102,7 +101,7 @@ import { AsyncPipe, NgForOf } from "@angular/common";
       </form>
     }
   `,
-  styles: `
+    styles: `
     form {
       margin: 20px;
     }
@@ -133,7 +132,7 @@ import { AsyncPipe, NgForOf } from "@angular/common";
       display: flex;
       flex-direction: column;
     }
-  `,
+  `
 })
 export class CardInputComponent {
   card = model.required<CardMetaData>();

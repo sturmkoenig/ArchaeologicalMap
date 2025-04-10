@@ -9,8 +9,8 @@ import {
 } from "leaflet";
 
 @Component({
-  selector: "app-map",
-  template: `<div
+    selector: "app-map",
+    template: `<div
     class="map-container"
     leaflet
     [leafletOptions]="options"
@@ -19,14 +19,15 @@ import {
     (leafletMapMoveEnd)="onMapMoveEnd()"
     (leafletClick)="click$.emit($event)"
   ></div>`,
-  styles: [
-    `
+    styles: [
+        `
       .map-container {
         width: 100%;
         height: 100%;
       }
     `,
-  ],
+    ],
+    standalone: false
 })
 export class MapComponent {
   @Output() map$: EventEmitter<Map> = new EventEmitter();
