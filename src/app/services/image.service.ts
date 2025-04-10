@@ -46,7 +46,10 @@ export class ImageService {
     return [images, numberOfImages];
   }
 
-  async readImage(imageId: number): Promise<ImageEntity> {
+  async readImage(imageId?: number): Promise<ImageEntity> {
+    if (!imageId) {
+      return new Promise(() => undefined);
+    }
     const imageDB: ImageDB = await invoke("read_image", { imageId: imageId });
     const imageSoure = await path.join(
       await appDataDir(),

@@ -1,7 +1,10 @@
 import {
   Component,
+  effect,
   EventEmitter,
+  input,
   Input,
+  model,
   OnChanges,
   Output,
   SimpleChanges,
@@ -38,7 +41,7 @@ import { AsyncPipe, NgForOf } from "@angular/common";
   ],
   selector: "app-card-input",
   template: `
-    @if (this.card) {
+    @if (this.card()) {
       <form class="card-input">
         <div class="card-image-editor">
           @if (image) {
@@ -68,7 +71,7 @@ import { AsyncPipe, NgForOf } from "@angular/common";
           <mat-label>Title:</mat-label>
           <input
             matInput
-            [ngModel]="card?.title"
+            [ngModel]="card().title"
             (ngModelChange)="onTitleChange($event)"
             [ngModelOptions]="{ standalone: true }"
           />
@@ -77,7 +80,7 @@ import { AsyncPipe, NgForOf } from "@angular/common";
           <mat-label>Beschreibung:</mat-label>
           <input
             matInput
-            [ngModel]="card?.description"
+            [ngModel]="card().description"
             (ngModelChange)="onDescriptionChange($event)"
             [ngModelOptions]="{ standalone: true }"
           />
@@ -85,7 +88,7 @@ import { AsyncPipe, NgForOf } from "@angular/common";
         <mat-form-field>
           <mat-label>Stapel:</mat-label>
           <mat-select
-            [value]="card?.stack_id"
+            [value]="card().stack_id"
             (valueChange)="onStackIdChange($event)"
           >
             <mat-option
@@ -132,17 +135,9 @@ import { AsyncPipe, NgForOf } from "@angular/common";
     }
   `,
 })
-export class CardInputComponent implements OnChanges {
-  @Input()
-  card?: CardMetaData;
-
-  @ViewChild("cardInput")
-  cardForm?: NgForm;
-
-  @Output()
-  cardChange: EventEmitter<CardMetaData> = new EventEmitter();
+export class CardInputComponent {
+  card = model.required<CardMetaData>();
   stacks$: Observable<Stack[]>;
-
   image?: ImageEntity;
 
   constructor(
@@ -151,6 +146,20 @@ export class CardInputComponent implements OnChanges {
     private imageService: ImageService,
   ) {
     this.stacks$ = stackStore.stacks$;
+    effect(() => {
+      this.imageService
+        .readImage(this.card().region_image_id)
+        .then((image: ImageEntity) => {
+          this.image = image;
+        });
+    });
+    effect(() => {
+      console.log("Hi from insert", this.card());
+    });
+  }
+
+  cloneCard(card: CardMetaData, override: Partial<CardMetaData>): CardMetaData {
+    return { ...card, ...override };
   }
 
   openNewImageDialog() {
@@ -159,8 +168,7 @@ export class CardInputComponent implements OnChanges {
     });
     dialogRef.afterClosed().subscribe((result: ImageEntity) => {
       this.image = result;
-      this.card!.region_image_id = result.id;
-      this.cardChange.emit(this.card);
+      this.card().region_image_id = result.id;
     });
   }
 
@@ -168,42 +176,25 @@ export class CardInputComponent implements OnChanges {
     const dialogRef = this.dialog.open(ImageListComponent, {
       width: "80%",
     });
-    dialogRef.afterClosed().subscribe((result: ImageEntity) => {
-      this.image = result;
-      this.card!.region_image_id = result.id;
-      this.cardChange.emit(this.card);
+    dialogRef.afterClosed().subscribe((image: ImageEntity) => {
+      this.image = image;
+      this.card.update((card) =>
+        this.cloneCard(card, { region_image_id: image.id }),
+      );
     });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    const newCard = changes["card"].currentValue;
-    if (newCard.region_image_id) {
-      this.imageService
-        .readImage(newCard.region_image_id)
-        .then((image: ImageEntity) => {
-          this.image = image;
-        });
-    } else {
-      this.image = undefined;
-    }
-    if (this.card && this.cardForm) {
-      this.cardForm.valueChanges?.subscribe((_) => {
-        this.cardChange.emit(this.card);
-      });
-    }
-  }
-  onStackIdChange(newStackId: any) {
-    this.card!.stack_id = newStackId;
-    this.cardChange.emit(this.card);
+  onStackIdChange(newStackId: number) {
+    this.card.update((card) => this.cloneCard(card, { stack_id: newStackId }));
   }
 
   onTitleChange(newTitle: string) {
-    this.card!.title = newTitle;
-    this.cardChange.emit(this.card);
+    this.card.update((card) => this.cloneCard(card, { title: newTitle }));
   }
 
   onDescriptionChange(newDescription: string) {
-    this.card!.description = newDescription;
-    this.cardChange.emit(this.card);
+    this.card.update((card) =>
+      this.cloneCard(card, { description: newDescription }),
+    );
   }
 }

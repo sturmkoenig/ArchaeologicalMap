@@ -18,6 +18,7 @@ export class MarkerAM extends Marker {
   private _description: string;
   private _cardId: number;
   private _regionImageId?: number;
+  private _stackId?: number;
 
   get iconType(): keyof typeof ICONS {
     return this._iconType;
@@ -46,6 +47,7 @@ export class MarkerAM extends Marker {
     this._iconType = card?.icon_name ?? "iconBorderLimesBlack";
     this._regionImageId = card?.region_image_id;
     this._iconSize = amOptions?.iconSize ?? 20;
+    this._stackId = card?.stack_id;
     if (card?.radius) {
       this._radiusLayer = new Circle(latlng, {
         radius: card.radius ?? 0,
@@ -135,6 +137,7 @@ export class MarkerAM extends Marker {
       icon_name: this._iconType,
       radius: this._radiusLayer?.getRadius() ?? 0,
       region_image_id: this._regionImageId,
+      stack_id: this._stackId,
       title: this._title,
       description: this._description,
       id: this._cardId,

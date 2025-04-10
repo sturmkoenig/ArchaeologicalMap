@@ -183,6 +183,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   updateSelectedCard(newCard: CardMetaData) {
+    console.log("newCard received", newCard);
     this.overviewMapService.updateEditCard(newCard);
   }
 
