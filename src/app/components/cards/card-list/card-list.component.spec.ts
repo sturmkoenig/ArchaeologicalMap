@@ -186,7 +186,7 @@ describe("CardListComponent", () => {
     searchBar.value = titleFilter;
     searchBar.dispatchEvent(new Event("input"));
     await fixture.whenStable();
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 10));
     fixture.detectChanges();
   };
 });

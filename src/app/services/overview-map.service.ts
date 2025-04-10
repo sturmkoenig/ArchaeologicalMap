@@ -23,7 +23,6 @@ import { MarkerAM } from "@app/model/markerAM";
 @Injectable()
 export class OverviewMapService {
   public readonly mainLayerGroup: LayerGroup;
-  public clusterGroup!: MarkerClusterGroup;
   public readonly selectedLayerGroup: LayerGroup;
   public readonly radiusLayerGroup: LayerGroup;
   public showLabels?: boolean;
@@ -63,16 +62,8 @@ export class OverviewMapService {
     });
   }
 
-  setMarkerClusterLayerGroup(markerClusterLayerGroup: MarkerClusterGroup) {
-    this.clusterGroup = markerClusterLayerGroup;
-  }
-
   resetMainLayerGroup(): void {
-    if (!this.clusterGroup) {
-      return;
-    }
     this.mainLayerGroup.clearLayers();
-    this.clusterGroup.clearLayers();
   }
 
   changeSelectedMarker(marker?: MarkerAM): void {
@@ -150,7 +141,6 @@ export class OverviewMapService {
       return;
     }
     this.mainLayerGroup.addLayer(marker);
-    this.clusterGroup.addLayer(marker);
     marker.on("click", () => {
       this.changeSelectedMarker(marker);
     });
@@ -163,7 +153,6 @@ export class OverviewMapService {
 
   removeLayerFromMainLayerGroup(marker: MarkerAM): void {
     this.mainLayerGroup.removeLayer(marker);
-    this.clusterGroup.removeLayer(marker);
     if (marker.radiusLayer) {
       this.radiusLayerGroup.removeLayer(marker.radiusLayer);
     }
@@ -173,11 +162,6 @@ export class OverviewMapService {
     this.iconSizeMap.set(iconKey, newSize);
     this.mainLayerGroup.getLayers().forEach((l) => {
       if (l instanceof MarkerAM && l.iconType === iconKey) {
-        l.setIconSize(newSize);
-      }
-    });
-    this.clusterGroup.getLayers().forEach((l) => {
-      if (isMarkerAM(l) && l.iconType === iconKey) {
         l.setIconSize(newSize);
       }
     });
@@ -212,7 +196,7 @@ export class OverviewMapService {
   }
 
   highlightMarker(highlightedMarkerIds: number[]) {
-    this.clusterGroup
+    this.mainLayerGroup
       .getLayers()
       .filter(
         (marker: Layer) =>

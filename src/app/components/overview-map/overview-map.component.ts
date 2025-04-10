@@ -18,7 +18,6 @@ import {
   LayerGroup,
   Map as LeafletMap,
   MapOptions as LeafletMapOptions,
-  MarkerClusterGroup,
   tileLayer,
 } from "leaflet";
 import "leaflet.markercluster";
@@ -32,24 +31,22 @@ import { CardInputComponent } from "@app/components/cards/card-input/card-input.
 import { MapSettingsComponent } from "@app/components/overview-map/map-settings/map-settings.component";
 import { MarkerInputComponent } from "@app/components/markers/marker-input/marker-input.component";
 import { LeafletModule } from "@bluehalo/ngx-leaflet";
-import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
 import { MatButton, MatFabButton } from "@angular/material/button";
 import { MarkerAM } from "@app/model/markerAM";
 
 @Component({
-    imports: [
-        RightSidebarComponent,
-        CardInputComponent,
-        MapSettingsComponent,
-        MarkerInputComponent,
-        LeafletModule,
-        LeafletMarkerClusterModule,
-        MatFabButton,
-        MatButton,
-    ],
-    selector: "app-overview-map",
-    templateUrl: "overview-map.component.html",
-    styleUrl: "overview-map.component.scss"
+  imports: [
+    RightSidebarComponent,
+    CardInputComponent,
+    MapSettingsComponent,
+    MarkerInputComponent,
+    LeafletModule,
+    MatFabButton,
+    MatButton,
+  ],
+  selector: "app-overview-map",
+  templateUrl: "overview-map.component.html",
+  styleUrl: "overview-map.component.scss",
 })
 export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   position?: LatLng;
@@ -191,6 +188,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.zoom = map.getZoom();
     this.map.addLayer(this.overviewMapService.radiusLayerGroup);
     this.map.addLayer(this.overviewMapService.selectedLayerGroup);
+    this.map.addLayer(this.overviewMapService.mainLayerGroup);
     if (this.mapSettings?.initialMapBounds) {
       this.map.fitBounds(this.mapSettings.initialMapBounds);
     }
@@ -252,10 +250,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
         initialMapBounds: this.map.getBounds(),
       });
     });
-  }
-
-  markerClusterReady($event: MarkerClusterGroup) {
-    this.overviewMapService.setMarkerClusterLayerGroup($event);
   }
 
   async onMapSettingsChanged() {

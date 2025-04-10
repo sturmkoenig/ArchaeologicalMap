@@ -147,7 +147,12 @@ export class MarkerAM extends Marker {
   createPopup() {
     const div: HTMLDivElement = document.createElement("div");
     div.innerHTML =
-      `<h4>` + this._title + `</h4>` + `<p>` + this._description + `</p>`;
+      `<strong>` +
+      this._title +
+      `</strong>` +
+      `<p>` +
+      this._description +
+      `</p>`;
     const button = document.createElement("button");
     button.innerHTML = "Info-Seite Zeigen";
     button.onclick = () => {

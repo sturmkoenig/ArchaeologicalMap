@@ -7,13 +7,8 @@
         [style]="{ cursor: cursorStyle }"
         leaflet
         [leafletOptions]="options"
-        [leafletMarkerCluster]="[]"
-        [leafletMarkerClusterOptions]="
-          this.mapSettings.markerClusterGroupOptions
-        "
         (leafletMapReady)="onMapReady($event)"
         (leafletMapMoveEnd)="mapMoveEnded()"
-        (leafletMarkerClusterReady)="markerClusterReady($event)"
       >
         >
       </div>

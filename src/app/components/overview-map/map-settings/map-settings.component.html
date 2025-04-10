@@ -3,33 +3,16 @@
     <button mat-flat-button (click)="onAddStack()">Neuen Stapel anlegen</button>
   </mat-card-content>
 </mat-card>
-<mat-card class="slider-card">
-  <mat-card-content>
-    <mat-slide-toggle
-      [checked]="mapSettings.showLabels"
-      (toggleChange)="changeShowLabels()"
-      >Labels anzeigen</mat-slide-toggle
-    >
-  </mat-card-content>
-</mat-card>
-<mat-card class="slider-card">
-  <mat-card-content>
-    <div class="label-container">
-      <label for="maxZoomLevel">Marker Ausblenden bei Zoomstuffe</label>
-      <label for="maxZoomLevel"> {{ maxZoomLevel.value }}</label>
-    </div>
-    <mat-slider [max]="15" [min]="1">
-      <input
-        data-testid="max-zoom-level-slider"
-        id="maxZoomLevel"
-        matSliderThumb
-        #maxZoomLevel
-        [(ngModel)]="mapSettings.maxZoomLevel"
-        (dragEnd)="changeMaxZoomLevel()"
-      />
-    </mat-slider>
-  </mat-card-content>
-</mat-card>
+<!-- labels werden gerade immer angezeigt TODO klären ob es gewünscht ist das anders zu handhaben-->
+<!--<mat-card class="slider-card">-->
+<!--  <mat-card-content>-->
+<!--    <mat-slide-toggle-->
+<!--      [checked]="mapSettings.showLabels"-->
+<!--      (toggleChange)="changeShowLabels()"-->
+<!--      >Labels anzeigen</mat-slide-toggle-->
+<!--    >-->
+<!--  </mat-card-content>-->
+<!--</mat-card>-->
 <mat-card class="slider-card">
   <mat-card-content>
     <div class="label-container">

@@ -15,21 +15,21 @@ import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { MatButton } from "@angular/material/button";
 
 @Component({
-    selector: "app-map-settings",
-    imports: [
-        IconSizeSettingsComponent,
-        MatSlider,
-        FormsModule,
-        MatSliderThumb,
-        MatCard,
-        MatCardContent,
-        MatSlideToggle,
-        MatDialogModule,
-        MatSliderModule,
-        MatButton,
-    ],
-    templateUrl: "./map-settings.component.html",
-    styleUrl: "./map-settings.component.css"
+  selector: "app-map-settings",
+  imports: [
+    IconSizeSettingsComponent,
+    MatSlider,
+    FormsModule,
+    MatSliderThumb,
+    MatCard,
+    MatCardContent,
+    MatSlideToggle,
+    MatDialogModule,
+    MatSliderModule,
+    MatButton,
+  ],
+  templateUrl: "./map-settings.component.html",
+  styleUrl: "./map-settings.component.css",
 })
 export class MapSettingsComponent implements OnInit {
   mapSettings: MapSettings = { maxZoomLevel: 1, markerClusterGroupOptions: {} };
