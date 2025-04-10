@@ -1,7 +1,7 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    card_new (id) {
+    card (id) {
         id -> Integer,
         title -> Text,
         description -> Text,
@@ -15,7 +15,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    cards (id) {
+    card_old (id) {
         id -> Integer,
         title -> Text,
         description -> Text,
@@ -62,15 +62,14 @@ diesel::table! {
     }
 }
 
-diesel::joinable!(card_new -> image (region_image_id));
-diesel::joinable!(card_new -> stack (stack_id));
-diesel::joinable!(cards -> image (region_image_id));
-diesel::joinable!(cards -> stack (stack_id));
-diesel::joinable!(marker -> cards (card_id));
+diesel::joinable!(card -> image (region_image_id));
+diesel::joinable!(card -> stack (stack_id));
+diesel::joinable!(card_old -> image (region_image_id));
+diesel::joinable!(card_old -> stack (stack_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
-    card_new,
-    cards,
+    card,
+    card_old,
     image,
     marker,
     marker_old,

@@ -6,19 +6,15 @@ extern crate diesel;
 extern crate diesel_migrations;
 
 pub mod persistence;
-use app::models::CardUnified;
-use app::models::MarkerDTO;
+use app::models::Card;
 use app::models::NewImage;
 use app::models::NewStack;
 use app::models::Stack;
 use app::models::StackDTO;
-use app::models::{CardDTO, CardUnifiedDTO};
+use app::models::CardDTO;
 use app::models::{CardinalDirections, ImageDTO};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
-use persistence::cards::query_cards_paginated;
-use persistence::cards::query_count_cards;
 use persistence::images::query_create_image;
-use persistence::markers::query_join_markers;
 use persistence::stacks::query_all_stacks;
 use persistence::stacks::query_create_stack;
 use persistence::stacks::query_delete_stack;
@@ -29,7 +25,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use crate::persistence::images::query_update_image;
 use crate::persistence::stacks::query_stack_by_id;
-use crate::persistence::unified_cards::{query_cards_in_geological_area, query_create_unified_card, query_delete_unified_card, query_set_image_to_null, query_unified_card_by_id, query_unified_card_by_title, query_unified_cards_in_stack, query_update_unified_card};
+use crate::persistence::card::{query_cards_in_geological_area, query_create_unified_card, query_delete_unified_card, query_set_image_to_null, query_unified_card_by_id, query_unified_card_by_title, query_unified_cards_in_stack, query_update_unified_card};
 use app::establish_connection;
 use std::env;
 use std::fs;
@@ -50,11 +46,8 @@ fn main() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .invoke_handler(tauri::generate_handler![
-            read_cards_paginated,
-            count_cards,
             write_card_content,
             read_card_content,
-            delete_card,
 
             read_cards_in_area,
             read_cards_in_stack,
@@ -62,6 +55,7 @@ fn main() {
             read_card_by_id,
             update_card_unified,
             create_unified_card,
+            delete_card,
 
             create_stack,
             update_stack,
@@ -122,51 +116,20 @@ fn main() {
 }
 
 #[tauri::command]
-fn read_cards_paginated(page: i64, filter: String) -> Vec<CardDTO> {
-    let conn = &mut establish_connection();
-    let cards = query_cards_paginated(conn, page, filter);
-    let mut card_dtos: Vec<CardDTO> = Vec::new();
-
-    for card in cards.iter() {
-        let markers_for_card = query_join_markers(conn, card.id);
-        let mut markers: Vec<MarkerDTO> = Vec::new();
-        for marker in markers_for_card.iter() {
-            markers.push(MarkerDTO {
-                id: Some(marker.id),
-                card_id: Some(card.id),
-                longitude: marker.longitude,
-                radius: marker.radius,
-                latitude: marker.latitude,
-                icon_name: marker.icon_name.clone(),
-            });
-        }
-        card_dtos.push(CardDTO {
-            id: Some(card.id),
-            title: card.title.clone(),
-            description: card.description.clone(),
-            markers,
-            stack_id: card.stack_id,
-            region_image_id: card.region_image_id,
-        })
-    }
-    card_dtos
-}
-
-#[tauri::command]
-fn read_cards_in_area(cardinal_directions: CardinalDirections) -> Result<Vec<CardUnifiedDTO>, String> {
+fn read_cards_in_area(cardinal_directions: CardinalDirections) -> Result<Vec<CardDTO>, String> {
     let conn = &mut establish_connection();
 
     query_cards_in_geological_area(conn, cardinal_directions).map(|res|
-        res.into_iter().map(CardUnifiedDTO::from).collect::<Vec<CardUnifiedDTO>>()).map_err(|err| err.to_string())
+        res.into_iter().map(CardDTO::from).collect::<Vec<CardDTO>>()).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
-fn update_card_unified(card: CardUnifiedDTO) -> Result<bool, String> {
+fn update_card_unified(card: CardDTO) -> Result<bool, String> {
     let conn = &mut establish_connection();
     let id = card.id.ok_or("id is missing".to_string())?;
     query_update_unified_card(
         conn,
-        CardUnified {
+        Card {
             id,
             title: card.title.unwrap_or("".to_string()),
             description: card.description.unwrap_or("".to_string()),
@@ -181,15 +144,15 @@ fn update_card_unified(card: CardUnifiedDTO) -> Result<bool, String> {
 }
 
 #[tauri::command]
-fn read_card_by_id(id: i32) -> Result<CardUnifiedDTO, String> {
+fn read_card_by_id(id: i32) -> Result<CardDTO, String> {
     let conn = &mut establish_connection();
     query_unified_card_by_id(conn, id).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
-fn create_unified_card(card: CardUnifiedDTO) -> Result<CardUnifiedDTO, String> {
+fn create_unified_card(card: CardDTO) -> Result<CardDTO, String> {
     let conn = &mut establish_connection();
-    query_create_unified_card(conn, card).map(CardUnifiedDTO::from).map_err(|err| err.to_string())
+    query_create_unified_card(conn, card).map(CardDTO::from).map_err(|err| err.to_string())
 }
 
 // TODO may be moved to frontend
@@ -217,13 +180,6 @@ fn write_card_content(app_handle: tauri::AppHandle, id: String, content: String)
     fs::write(content_dir, content).expect("error opening file");
 }
 
-
-#[tauri::command]
-fn count_cards() -> i64 {
-    let conn = &mut establish_connection();
-    query_count_cards(conn)
-}
-
 #[tauri::command]
 fn delete_card(id: i32) {
     let conn = &mut establish_connection();
@@ -243,18 +199,18 @@ fn read_all_stacks() -> Vec<StackDTO> {
 }
 
 #[tauri::command]
-fn read_cards_in_stack(stack_id: i32) ->  Result<(StackDTO, Vec<CardUnifiedDTO>), String>{
+fn read_cards_in_stack(stack_id: i32) ->  Result<(StackDTO, Vec<CardDTO>), String>{
     println!("stack_id: {}", stack_id);
     let conn = &mut establish_connection();
-    let cards = query_unified_cards_in_stack(conn, stack_id).map(|cards| cards.into_iter().map(CardUnifiedDTO::from).collect()).map_err(|err| err.to_string())?;
+    let cards = query_unified_cards_in_stack(conn, stack_id).map(|cards| cards.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())?;
     let stack = query_stack_by_id(conn, stack_id);
     Ok((StackDTO::from(stack), cards))
 }
 
 #[tauri::command]
-fn read_cards_by_title(title: String) -> Result<Vec<CardUnifiedDTO>, String> {
+fn read_cards_by_title(title: String) -> Result<Vec<CardDTO>, String> {
     let conn = &mut establish_connection();
-    query_unified_card_by_title(conn, title).map(|cards| cards.into_iter().map(CardUnifiedDTO::from).collect()).map_err(|err| err.to_string())
+    query_unified_card_by_title(conn, title).map(|cards| cards.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
@@ -402,7 +358,7 @@ fn update_image_name(image_id: i32, new_name: String) {
 mod tests {
     use crate::{create_stack, create_unified_card, read_card_by_id, read_cards_by_title, read_cards_in_area, read_cards_in_stack, update_card_unified, MIGRATIONS};
     use app::establish_connection;
-    use app::models::{CardUnifiedDTO, CardinalDirections, NewStack};
+    use app::models::{CardDTO, CardinalDirections, NewStack};
     use assertor::{assert_that, IteratorAssertion};
     use diesel_migrations::MigrationHarness;
     use serial_test::serial;
@@ -410,8 +366,8 @@ mod tests {
     use std::env;
     use std::fs;
 
-    fn given_test_card() -> CardUnifiedDTO {
-        CardUnifiedDTO{
+    fn given_test_card() -> CardDTO {
+        CardDTO {
             id: None,
             title: Some("My Title".to_string()),
             description: Some("My Description".to_string()),
@@ -454,7 +410,7 @@ mod tests {
         }
     }
 
-    fn given_database_has_card(card: CardUnifiedDTO) -> CardUnifiedDTO{
+    fn given_database_has_card(card: CardDTO) -> CardDTO {
         create_unified_card(card.clone()).expect(&format!("Error creating card {:?}", card))
     }
     fn initialize_test_env() -> TestDb{
@@ -473,7 +429,7 @@ mod tests {
         let _test_env = initialize_test_env();
         let titel = "a card".to_string();
         let description = "a description".to_string();
-        let unified_card = CardUnifiedDTO {
+        let unified_card = CardDTO {
             title: Some(titel.clone()),
             description: Some(description.clone()),
             longitude: 52.0,
@@ -481,7 +437,7 @@ mod tests {
             stack_id: Some(1),
             region_image_id: Some(1),
             icon_name: "icon_default".to_string(),
-            ..CardUnifiedDTO::default()
+            ..CardDTO::default()
         };
 
         let created_card = create_unified_card(unified_card).expect("failed to create card!");
@@ -499,8 +455,8 @@ mod tests {
     fn it_is_able_to_query_card_by_using_geo_boundaries(){
         let _test_env = initialize_test_env();
         let want_title = String::from("My wanted Card");
-        given_database_has_card(CardUnifiedDTO::default());
-        given_database_has_card(CardUnifiedDTO { title: Some(want_title.clone()), longitude: 10., latitude: 10., ..Default::default()});
+        given_database_has_card(CardDTO::default());
+        given_database_has_card(CardDTO { title: Some(want_title.clone()), longitude: 10., latitude: 10., ..Default::default()});
         let result = read_cards_in_area(CardinalDirections{north:11.0, east:11.0, south: 9., west:9.}).expect("could not read cards in area!");
         assert_eq!(result.iter().len(), 1);
         let card = result.get(0).expect("No card found in the result");
@@ -514,7 +470,7 @@ mod tests {
         let want_card = given_test_card().clone();
         let card_id = given_database_has_card(want_card.clone()).id.expect("id is empty");
         let got_card = read_card_by_id(card_id).expect(&format!("Could not read card with id {}", card_id));
-        assert_eq!(got_card, CardUnifiedDTO{id: Some(card_id),..want_card});
+        assert_eq!(got_card, CardDTO {id: Some(card_id),..want_card});
     }
     #[test]
     #[serial]
@@ -531,7 +487,7 @@ mod tests {
         let _test_env = initialize_test_env();
         let want_card = given_test_card().clone();
         let card_id = given_database_has_card(want_card.clone()).id.expect("id is empty");
-        let update_card = CardUnifiedDTO {
+        let update_card = CardDTO {
             id: Some(card_id),
             title: Some("My new Title".to_string()),
             description: Some("a updated description, including more depth and details".to_string()),
@@ -553,9 +509,9 @@ mod tests {
         let _test_env = initialize_test_env();
         let stack_id = given_a_stack(None);
         let number_of_cards_in_stack = 2;
-        given_database_has_card(CardUnifiedDTO{ stack_id: Some(stack_id), ..given_test_card().clone()});
-        given_database_has_card(CardUnifiedDTO{ stack_id: Some(stack_id), ..given_test_card().clone()});
-        given_database_has_card(CardUnifiedDTO{ stack_id: Some(stack_id+1), ..given_test_card().clone()});
+        given_database_has_card(CardDTO { stack_id: Some(stack_id), ..given_test_card().clone()});
+        given_database_has_card(CardDTO { stack_id: Some(stack_id), ..given_test_card().clone()});
+        given_database_has_card(CardDTO { stack_id: Some(stack_id+1), ..given_test_card().clone()});
         let (stack, got_cards_in_stack) = read_cards_in_stack(stack_id).expect("Error reading cards in stack");
         assert_eq!(got_cards_in_stack.iter().len(), number_of_cards_in_stack);
     }
@@ -569,9 +525,9 @@ mod tests {
         let title_monument_z = "Monument in Zentral Afrika".to_string();
         let title_monument_a = "Monument in Ahrenshausen".to_string();
         let title_church_a = "Kirche in Ahrenshausen".to_string();
-        given_database_has_card(CardUnifiedDTO{ title: Some(title_monument_z.clone()), ..given_test_card().clone()});
-        given_database_has_card(CardUnifiedDTO{title: Some(title_monument_a.clone()), ..given_test_card().clone()});
-        given_database_has_card(CardUnifiedDTO{ title: Some(title_church_a.clone()), ..given_test_card().clone()});
+        given_database_has_card(CardDTO { title: Some(title_monument_z.clone()), ..given_test_card().clone()});
+        given_database_has_card(CardDTO {title: Some(title_monument_a.clone()), ..given_test_card().clone()});
+        given_database_has_card(CardDTO { title: Some(title_church_a.clone()), ..given_test_card().clone()});
         let mut got_titles: Vec<String> = read_cards_by_title("Monument".to_string()).expect("Error could not retrieve cards with title").into_iter().map(|card| card.title.unwrap()).collect();
         let mut want_titles: Vec<String> = vec![ title_monument_a.clone(), title_monument_z.clone()];
         assert_that!(got_titles.into_iter()).contains_exactly_in_order(want_titles.into_iter());
@@ -579,7 +535,6 @@ mod tests {
         got_titles = read_cards_by_title("Ahre".to_string()).expect("Error could not retrieve cards with title").into_iter().map(|card| card.title.unwrap()).collect();
         want_titles =  vec![title_church_a, title_monument_a];
         assert_that!(got_titles.into_iter()).contains_exactly_in_order(want_titles.into_iter());
-
     }
 
 

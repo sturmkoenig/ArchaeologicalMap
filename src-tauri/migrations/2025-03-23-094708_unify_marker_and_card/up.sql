@@ -1,5 +1,5 @@
--- Your SQL goes here
-CREATE TABLE card_new (
+ALTER TABLE cards RENAME TO card_old;
+CREATE TABLE card (
     id INTEGER NOT NULL PRIMARY KEY,
     title VARCHAR NOT NULL,
     description VARCHAR NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE card_new (
     FOREIGN KEY (region_image_id) REFERENCES image(id)
 );
 
-INSERT INTO card_new
+INSERT INTO card
 WITH ranked_cards AS (
     SELECT
         m.card_id,
@@ -41,7 +41,7 @@ WITH ranked_cards AS (
                 m.card_id * 100000 + ROW_NUMBER() OVER (PARTITION BY m.card_id ORDER BY m.id)
             END as new_card_id
     FROM marker m
-             JOIN cards c ON m.card_id = c.id
+             JOIN card_old c ON m.card_id = c.id
 )
 SELECT
     new_card_id as id, new_title as title, description, stack_id, latitude, longitude, radius, icon_name, region_image_id
