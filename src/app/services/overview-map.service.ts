@@ -89,15 +89,6 @@ export class OverviewMapService {
     const updatedCard = this.selectedMarker()?.toCard();
     if (updatedCard) this.cardService.updateCard(updatedCard);
   }
-
-  async reloadSelectedMarker() {
-    await this.markerService
-      .getMarker(this.selectedMarker()!.cardId)
-      .then((m) => {
-        this.selectedLayerGroup.clearLayers();
-        this.selectedMarker.set(m);
-      });
-  }
   updateEditCard(changedCardMetaData: Partial<Card>) {
     const currentCard = this.selectedMarker();
     if (!currentCard) {
@@ -196,19 +187,5 @@ export class OverviewMapService {
           ) as MarkerAM,
       );
     }
-  }
-
-  highlightMarker(highlightedMarkerId: number[]) {
-    this.mainLayerGroup
-      .getLayers()
-      .filter(
-        (marker: Layer) =>
-          marker instanceof MarkerAM &&
-          highlightedMarkerId.find((id) => id === marker.cardId) !== undefined,
-      )
-      .forEach((marker: Layer) => {
-        marker.bindTooltip("searched marker");
-        marker.toggleTooltip();
-      });
   }
 }
