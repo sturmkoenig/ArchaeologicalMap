@@ -147,14 +147,15 @@ export class MarkerAM extends Marker {
   createPopup() {
     const div: HTMLDivElement = document.createElement("div");
     div.innerHTML =
-      `<strong>` +
+      `<strong style="font-size: 18px">` +
       this._title +
       `</strong>` +
       `<p>` +
       this._description +
       `</p>`;
     const button = document.createElement("button");
-    button.innerHTML = "Info-Seite Zeigen";
+    button.innerHTML =
+      "<p class='bg-blue-200 h-10 rounded-full' style='font-weight: bold; '>Info-Seite Zeigen</p>";
     button.onclick = () => {
       createCardDetailsWindow(this.cardId ?? 0);
     };
