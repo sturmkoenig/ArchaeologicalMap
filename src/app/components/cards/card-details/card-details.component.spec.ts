@@ -198,7 +198,10 @@ describe("CardDetailsComponent", () => {
     );
     harness.detectChanges();
     expect(
-      getElementByDataTestId("stack-title", harness).nativeElement.textContent,
+      getElementByDataTestId(
+        "stack-title",
+        harness,
+      ).nativeElement.textContent.trim(),
     ).toBe(defaultStack.name);
   });
 

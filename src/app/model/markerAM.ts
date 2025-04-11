@@ -155,7 +155,7 @@ export class MarkerAM extends Marker {
       `</p>`;
     const button = document.createElement("button");
     button.innerHTML =
-      "<p class='bg-blue-200 h-10 rounded-full' style='font-weight: bold; '>Info-Seite Zeigen</p>";
+      "<div class='bg-[#D7E3FF] rounded-full h-10 w-30 flex justify-center items-center shadow-lg'><p class='text-center' style='font-weight: bold; '>Info-Seite Zeigen</p></div>";
     button.onclick = () => {
       createCardDetailsWindow(this.cardId ?? 0);
     };
