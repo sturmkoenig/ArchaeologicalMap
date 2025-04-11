@@ -6,13 +6,7 @@ import {
   signal,
   WritableSignal,
 } from "@angular/core";
-import {
-  LatLng,
-  LatLngBounds,
-  Layer,
-  LayerGroup,
-  MarkerClusterGroup,
-} from "leaflet";
+import { LatLng, LatLngBounds, Layer, LayerGroup } from "leaflet";
 import { MarkerService } from "./marker.service";
 import { isMarkerAM, RadiusVisibility } from "../model/marker";
 import { Card } from "../model/card";

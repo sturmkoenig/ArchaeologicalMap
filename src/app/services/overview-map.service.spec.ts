@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { OverviewMapService } from "./overview-map.service";
 import { MarkerService } from "./marker.service";
-import { LatLng, LatLngBounds, MarkerClusterGroup } from "leaflet";
+import { LatLng, LatLngBounds } from "leaflet";
 import { NgZone } from "@angular/core";
 import { isMarkerAM } from "../model/marker";
 import { CardService } from "./card.service";
@@ -92,7 +92,6 @@ describe("OverviewMapService", () => {
     }).compileComponents();
 
     service = TestBed.inject(OverviewMapService);
-    service.setMarkerClusterLayerGroup(new MarkerClusterGroup());
   });
 
   it("should be created", () => {

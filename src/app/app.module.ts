@@ -49,7 +49,6 @@ import { IconSizeSettingsComponent } from "./components/overview-map/map-setting
 import { MarkerButtonToggleComponent } from "./components/markers/marker-button-toggle/marker-button-toggle.component";
 import { OverviewMapService } from "@service/overview-map.service";
 import { NgOptimizedImage } from "@angular/common";
-import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
 import { MapSettingsComponent } from "./components/overview-map/map-settings/map-settings.component";
 import { CardListComponent } from "@app/components/cards/card-list/card-list.component";
 
@@ -66,7 +65,6 @@ import { CardListComponent } from "@app/components/cards/card-list/card-list.com
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
-    LeafletMarkerClusterModule,
     MatListModule,
     MatGridListModule,
     MarkerButtonToggleComponent,

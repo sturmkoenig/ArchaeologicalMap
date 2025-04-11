@@ -1,12 +1,11 @@
 import { Injectable } from "@angular/core";
 import { BaseDirectory } from "@tauri-apps/api/path";
-import { LatLngBounds, MarkerClusterGroupOptions } from "leaflet";
+import { LatLngBounds } from "leaflet";
 import * as fs from "@tauri-apps/plugin-fs";
 
 export type MapSettings = {
   initialMapBounds?: LatLngBounds;
   maxZoomLevel?: number;
-  markerClusterGroupOptions: MarkerClusterGroupOptions;
   showLabels?: boolean;
 };
 
@@ -16,7 +15,6 @@ type MapSettingsWritten = {
     _northEast: [number, number];
   };
   maxZoomLevel?: number;
-  markerClusterGroupOptions: MarkerClusterGroupOptions;
   showLabels?: boolean;
 };
 
