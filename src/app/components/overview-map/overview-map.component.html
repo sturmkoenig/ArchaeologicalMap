@@ -35,6 +35,32 @@
             this.overviewMapService.changeSelectedMarker(undefined)
           "
         >
+          <span class="flex flex-row gap-3 mt-6">
+            <button
+              mat-mini-fab
+              class="bg-red-500"
+              (click)="onMoveExistingMarker()"
+              matTooltip="Marker bewegen"
+            >
+              <mat-icon>open_with</mat-icon>
+            </button>
+            <button
+              mat-mini-fab
+              color="primary"
+              (click)="onGoToInfoPage()"
+              matTooltip="Detail Seite öffnen"
+            >
+              <mat-icon>article</mat-icon>
+            </button>
+            <button
+              mat-mini-fab
+              class="!bg-[#f54257]"
+              (click)="onDeleteSelectedCard()"
+              matTooltip="Marker Löschen"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </span>
           <app-card-input
             [card]="cardMetadata()!"
             (cardChange)="updateSelectedCard($event)"
@@ -43,29 +69,6 @@
             [marker]="selectedMarker()!.toMarkerDB()"
             (markerChange)="updateSelectedMarker($event)"
           ></app-marker-input>
-          <span class="marker-input__buttons">
-            <button
-              mat-raised-button
-              color="accent"
-              (click)="onMoveExistingMarker()"
-            >
-              Marker bewegen
-            </button>
-            <button
-              mat-raised-button
-              color="primary"
-              (click)="onGoToInfoPage()"
-            >
-              Info Seite
-            </button>
-            <button
-              mat-raised-button
-              color="warn"
-              (click)="onDeleteSelectedCard()"
-            >
-              Karte Löschen
-            </button>
-          </span>
         </app-right-sidebar>
       </div>
     }

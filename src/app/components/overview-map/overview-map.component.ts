@@ -31,8 +31,10 @@ import { CardInputComponent } from "@app/components/cards/card-input/card-input.
 import { MapSettingsComponent } from "@app/components/overview-map/map-settings/map-settings.component";
 import { MarkerInputComponent } from "@app/components/markers/marker-input/marker-input.component";
 import { LeafletModule } from "@bluehalo/ngx-leaflet";
-import { MatButton, MatFabButton } from "@angular/material/button";
+import { MatButtonModule } from "@angular/material/button";
 import { MarkerAM } from "@app/model/markerAM";
+import { MatIconModule } from "@angular/material/icon";
+import { MatTooltipModule } from "@angular/material/tooltip";
 
 @Component({
   imports: [
@@ -41,8 +43,9 @@ import { MarkerAM } from "@app/model/markerAM";
     MapSettingsComponent,
     MarkerInputComponent,
     LeafletModule,
-    MatFabButton,
-    MatButton,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
   ],
   selector: "app-overview-map",
   templateUrl: "overview-map.component.html",
