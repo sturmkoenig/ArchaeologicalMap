@@ -4,9 +4,9 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 
 @Component({
-    selector: "app-right-sidebar",
-    imports: [CommonModule, MatIconModule, MatButtonModule],
-    template: `
+  selector: "app-right-sidebar",
+  imports: [CommonModule, MatIconModule, MatButtonModule],
+  template: `
     @if (visible) {
       <div class="right-sidebar--container">
         <div class="right-sidebar--container__toggle">
@@ -26,7 +26,7 @@ import { MatButtonModule } from "@angular/material/button";
       </div>
     }
   `,
-    styles: `
+  styles: `
     .right-sidebar--container {
       position: relative;
       height: 100%;
@@ -48,7 +48,7 @@ import { MatButtonModule } from "@angular/material/button";
         transform: translateX(-30px);
       }
     }
-  `
+  `,
 })
 export class RightSidebarComponent {
   @Input()

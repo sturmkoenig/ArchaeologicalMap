@@ -16,17 +16,17 @@ import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
 
 @Component({
-    imports: [
-        MatCardModule,
-        MatDialogModule,
-        CommonModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatButtonModule,
-        FormsModule,
-    ],
-    selector: "app-stack-creator",
-    template: `
+  imports: [
+    MatCardModule,
+    MatDialogModule,
+    CommonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    FormsModule,
+  ],
+  selector: "app-stack-creator",
+  template: `
     <div class="stack_creator">
       <div class="stack_creator__creator">
         <div>
@@ -69,8 +69,8 @@ import { MatButtonModule } from "@angular/material/button";
       </div>
     </div>
   `,
-    styles: [
-        `
+  styles: [
+    `
       .stack_creator {
         display: flex;
         flex-direction: column;
@@ -97,7 +97,7 @@ import { MatButtonModule } from "@angular/material/button";
         }
       }
     `,
-    ]
+  ],
 })
 export class StackCreatorComponent {
   stackName: string = "";
