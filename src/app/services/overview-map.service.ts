@@ -166,7 +166,7 @@ export class OverviewMapService {
     });
   }
 
-  async updateMapBounds(bounds: LatLngBounds) {
+  async updateMapBounds(bounds: LatLngBounds, selectMarkerId?: number) {
     await this.markerService.getMarkerAMInArea(bounds).then((markers) => {
       // remove markers that are not in the new bounds
       this.mainLayerGroup.getLayers().map((l) => {
@@ -187,15 +187,24 @@ export class OverviewMapService {
         }
       });
     });
+    if (selectMarkerId) {
+      this.changeSelectedMarker(
+        this.mainLayerGroup
+          .getLayers()
+          .find(
+            (marker: Layer) => (marker as MarkerAM).cardId === selectMarkerId,
+          ) as MarkerAM,
+      );
+    }
   }
 
-  highlightMarker(highlightedMarkerIds: number[]) {
+  highlightMarker(highlightedMarkerId: number[]) {
     this.mainLayerGroup
       .getLayers()
       .filter(
         (marker: Layer) =>
           marker instanceof MarkerAM &&
-          highlightedMarkerIds.find((id) => id === marker.cardId) !== undefined,
+          highlightedMarkerId.find((id) => id === marker.cardId) !== undefined,
       )
       .forEach((marker: Layer) => {
         marker.bindTooltip("searched marker");
