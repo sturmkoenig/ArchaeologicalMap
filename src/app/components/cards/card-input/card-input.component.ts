@@ -141,9 +141,6 @@ export class CardInputComponent {
           this.image = image;
         });
     });
-    effect(() => {
-      console.log("Hi from insert", this.card());
-    });
   }
 
   cloneCard(card: CardMetaData, override: Partial<CardMetaData>): CardMetaData {

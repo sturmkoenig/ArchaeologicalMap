@@ -154,7 +154,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   updateSelectedCard(newCard: CardMetaData) {
-    console.log("newCard received", newCard);
     this.overviewMapService.updateEditCard(newCard);
   }
 
@@ -207,7 +206,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       await this.unlistenPanTo;
     } catch (error) {
-      console.log("Unable to unlisten to panToBounds listener", error);
+      console.error("Unable to unlisten to panToBounds listener", error);
     }
   }
 

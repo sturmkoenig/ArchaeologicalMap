@@ -30,7 +30,7 @@ use app::establish_connection;
 use std::env;
 use std::fs;
 use std::path::Path;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 
 // main.rs
 fn main() {
@@ -181,9 +181,11 @@ fn write_card_content(app_handle: tauri::AppHandle, id: String, content: String)
 }
 
 #[tauri::command]
-fn delete_card(id: i32) {
+fn delete_card(app: AppHandle,id: i32) -> Result<(), String> {
     let conn = &mut establish_connection();
-    let _ = query_delete_unified_card(conn, id);
+    query_delete_unified_card(conn, id).map_err(|err| err.to_string())?;
+    app.emit("card-deleted",id).map_err(|err| err.to_string())?;
+    Ok(())
 }
 
 
@@ -536,6 +538,5 @@ mod tests {
         want_titles =  vec![title_church_a, title_monument_a];
         assert_that!(got_titles.into_iter()).contains_exactly_in_order(want_titles.into_iter());
     }
-
 
 }
