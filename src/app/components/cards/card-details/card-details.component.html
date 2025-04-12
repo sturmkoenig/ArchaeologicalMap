@@ -59,12 +59,19 @@
             <ng-container
               *ngIf="cardDetailsStore.currentStack$ | async as currentStack"
             >
-              <h3 data-testid="stack-title">{{ currentStack.name }}</h3>
+              <p
+                class="text-lg font-semibold font-mono"
+                data-testid="stack-title"
+              >
+                {{ currentStack.name }}
+              </p>
             </ng-container>
           </div>
 
           <div class="card--content_card-title">
-            <h4 data-testid="card-title">{{ card.title }}</h4>
+            <p class="text-xl font-bold font-mono" data-testid="card-title">
+              {{ card.title }}
+            </p>
           </div>
           <p class="card--content_card-description">
             {{ card.description }}

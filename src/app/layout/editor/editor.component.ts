@@ -82,10 +82,10 @@ LinkBlot["tagName"] = "A";
 Quill.register({ "formats/internal_link": LinkBlot });
 
 @Component({
-    selector: "app-editor",
-    templateUrl: "./editor.component.html",
-    styleUrls: ["./editor.component.scss"],
-    standalone: false
+  selector: "app-editor",
+  templateUrl: "./editor.component.html",
+  styleUrls: ["./editor.component.scss"],
+  standalone: false,
 })
 export class EditorComponent implements OnInit {
   toolbarOptions = [

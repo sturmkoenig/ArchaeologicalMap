@@ -14,21 +14,21 @@ import { ImageEntity } from "@app/model/image";
 import { ImageService } from "@service/image.service";
 
 @Component({
-    selector: "app-image-list",
-    imports: [
-        MatCardModule,
-        AsyncPipe,
-        NgForOf,
-        MatPaginatorModule,
-        MatInputModule,
-        MatFormFieldModule,
-        MatIconModule,
-        FormsModule,
-        MatButtonModule,
-    ],
-    providers: [ImageService],
-    templateUrl: "./image-list.component.html",
-    styleUrl: "./image-list.component.scss"
+  selector: "app-image-list",
+  imports: [
+    MatCardModule,
+    AsyncPipe,
+    NgForOf,
+    MatPaginatorModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatIconModule,
+    FormsModule,
+    MatButtonModule,
+  ],
+  providers: [ImageService],
+  templateUrl: "./image-list.component.html",
+  styleUrl: "./image-list.component.scss",
 })
 export class ImageListComponent implements OnInit {
   images: ImageEntity[] = [];

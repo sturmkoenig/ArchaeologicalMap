@@ -2,16 +2,12 @@ import { Component, EventEmitter, Input, Output } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
-import {
-  ICONS,
-  IconService,
-  iconsSorted,
-} from "../../../services/icon.service";
+import { ICONS, IconService, iconsSorted } from "@service/icon.service";
 
 @Component({
-    selector: "app-marker-button-toggle",
-    imports: [CommonModule, MatButtonModule, MatButtonToggleModule],
-    template: `
+  selector: "app-marker-button-toggle",
+  imports: [CommonModule, MatButtonModule, MatButtonToggleModule],
+  template: `
     <mat-button-toggle-group
       name="fontStyle"
       aria-label="Font Style"
@@ -25,7 +21,7 @@ import {
       </mat-button-toggle>
     </mat-button-toggle-group>
   `,
-    styles: `
+  styles: `
     .option-icon {
       margin: auto;
       height: 2rem;
@@ -36,7 +32,7 @@ import {
       margin-top: 0px;
       margin-bottom: 50px;
     }
-  `
+  `,
 })
 export class MarkerButtonToggleComponent {
   @Output()
@@ -46,7 +42,7 @@ export class MarkerButtonToggleComponent {
   iconCategory!: keyof typeof iconsSorted;
 
   onSelectIcon(selectedIconType: ICONS) {
-    let icon: keyof typeof ICONS =
+    const icon: keyof typeof ICONS =
       IconService.getIconNameByPath(selectedIconType);
     this.selectedIcon.emit(icon);
   }

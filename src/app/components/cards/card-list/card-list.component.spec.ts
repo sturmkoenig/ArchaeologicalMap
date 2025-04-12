@@ -188,5 +188,6 @@ describe("CardListComponent", () => {
     await fixture.whenStable();
     await new Promise((resolve) => setTimeout(resolve, 10));
     fixture.detectChanges();
+    await fixture.whenStable();
   };
 });

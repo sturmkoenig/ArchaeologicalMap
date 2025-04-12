@@ -16,41 +16,17 @@
 <mat-card class="slider-card">
   <mat-card-content>
     <div class="label-container">
-      <label for="disableClusteringAtZoomSlider"
-        >Clustering ausschalten bei Zoomstuffe</label
-      >
-      <label for="disableClusteringAtZoomSlider">{{
-        disableClusteringAtZoomSlider.value
-      }}</label>
+      <label for="maxZoomLevel">Marker Ausblenden bei Zoomstuffe</label>
+      <label for="maxZoomLevel"> {{ maxZoomLevel.value }}</label>
     </div>
     <mat-slider [max]="15" [min]="1">
       <input
-        id="disableClusteringAtZoomSlider"
+        data-testid="max-zoom-level-slider"
+        id="maxZoomLevel"
         matSliderThumb
-        #disableClusteringAtZoomSlider
-        [(ngModel)]="
-          mapSettings.markerClusterGroupOptions.disableClusteringAtZoom
-        "
-        (dragEnd)="changeDisableClusteringAtZoomLevel()"
-      />
-    </mat-slider>
-  </mat-card-content>
-</mat-card>
-<mat-card class="slider-card">
-  <mat-card-content>
-    <div class="label-container">
-      <label for="maxClusterSize">Max Cluster Size</label>
-      <label for="maxClusterSize" class="example-value-label">{{
-        slider.value
-      }}</label>
-    </div>
-    <mat-slider [max]="100" [min]="1">
-      <input
-        id="maxClusterSize"
-        matSliderThumb
-        #slider
-        [(ngModel)]="mapSettings.markerClusterGroupOptions.maxClusterRadius"
-        (dragEnd)="changeMaxClusterRadius()"
+        #maxZoomLevel
+        [(ngModel)]="mapSettings.maxZoomLevel"
+        (dragEnd)="changeMaxZoomLevel()"
       />
     </mat-slider>
   </mat-card-content>

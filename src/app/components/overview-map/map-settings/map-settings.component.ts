@@ -23,7 +23,6 @@ import { MatButton } from "@angular/material/button";
     MatSliderThumb,
     MatCard,
     MatCardContent,
-    MatSlideToggle,
     MatDialogModule,
     MatSliderModule,
     MatButton,
@@ -32,7 +31,7 @@ import { MatButton } from "@angular/material/button";
   styleUrl: "./map-settings.component.css",
 })
 export class MapSettingsComponent implements OnInit {
-  mapSettings: MapSettings = { maxZoomLevel: 1, markerClusterGroupOptions: {} };
+  mapSettings: MapSettings = { maxZoomLevel: 1 };
 
   @Output()
   iconSizeChange: EventEmitter<IconSizeSetting> = new EventEmitter();
@@ -47,13 +46,6 @@ export class MapSettingsComponent implements OnInit {
   async ngOnInit() {
     const mapSettings = await this.settingsService.getMapSettings();
     this.mapSettings = { ...this.mapSettings, ...mapSettings };
-    this.mapSettings.markerClusterGroupOptions = {
-      ...{
-        maxClusterRadius: 1,
-        disableClusteringAtZoom: 1,
-      },
-      ...mapSettings.markerClusterGroupOptions,
-    };
   }
 
   onIconSizeChange(iconSizeSetting: IconSizeSetting) {
@@ -61,9 +53,6 @@ export class MapSettingsComponent implements OnInit {
   }
 
   async changeMaxClusterRadius() {
-    await this.settingsService.updateMapSettings({
-      markerClusterGroupOptions: this.mapSettings.markerClusterGroupOptions,
-    });
     this.mapSettingsChanged.emit(this.mapSettings);
   }
 
@@ -88,11 +77,5 @@ export class MapSettingsComponent implements OnInit {
       enterAnimationDuration: "200ms",
       exitAnimationDuration: "150ms",
     });
-  }
-  async changeDisableClusteringAtZoomLevel() {
-    await this.settingsService.updateMapSettings({
-      markerClusterGroupOptions: this.mapSettings.markerClusterGroupOptions,
-    });
-    this.mapSettingsChanged.emit(this.mapSettings);
   }
 }

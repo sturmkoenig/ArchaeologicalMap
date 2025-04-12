@@ -13,7 +13,6 @@ import { By } from "@angular/platform-browser";
 import { Card } from "src/app/model/card";
 import * as TauriEvent from "@tauri-apps/api/event";
 import { MapSettings, SettingService } from "@service/setting.service";
-import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
 import { NgIf } from "@angular/common";
 import { MapSettingsComponent } from "@app/components/overview-map/map-settings/map-settings.component";
 import { CardInputComponent } from "@app/components/cards/card-input/card-input.component";
@@ -82,10 +81,6 @@ describe("OverviewMapComponent", () => {
     };
     mapSettings = {
       maxZoomLevel: 11,
-      markerClusterGroupOptions: {
-        maxClusterRadius: 100,
-        disableClusteringAtZoom: 1,
-      },
     };
 
     readFileMock = (readFile as jest.Mock).mockImplementation(async (..._) => {
@@ -116,7 +111,6 @@ describe("OverviewMapComponent", () => {
     };
     await TestBed.configureTestingModule({
       imports: [
-        LeafletMarkerClusterModule,
         LeafletModule,
         RightSidebarComponent,
         IconSizeSettingsComponent,
@@ -179,10 +173,6 @@ describe("OverviewMapComponent", () => {
     await fixture.whenStable();
     expect(mapSettings).toEqual({
       maxZoomLevel: 13,
-      markerClusterGroupOptions: {
-        maxClusterRadius: 100,
-        disableClusteringAtZoom: 1,
-      },
     });
   });
 
@@ -236,9 +226,9 @@ describe("OverviewMapComponent", () => {
     whenIClickAButton("close-update-sidebar");
 
     expect(component.selectedLayerGroup.getLayers()).toHaveLength(0);
-    expect(component.overviewMapService.clusterGroup.getLayers()).toHaveLength(
-      1,
-    );
+    expect(
+      component.overviewMapService.mainLayerGroup.getLayers(),
+    ).toHaveLength(1);
 
     await component.onUpdateIconSize({
       iconType: "iconMiscRed",

@@ -1,20 +1,9 @@
-import {
-  Component,
-  effect,
-  EventEmitter,
-  input,
-  Input,
-  model,
-  OnChanges,
-  Output,
-  SimpleChanges,
-  ViewChild,
-} from "@angular/core";
+import { Component, effect, model } from "@angular/core";
 import { CardMetaData } from "@app/model/card";
 import { StackStore } from "@app/state/stack.store";
 import { Observable } from "rxjs";
 import { Stack } from "@app/model/stack";
-import { FormsModule, NgForm } from "@angular/forms";
+import { FormsModule } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
 import { ImageCreateComponent } from "../../images/image-create/image-create.component";
 import { ImageListComponent } from "../../images/image-list/image-list.component";
@@ -28,18 +17,18 @@ import { MatOptionModule } from "@angular/material/core";
 import { AsyncPipe, NgForOf } from "@angular/common";
 
 @Component({
-    imports: [
-        MatSelectModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatOptionModule,
-        FormsModule,
-        AsyncPipe,
-        MatButton,
-        NgForOf,
-    ],
-    selector: "app-card-input",
-    template: `
+  imports: [
+    MatSelectModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatOptionModule,
+    FormsModule,
+    AsyncPipe,
+    MatButton,
+    NgForOf,
+  ],
+  selector: "app-card-input",
+  template: `
     @if (this.card()) {
       <form class="card-input">
         <div class="card-image-editor">
@@ -101,7 +90,7 @@ import { AsyncPipe, NgForOf } from "@angular/common";
       </form>
     }
   `,
-    styles: `
+  styles: `
     form {
       margin: 20px;
     }
@@ -132,7 +121,7 @@ import { AsyncPipe, NgForOf } from "@angular/common";
       display: flex;
       flex-direction: column;
     }
-  `
+  `,
 })
 export class CardInputComponent {
   card = model.required<CardMetaData>();
