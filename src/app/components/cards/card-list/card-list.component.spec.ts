@@ -18,6 +18,10 @@ jest.mock("@tauri-apps/api/event", () => ({
   emit: jest.fn(),
 }));
 
+jest.mock("@tauri-apps/api/event", () => ({
+  listen: jest.fn(),
+  emit: jest.fn(),
+}));
 jest.mock("@tauri-apps/api/webviewWindow", () => ({
   WebviewWindow: jest.fn().mockImplementation(() => ({ once: jest.fn() })),
 }));
