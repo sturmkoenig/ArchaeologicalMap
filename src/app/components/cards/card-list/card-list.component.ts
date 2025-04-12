@@ -5,7 +5,14 @@ import {
   transition,
   trigger,
 } from "@angular/animations";
-import { Component, model, OnInit } from "@angular/core";
+import {
+  Component,
+  effect,
+  model,
+  OnInit,
+  signal,
+  WritableSignal,
+} from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { debounceTime, Subscription } from "rxjs";
 import { Card } from "@app/model/card";
@@ -17,7 +24,7 @@ import { MatTableModule } from "@angular/material/table";
 import { MatFormField, MatLabel } from "@angular/material/form-field";
 import { CommonModule } from "@angular/common";
 import { MatInputModule } from "@angular/material/input";
-import { emit } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
 import { MatDivider } from "@angular/material/divider";
 import { MatTooltip } from "@angular/material/tooltip";
 import { toObservable } from "@angular/core/rxjs-interop";
@@ -59,7 +66,7 @@ import { createCardDetailsWindow } from "@app/util/window-util";
           <mat-icon>close</mat-icon>
         </button>
       </mat-form-field>
-      @for (card of allCards; track card.id; let isLast = $last) {
+      @for (card of allCards(); track card.id; let isLast = $last) {
         <div data-testid="card-row" class="flex flex-direction items-center">
           <span class="flex-1 pl-5">{{ card.title }}</span>
           <button
@@ -99,7 +106,7 @@ import { createCardDetailsWindow } from "@app/util/window-util";
   ],
 })
 export class CardListComponent implements OnInit {
-  allCards: Card[] = [];
+  allCards: WritableSignal<Card[]> = signal([]);
   subscription!: Subscription;
   debounceTime = 300;
   filter = model<string>("");
@@ -108,15 +115,24 @@ export class CardListComponent implements OnInit {
     private cardService: CardService,
     public dialog: MatDialog,
   ) {
+    listen("card-deleted", (event: { payload: number }) => {
+      this.allCards.update((allCards) =>
+        allCards.reduce<Card[]>(
+          (acc, card) =>
+            card.id !== event.payload ? [...acc, ...[card]] : acc,
+          [],
+        ),
+      );
+    });
     this.subscription = toObservable(this.filter)
       .pipe(debounceTime(this.debounceTime))
       .subscribe(async (filter) => {
-        this.allCards = await this.cardService.readCardByTitle(filter);
+        this.allCards.set(await this.cardService.readCardByTitle(filter));
       });
   }
 
   async ngOnInit() {
-    this.allCards = await this.cardService.readCardByTitle("");
+    this.allCards.set(await this.cardService.readCardByTitle(""));
   }
 
   async goToDetailsPage(cardId: number) {

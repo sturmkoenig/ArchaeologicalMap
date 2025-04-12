@@ -89,15 +89,6 @@ export class OverviewMapService {
     const updatedCard = this.selectedMarker()?.toCard();
     if (updatedCard) this.cardService.updateCard(updatedCard);
   }
-
-  async reloadSelectedMarker() {
-    await this.markerService
-      .getMarker(this.selectedMarker()!.cardId)
-      .then((m) => {
-        this.selectedLayerGroup.clearLayers();
-        this.selectedMarker.set(m);
-      });
-  }
   updateEditCard(changedCardMetaData: Partial<Card>) {
     const currentCard = this.selectedMarker();
     if (!currentCard) {
@@ -166,7 +157,7 @@ export class OverviewMapService {
     });
   }
 
-  async updateMapBounds(bounds: LatLngBounds) {
+  async updateMapBounds(bounds: LatLngBounds, selectMarkerId?: number) {
     await this.markerService.getMarkerAMInArea(bounds).then((markers) => {
       // remove markers that are not in the new bounds
       this.mainLayerGroup.getLayers().map((l) => {
@@ -187,19 +178,14 @@ export class OverviewMapService {
         }
       });
     });
-  }
-
-  highlightMarker(highlightedMarkerIds: number[]) {
-    this.mainLayerGroup
-      .getLayers()
-      .filter(
-        (marker: Layer) =>
-          marker instanceof MarkerAM &&
-          highlightedMarkerIds.find((id) => id === marker.cardId) !== undefined,
-      )
-      .forEach((marker: Layer) => {
-        marker.bindTooltip("searched marker");
-        marker.toggleTooltip();
-      });
+    if (selectMarkerId) {
+      this.changeSelectedMarker(
+        this.mainLayerGroup
+          .getLayers()
+          .find(
+            (marker: Layer) => (marker as MarkerAM).cardId === selectMarkerId,
+          ) as MarkerAM,
+      );
+    }
   }
 }

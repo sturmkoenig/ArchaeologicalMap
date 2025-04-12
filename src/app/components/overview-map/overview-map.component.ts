@@ -14,7 +14,6 @@ import { createCardDetailsWindow } from "@app/util/window-util";
 import {
   LatLng,
   latLng,
-  LatLngBounds,
   LayerGroup,
   Map as LeafletMap,
   MapOptions as LeafletMapOptions,
@@ -53,7 +52,6 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 })
 export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   position?: LatLng;
-  highlightedMarkerIds?: number[];
   mainLayerGroup: LayerGroup;
   selectedLayerGroup: LayerGroup;
   cursorStyle?: string;
@@ -76,10 +74,10 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   settingsVisible: boolean = false;
   mapSettings?: MapSettings;
   unlistenPanTo: Promise<UnlistenFn>;
-  unlistenPanToBounds: Promise<UnlistenFn>;
   selectedMarker: WritableSignal<MarkerAM | undefined>;
   cardMetadata: Signal<CardMetaData | undefined>;
   editCard: Signal<Card | undefined>;
+  private panToMarkerId?: number;
 
   constructor(
     private route: ActivatedRoute,
@@ -94,9 +92,8 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
           panToEvent.payload.lat,
           panToEvent.payload.lng,
         );
-        this.highlightedMarkerIds = [panToEvent.payload.id];
-        this.overviewMapService.highlightMarker([panToEvent.payload.id]);
-        this.map.flyTo(point);
+        this.panToMarkerId = panToEvent.payload.id;
+        this.map.flyTo(point, 14);
       },
     );
     this.cardMetadata = computed(() => ({
@@ -105,31 +102,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
       stack_id: this.editCard()?.stack_id,
       region_image_id: this.editCard()?.region_image_id,
     }));
-    this.unlistenPanToBounds = listen(
-      "panToBounds",
-      (panToBoundsEvent: {
-        payload: {
-          minLat: number;
-          minLng: number;
-          maxLat: number;
-          maxLng: number;
-          markerIds: number[];
-        };
-      }) => {
-        const southWest: LatLng = new LatLng(
-          panToBoundsEvent.payload.minLat,
-          panToBoundsEvent.payload.minLng,
-        );
-        const northEast: LatLng = new LatLng(
-          panToBoundsEvent.payload.maxLat,
-          panToBoundsEvent.payload.maxLng,
-        );
-        const bounds: LatLngBounds = new LatLngBounds(southWest, northEast);
-        this.map.flyToBounds(bounds);
-        this.highlightedMarkerIds = panToBoundsEvent.payload.markerIds;
-        this.overviewMapService.highlightMarker(this.highlightedMarkerIds);
-      },
-    );
     this.mainLayerGroup = this.overviewMapService.mainLayerGroup;
     this.selectedLayerGroup = this.overviewMapService.selectedLayerGroup;
     this.selectedMarker = this.overviewMapService.selectedMarker;
@@ -182,7 +154,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   updateSelectedCard(newCard: CardMetaData) {
-    console.log("newCard received", newCard);
     this.overviewMapService.updateEditCard(newCard);
   }
 
@@ -212,7 +183,8 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
     await this.settingsService.updateMapSettings({
       initialMapBounds: this.map.getBounds(),
     });
-    await this.overviewMapService.updateMapBounds(bounds);
+    await this.overviewMapService.updateMapBounds(bounds, this.panToMarkerId);
+    this.panToMarkerId = undefined;
   }
 
   ngAfterViewInit(): void {
@@ -232,10 +204,9 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async ngOnDestroy(): Promise<void> {
     try {
-      await this.unlistenPanToBounds;
       await this.unlistenPanTo;
     } catch (error) {
-      console.log("Unable to unlisten to panToBounds listener", error);
+      console.error("Unable to unlisten to panToBounds listener", error);
     }
   }
 

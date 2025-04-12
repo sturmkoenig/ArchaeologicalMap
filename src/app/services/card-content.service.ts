@@ -34,7 +34,6 @@ export class CardContentService {
   async saveCardContent() {
     if (this.cardContent.getValue() === undefined) {
       EMPTY;
-      return firstValueFrom(of("hi from empty save"));
     }
     return invoke("write_card_content", {
       id: this.currentCardId.getValue().toString(),
