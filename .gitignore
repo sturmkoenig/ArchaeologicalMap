@@ -9,3 +9,4 @@ test.db
 .nx/workspace-data
 /.idea/codeStyles/codeStyleConfig.xml
 /.idea/codeStyles/Project.xml
+/coverage/

@@ -3,13 +3,11 @@ import { ActivatedRoute } from "@angular/router";
 import { emit, listen } from "@tauri-apps/api/event";
 
 import { MatDialog } from "@angular/material/dialog";
-import { MatSnackBar } from "@angular/material/snack-bar";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Observable } from "rxjs";
 import { EditorComponent } from "@app/layout/editor/editor.component";
-import { CardDB, MarkerDB } from "@app/model/card";
+import { Card } from "@app/model/card";
 import { CardContentService } from "@service/card-content.service";
-import { MarkerService } from "@service/marker.service";
 import { CardDetailsStore } from "@app/state/card-details.store";
 import { ImageEntity } from "@app/model/image";
 
@@ -17,22 +15,21 @@ import { ImageEntity } from "@app/model/image";
   selector: "app-card-details",
   templateUrl: "./card-details.component.html",
   styleUrls: ["./card-details.component.scss"],
+  standalone: false,
 })
 export class CardDetailsComponent implements OnInit {
   cardId!: number;
-  card$!: Observable<CardDB | undefined>;
+  card$!: Observable<Card | undefined>;
 
   @ViewChild(EditorComponent)
   editor!: EditorComponent;
-  allCardsInStack$: Observable<CardDB[]>;
+  allCardsInStack$: Observable<Card[]>;
   currentStackId$: Observable<number | undefined>;
   regionImage$: Observable<ImageEntity | undefined>;
 
   constructor(
     private route: ActivatedRoute,
-    private markerService: MarkerService,
     public dialog: MatDialog,
-    private _snackBar: MatSnackBar,
     private cardContentService: CardContentService,
     public cardDetailsStore: CardDetailsStore,
   ) {
@@ -55,13 +52,19 @@ export class CardDetailsComponent implements OnInit {
       const cardId = params.get("id");
       if (cardId) {
         this.cardId = Number(cardId);
+      } else {
+        console.error("cardId not provided!");
       }
       this.cardDetailsStore.loadStackOfCards(this.cardId);
       this.cardContentService.setCardId(this.cardId);
       listen(`set-focus-to-${cardId}`, async () => {
-        console.log(cardId);
         await appWindow.setFocus();
       });
+    });
+    listen("card-changed", (_) => {
+      // TODO only reload if changed card is in stack!
+      this.cardDetailsStore.resetState$();
+      this.cardDetailsStore.loadStackOfCards(this.cardId);
     });
 
     await appWindow.onCloseRequested(async () => {
@@ -70,25 +73,11 @@ export class CardDetailsComponent implements OnInit {
     });
   }
 
-  panToLatLng(marker: MarkerDB[]) {
-    if (marker === null) {
-      return;
-    }
-    if (marker.length === 1) {
-      emit("panTo", {
-        lat: marker[0].latitude,
-        lng: marker[0].longitude,
-        id: marker[0].id ?? 0,
-      });
-    } else {
-      const bounds = this.markerService.getBounds(marker);
-      emit("panToBounds", {
-        minLat: bounds.getSouthWest().lat,
-        minLng: bounds.getSouthWest().lng,
-        maxLat: bounds.getNorthEast().lat,
-        maxLng: bounds.getNorthEast().lng,
-        markerIds: marker.map((marker) => marker.id ?? 0),
-      });
-    }
+  async panToLatLng(card: Card) {
+    return emit("panTo", {
+      lat: card.latitude,
+      lng: card.longitude,
+      id: card.id ?? 0,
+    });
   }
 }

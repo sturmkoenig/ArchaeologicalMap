@@ -6,7 +6,7 @@ import {
   Output,
   SimpleChanges,
 } from "@angular/core";
-import { MarkerDB } from "@app/model/card";
+import { LocationData } from "@app/model/card";
 import { ICONS, IconService, iconsSorted } from "@service/icon.service";
 import { MatSelectChange, MatSelectModule } from "@angular/material/select";
 import { MatCheckbox, MatCheckboxChange } from "@angular/material/checkbox";
@@ -19,7 +19,6 @@ import { KeyValuePipe, NgForOf } from "@angular/common";
 
 @Component({
   selector: "app-marker-input",
-  standalone: true,
   imports: [
     MatCheckbox,
     MatSliderModule,
@@ -36,25 +35,25 @@ import { KeyValuePipe, NgForOf } from "@angular/common";
       <div>
         <div class="marker-input">
           <mat-checkbox
-            [checked]="marker.radius === 0.0"
+            [checked]="this.marker.radius === 0.0"
             (change)="onExact($event)"
             >Exakt</mat-checkbox
           >
           <mat-slider
-            [disabled]="marker.radius === 0.0"
+            [disabled]="this.marker.radius === 0.0"
             [max]="1000"
             [min]="100"
           >
             <input
               matSliderThumb
-              [ngModel]="marker.radius"
+              [ngModel]="this.marker.radius"
               (ngModelChange)="onChangeCircleRadius($event)"
             />
           </mat-slider>
           <mat-form-field>
             <mat-label>Icons</mat-label>
             <mat-select
-              [(value)]="marker.icon_name"
+              [(value)]="this.marker.icon_name"
               (selectionChange)="setIcon($event)"
             >
               <mat-option
@@ -80,30 +79,29 @@ import { KeyValuePipe, NgForOf } from "@angular/common";
       display: flex;
       flex-direction: column;
     }
+
     .option-icon {
       margin: auto;
       height: 2rem;
     }
 
     mat-button-toggle-group {
-      margin: 20px;
-      margin-top: 0px;
-      margin-bottom: 50px;
+      margin: 0px 20px 50px;
     }
   `,
 })
 export class MarkerInputComponent implements OnChanges {
   @Input()
-  marker?: MarkerDB;
+  marker?: LocationData;
   @Output()
-  markerChange: EventEmitter<MarkerDB> = new EventEmitter();
+  markerChange: EventEmitter<LocationData> = new EventEmitter();
   @Output()
   markerMove: EventEmitter<boolean> = new EventEmitter();
   icons = ICONS;
   iconsSorted = iconsSorted;
   icon: keyof typeof ICONS = "iconMiscBlack";
   selectedIconCategory!: keyof typeof iconsSorted;
-  constructor(public iconService: IconService) {}
+  constructor() {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (!changes["marker"]) {
@@ -119,10 +117,9 @@ export class MarkerInputComponent implements OnChanges {
 
   setIcon(newIcon: MatSelectChange) {
     this.selectedIconCategory = newIcon.value;
-    const iconName: any = IconService.getIconNameByPath(
+    this.marker!.icon_name = IconService.getIconNameByPath(
       iconsSorted[this.selectedIconCategory][0],
     );
-    this.marker!.icon_name = iconName;
     this.markerChange.emit(this.marker);
   }
   setIconVariant(iconName: keyof typeof ICONS) {

@@ -5,126 +5,86 @@ import {
   transition,
   trigger,
 } from "@angular/animations";
-import { Component, OnInit } from "@angular/core";
+import { Component, model, OnInit } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
-import { PageEvent } from "@angular/material/paginator";
-import { MatSnackBar } from "@angular/material/snack-bar";
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { Observable, Subject, Subscription, debounceTime, from } from "rxjs";
-import { CardDB } from "src/app/model/card";
-import { CardService } from "src/app/services/card.service";
-import { IconService } from "src/app/services/icon.service";
-import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal.component";
+import { debounceTime, Subscription } from "rxjs";
+import { Card } from "@app/model/card";
+import { CardService } from "@service/card.service";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { MatIconModule } from "@angular/material/icon";
+import { MatButtonModule } from "@angular/material/button";
+import { MatTableModule } from "@angular/material/table";
+import { MatFormField, MatLabel } from "@angular/material/form-field";
+import { CommonModule } from "@angular/common";
+import { MatInputModule } from "@angular/material/input";
+import { emit } from "@tauri-apps/api/event";
+import { MatDivider } from "@angular/material/divider";
+import { MatTooltip } from "@angular/material/tooltip";
+import { toObservable } from "@angular/core/rxjs-interop";
+import { createCardDetailsWindow } from "@app/util/window-util";
 
 @Component({
   selector: "app-card-list",
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    MatInputModule,
+    MatLabel,
+    MatButtonModule,
+    MatTableModule,
+    MatFormField,
+    MatDivider,
+    MatTooltip,
+  ],
   template: `
-    <div class="list-container">
+    <div class="flex flex-col p-2">
       <mat-form-field>
         <mat-label>Suche...</mat-label>
         <input
           matInput
           type="text"
           [(ngModel)]="filter"
-          (keydown)="inputChanged()"
+          data-testid="title-search-input"
         />
         <button
           *ngIf="filter"
+          data-testid="clear-input"
           matSuffix
           mat-icon-button
           aria-label="Clear"
-          (click)="filter = ''"
+          (click)="filter.set('')"
         >
           <mat-icon>close</mat-icon>
         </button>
       </mat-form-field>
-      <table mat-table [dataSource]="allCards" multiTemplateDataRows>
-        <ng-container matColumnDef="title">
-          <th mat-header-cell *matHeaderCellDef>Title</th>
-          <td mat-cell *matCellDef="let element">
-            <b>{{ element.title }}</b>
-          </td>
-        </ng-container>
-        <ng-container matColumnDef="description">
-          <th mat-header-cell *matHeaderCellDef>Description</th>
-          <td mat-cell *matCellDef="let element">{{ element.description }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="expand">
-          <th mat-header-cell *matHeaderCellDef aria-label="row actions">
-            &nbsp;
-          </th>
-          <td mat-cell *matCellDef="let element">
-            <button
-              mat-icon-button
-              aria-label="expand row"
-              (click)="
-                expandedElement = expandedElement === element ? null : element;
-                $event.stopPropagation()
-              "
-            >
-              @if (expandedElement === element) {
-                <mat-icon>keyboard_arrow_up</mat-icon>
-              } @else {
-                <mat-icon>keyboard_arrow_down</mat-icon>
-              }
-            </button>
-          </td>
-
-          <ng-container matColumnDef="expandedDetail">
-            <td
-              mat-cell
-              *matCellDef="let element"
-              [attr.colspan]="columnsToDisplayWithExpand.length"
-            >
-              <div
-                class="expanded-card--actions"
-                [@detailExpand]="
-                  element === expandedElement ? 'expanded' : 'collapsed'
-                "
-              >
-                <button
-                  mat-button
-                  color="primary"
-                  (click)="openUpdateDialog(element)"
-                >
-                  Bearbeiten
-                </button>
-                <button
-                  mat-raised-button
-                  color="accent"
-                  (click)="goToDetailsPage(element.id!)"
-                >
-                  Info-Seite öffnen
-                </button>
-              </div>
-            </td>
-          </ng-container>
-          <tr mat-header-row *matHeaderRowDef="columnsToDisplayWithExpand"></tr>
-          <tr
-            mat-row
-            *matRowDef="let element; columns: columnsToDisplayWithExpand"
-            class="card-row"
-            [class.expanded-row]="expandedElement === element"
-            (click)="
-              expandedElement = expandedElement === element ? null : element
-            "
-          ></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: ['expandedDetail']"
-            class="card-detail-row"
-          ></tr>
-        </ng-container>
-      </table>
-      <mat-paginator
-        [length]="numCards"
-        [pageSizeOptions]="[1000]"
-        [pageIndex]="pageIndex"
-        (page)="changePage($event)"
-        aria-label="Select page"
-      >
-      </mat-paginator>
+      @for (card of allCards; track card.id; let isLast = $last) {
+        <div data-testid="card-row" class="flex flex-direction items-center">
+          <span class="flex-1 pl-5">{{ card.title }}</span>
+          <button
+            [attr.data-testid]="'nav-to-card-' + card.id"
+            class="flex-none"
+            mat-icon-button
+            color="primary"
+            matTooltip="Auf Karte zeigen"
+            (click)="showCardOnMap(card)"
+          >
+            <mat-icon>travel_explore</mat-icon>
+          </button>
+          <button
+            [attr.data-testid]="'open-details-for-card-' + card.id"
+            class="flex-none"
+            mat-icon-button
+            color="accent"
+            matTooltip="Detail Seite öffnen"
+            (click)="goToDetailsPage(card.id!)"
+          >
+            <mat-icon>article</mat-icon>
+          </button>
+        </div>
+        <mat-divider *ngIf="!isLast"></mat-divider>
+      }
     </div>
   `,
   animations: [
@@ -137,120 +97,37 @@ import { CardUpdateModalComponent } from "../card-update-modal/card-update-modal
       ),
     ]),
   ],
-  styles: [
-    `
-      button {
-        margin: 0.2rem;
-      }
-
-      .card-row td {
-        border-bottom-width: 0;
-      }
-
-      .list-container {
-        padding-top: 2rem;
-        display: flex;
-        flex-direction: column;
-      }
-      .example-card {
-        z-index: 1000;
-        max-width: 400px;
-        margin-bottom: 8px;
-      }
-      tr {
-        padding-left: 10px;
-      }
-      tr:nth-child(even) {
-        background-color: white;
-      }
-      tr.card-detail-row {
-        height: 0;
-      }
-
-      tr.card-row:not(.expanded-row):hover {
-        background: whitesmoke;
-      }
-
-      tr.card-row:not(.expanded-row):active {
-        background: #efefef;
-      }
-    `,
-  ],
 })
 export class CardListComponent implements OnInit {
-  allCards: Observable<CardDB[]>;
-  numCards: number = 0;
-  filter: string = "";
-  modelChanged: Subject<string> = new Subject<string>();
+  allCards: Card[] = [];
   subscription!: Subscription;
-  displayedColumns = ["title", "description"];
-  columnsToDisplayWithExpand = [...this.displayedColumns, "expand"];
-  expandedElement: CardDB | null;
-  debounceTime = 500;
-  pageIndex: number = 0;
+  debounceTime = 300;
+  filter = model<string>("");
 
   constructor(
     private cardService: CardService,
     public dialog: MatDialog,
-    public iconService: IconService,
-    private _snackBar: MatSnackBar,
   ) {
-    this.cardService
-      .getNumberOfCards()
-      .then((count) => (this.numCards = count));
-    this.allCards = from(this.cardService.readCardsPaginated(0, ""));
-    this.expandedElement = null;
-  }
-
-  ngOnInit(): void {
-    this.subscription = this.modelChanged
+    this.subscription = toObservable(this.filter)
       .pipe(debounceTime(this.debounceTime))
-      .subscribe((filter) => {
-        this.allCards = from(
-          this.cardService.readCardsPaginated(this.pageIndex, filter),
-        );
+      .subscribe(async (filter) => {
+        this.allCards = await this.cardService.readCardByTitle(filter);
       });
   }
 
-  inputChanged() {
-    this.modelChanged.next(this.filter);
+  async ngOnInit() {
+    this.allCards = await this.cardService.readCardByTitle("");
   }
 
-  goToDetailsPage(cardId: number) {
-    const webview = new WebviewWindow(cardId.toString(), {
-      url: "cards/details/" + cardId,
-    });
-    webview.once("tauri://error", function (e) {
-      console.error("window creation error: " + JSON.stringify(e));
-      webview.emit("set-focus-to");
-    });
+  async goToDetailsPage(cardId: number) {
+    await createCardDetailsWindow(cardId);
   }
 
-  changePage($event: PageEvent) {
-    this.allCards = from(
-      this.cardService.readCardsPaginated($event.pageIndex, ""),
-    );
-  }
-
-  openUpdateDialog(currentCard: CardDB) {
-    const dialogRef = this.dialog.open(CardUpdateModalComponent, {
-      data: {
-        currentCard,
-      },
-      enterAnimationDuration: "200ms",
-      exitAnimationDuration: "150ms",
-    });
-    dialogRef.componentInstance.deleted.subscribe((data: boolean) => {
-      if (data) {
-        this._snackBar.open("Seite gelöscht", "⌫");
-        dialogRef.close();
-        this.inputChanged();
-      }
-    });
-    dialogRef.componentInstance.updated.subscribe((data: boolean) => {
-      if (data) {
-        this._snackBar.open("Änderungen gespeichert!", "💾");
-      }
+  showCardOnMap(card: Card) {
+    return emit("panTo", {
+      lat: card.latitude,
+      lng: card.longitude,
+      id: card.id,
     });
   }
 }

@@ -1,9 +1,11 @@
 import {
   AfterViewInit,
   Component,
+  computed,
   NgZone,
   OnDestroy,
   OnInit,
+  Signal,
   WritableSignal,
 } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
@@ -16,13 +18,11 @@ import {
   LayerGroup,
   Map as LeafletMap,
   MapOptions as LeafletMapOptions,
-  MarkerClusterGroup,
   tileLayer,
 } from "leaflet";
 import "leaflet.markercluster";
-import { CardDB, MarkerDB } from "@app/model/card";
+import { Card, CardMetaData, LocationData } from "@app/model/card";
 import { MapSettings, SettingService } from "@service/setting.service";
-import { MarkerService } from "@service/marker.service";
 import { IconSizeSetting } from "@service/icon.service";
 import { OverviewMapService } from "@service/overview-map.service";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -31,21 +31,21 @@ import { CardInputComponent } from "@app/components/cards/card-input/card-input.
 import { MapSettingsComponent } from "@app/components/overview-map/map-settings/map-settings.component";
 import { MarkerInputComponent } from "@app/components/markers/marker-input/marker-input.component";
 import { LeafletModule } from "@bluehalo/ngx-leaflet";
-import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
-import { MatButton, MatFabButton } from "@angular/material/button";
+import { MatButtonModule } from "@angular/material/button";
 import { MarkerAM } from "@app/model/markerAM";
+import { MatIconModule } from "@angular/material/icon";
+import { MatTooltipModule } from "@angular/material/tooltip";
 
 @Component({
-  standalone: true,
   imports: [
     RightSidebarComponent,
     CardInputComponent,
     MapSettingsComponent,
     MarkerInputComponent,
     LeafletModule,
-    LeafletMarkerClusterModule,
-    MatFabButton,
-    MatButton,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
   ],
   selector: "app-overview-map",
   templateUrl: "overview-map.component.html",
@@ -53,7 +53,7 @@ import { MarkerAM } from "@app/model/markerAM";
 })
 export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   position?: LatLng;
-  highligtedMarkerIds?: number[];
+  highlightedMarkerIds?: number[];
   mainLayerGroup: LayerGroup;
   selectedLayerGroup: LayerGroup;
   cursorStyle?: string;
@@ -78,10 +78,10 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   unlistenPanTo: Promise<UnlistenFn>;
   unlistenPanToBounds: Promise<UnlistenFn>;
   selectedMarker: WritableSignal<MarkerAM | undefined>;
-  editCard: WritableSignal<CardDB | undefined>;
+  cardMetadata: Signal<CardMetaData | undefined>;
+  editCard: Signal<Card | undefined>;
 
   constructor(
-    private markerService: MarkerService,
     private route: ActivatedRoute,
     private ngZone: NgZone,
     private settingsService: SettingService,
@@ -94,11 +94,17 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
           panToEvent.payload.lat,
           panToEvent.payload.lng,
         );
-        this.highligtedMarkerIds = [panToEvent.payload.id];
-        this.overviewMapService.hightlightMarker([panToEvent.payload.id]);
+        this.highlightedMarkerIds = [panToEvent.payload.id];
+        this.overviewMapService.highlightMarker([panToEvent.payload.id]);
         this.map.flyTo(point);
       },
     );
+    this.cardMetadata = computed(() => ({
+      title: this.editCard()?.title ?? "",
+      description: this.editCard()?.description ?? "",
+      stack_id: this.editCard()?.stack_id,
+      region_image_id: this.editCard()?.region_image_id,
+    }));
     this.unlistenPanToBounds = listen(
       "panToBounds",
       (panToBoundsEvent: {
@@ -120,8 +126,8 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
         );
         const bounds: LatLngBounds = new LatLngBounds(southWest, northEast);
         this.map.flyToBounds(bounds);
-        this.highligtedMarkerIds = panToBoundsEvent.payload.markerIds;
-        this.overviewMapService.hightlightMarker(this.highligtedMarkerIds);
+        this.highlightedMarkerIds = panToBoundsEvent.payload.markerIds;
+        this.overviewMapService.highlightMarker(this.highlightedMarkerIds);
       },
     );
     this.mainLayerGroup = this.overviewMapService.mainLayerGroup;
@@ -158,18 +164,8 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
-  async onDeleteSelectedMarker() {
-    if (!this.overviewMapService.selectedMarker()?.markerId) {
-      throw new Error("marker does not exist");
-    }
-
-    await this.overviewMapService.deleteSelectedMarker();
-  }
-
-  async updateSelectedMarker(newMarker: MarkerDB) {
-    await this.markerService.updateMarker(newMarker).then(() => {
-      this.overviewMapService.reloadSelectedMarker();
-    });
+  async updateSelectedMarker(newMarker: LocationData) {
+    await this.overviewMapService.updateEditCard(newMarker);
   }
 
   onMoveExistingMarker() {
@@ -185,21 +181,9 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  onAddNewMarkerToCard() {
-    this.cursorStyle = "crosshair";
-    this.map.on("click", async (e) => {
-      if (!this.overviewMapService.selectedMarker()) {
-        return;
-      }
-      await this.overviewMapService.addMarkerToSelectedCard(e.latlng);
-      this.map.off("click");
-      this.cursorStyle = undefined;
-    });
-  }
-
-  updateSelectedCard(newCard: CardDB) {
+  updateSelectedCard(newCard: CardMetaData) {
+    console.log("newCard received", newCard);
     this.overviewMapService.updateEditCard(newCard);
-    // TODO refresh state
   }
 
   onMapReady(map: LeafletMap) {
@@ -207,6 +191,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.zoom = map.getZoom();
     this.map.addLayer(this.overviewMapService.radiusLayerGroup);
     this.map.addLayer(this.overviewMapService.selectedLayerGroup);
+    this.map.addLayer(this.overviewMapService.mainLayerGroup);
     if (this.mapSettings?.initialMapBounds) {
       this.map.fitBounds(this.mapSettings.initialMapBounds);
     }
@@ -268,10 +253,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
         initialMapBounds: this.map.getBounds(),
       });
     });
-  }
-
-  markerClusterReady($event: MarkerClusterGroup) {
-    this.overviewMapService.setMarkerClusterLayerGroup($event);
   }
 
   async onMapSettingsChanged() {

@@ -4,13 +4,12 @@ use app::{
     models::{NewStack, Stack},
     schema::{
         self,
-        cards::{self},
+        card::{self},
         stack,
     },
 };
 use diesel::expression_methods::ExpressionMethods;
 use diesel::{select, QueryDsl, SqliteConnection};
-use app::schema::stack::id;
 
 pub fn query_create_stack(conn: &mut SqliteConnection, new_stack: &NewStack) -> Stack {
     diesel::insert_into(stack::table)
@@ -53,9 +52,9 @@ pub fn query_stack_by_id(conn: &mut SqliteConnection, stack_id: i32) -> Stack {
 }
 
 pub fn query_delete_stack(conn: &mut SqliteConnection, stack_id: i32) {
-    let result = diesel::update(cards::table)
-        .filter(schema::cards::stack_id.eq(stack_id))
-        .set(cards::stack_id.eq(None::<i32>))
+    let result = diesel::update(card::table)
+        .filter(schema::card::stack_id.eq(stack_id))
+        .set(card::stack_id.eq(None::<i32>))
         .execute(conn);
     if let Err(e) = result {
         panic!(

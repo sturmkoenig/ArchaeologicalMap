@@ -1,5 +1,6 @@
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
+use std::env;
 
 use std::path::PathBuf;
 use tauri_api::path::data_dir;
@@ -23,7 +24,11 @@ pub mod models;
 pub mod schema;
 
 pub fn establish_connection() -> SqliteConnection {
-    let connection_path = get_path_local_dir(String::from("am.db"));
+    let connection_path;
+    match env::var("DB_PATH") {
+        Ok(s) => connection_path = PathBuf::from(s),
+        _ => connection_path = get_path_local_dir("am.db".to_string())
+    }
     let database_url = connection_path.to_str().unwrap();
 
     SqliteConnection::establish(database_url)

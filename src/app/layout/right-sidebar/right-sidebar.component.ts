@@ -5,7 +5,6 @@ import { MatButtonModule } from "@angular/material/button";
 
 @Component({
   selector: "app-right-sidebar",
-  standalone: true,
   imports: [CommonModule, MatIconModule, MatButtonModule],
   template: `
     @if (visible) {

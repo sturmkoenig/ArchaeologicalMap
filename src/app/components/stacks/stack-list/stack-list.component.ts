@@ -4,10 +4,18 @@ import { StackCreatorComponent } from "../stack-creator/stack-creator.component"
 import { Stack, StackPost } from "src/app/model/stack";
 import { Observable } from "rxjs";
 import { StackStore } from "src/app/state/stack.store";
+import { CommonModule } from "@angular/common";
+import { MatCardModule } from "@angular/material/card";
+import { MatIconModule } from "@angular/material/icon";
+import { MatButtonModule } from "@angular/material/button";
 
+/**
+ * @deprecated
+ */
 @Component({
-  selector: "app-stack-display",
-  template: `
+    imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule],
+    selector: "app-stack-display",
+    template: `
     <div class="stack-display__container">
       <div class="gridbox">
         <div *ngFor="let stack of stacks$ | async" class="card-container">
@@ -48,8 +56,8 @@ import { StackStore } from "src/app/state/stack.store";
       </div>
     </div>
   `,
-  styles: [
-    `
+    styles: [
+        `
       .stack-display__container {
         display: flex;
         flex-direction: row;
@@ -96,7 +104,7 @@ import { StackStore } from "src/app/state/stack.store";
         right: 50px;
       }
     `,
-  ],
+    ]
 })
 export class StackDisplayComponent {
   public stacks?: StackPost[];

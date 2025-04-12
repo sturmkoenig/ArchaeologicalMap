@@ -5,25 +5,20 @@ import {
   Marker,
   MarkerOptions,
 } from "leaflet";
-import { CardDB, MarkerDB } from "@app/model/card";
+import { Card, MarkerDB } from "@app/model/card";
 import { ICONS } from "@service/icon.service";
 import { RadiusVisibility } from "@app/model/marker";
+import { createCardDetailsWindow } from "@app/util/window-util";
 
 export class MarkerAM extends Marker {
-  private _markerId: number;
-  private _cardId: number;
-  private _card?: CardDB;
+  private _title: string;
   private _iconType: keyof typeof ICONS;
   private _radiusLayer?: Circle;
   private _iconSize: number = 20;
-
-  get markerId(): number {
-    return this._markerId;
-  }
-
-  get cardId(): number {
-    return this._cardId;
-  }
+  private _description: string;
+  private _cardId: number;
+  private _regionImageId?: number;
+  private _stackId?: number;
 
   get iconType(): keyof typeof ICONS {
     return this._iconType;
@@ -32,41 +27,36 @@ export class MarkerAM extends Marker {
   get radiusLayer(): Circle | undefined {
     return this._radiusLayer;
   }
+  get cardId() {
+    return this._cardId;
+  }
 
   constructor(
-    fetchCard: (id: number) => Promise<CardDB>,
     latlng: LatLngExpression,
     options?: MarkerOptions,
+    card?: Partial<Card>,
     amOptions?: {
-      radius?: number;
-      markerId?: number;
-      cardId?: number;
       iconType?: keyof typeof ICONS;
       iconSize?: number;
-      loadCard?: boolean;
     },
   ) {
     super(latlng, options);
-    this._markerId = amOptions?.markerId ?? 0;
-    this._cardId = amOptions?.cardId ?? 0;
-    this._iconType = amOptions?.iconType ?? "iconBorderLimesBlack";
+    this._description = card?.description ?? "";
+    this._title = card?.title ?? "";
+    this._cardId = card?.id ?? 0;
+    this._iconType = card?.icon_name ?? "iconBorderLimesBlack";
+    this._regionImageId = card?.region_image_id;
     this._iconSize = amOptions?.iconSize ?? 20;
-    if (amOptions?.radius) {
+    this._stackId = card?.stack_id;
+    if (card?.radius) {
       this._radiusLayer = new Circle(latlng, {
-        radius: amOptions.radius ?? 0,
+        radius: card.radius ?? 0,
         opacity: 0,
         fillOpacity: 0,
       });
       this.visibilityOfRadius(RadiusVisibility.onHover);
     }
     this.setIconType(this.iconType);
-
-    if (amOptions?.loadCard) {
-      fetchCard(amOptions?.cardId ?? 0).then((card: CardDB) => {
-        this._card = card;
-        this.setIconType(this._iconType);
-      });
-    }
   }
 
   visibilityOfRadius(opt: RadiusVisibility): void {
@@ -94,7 +84,7 @@ export class MarkerAM extends Marker {
     const htmlString = `
     <div style="display: flex; flex-direction: column; width: 100px; align-items: center; transform: translateX(-44px)">
         <img class="my-div-image" style="width: ${this._iconSize}px; height: ${this._iconSize}px" src='${ICONS[iconType]}' alt="icon of archaeological feature"/>
-        <span class="my-div-span" style="background: white; width: auto; font-size: 9px; background-color: rgba(255, 0, 0, 0); ">${this._card?.title ?? ""}</span>
+        <span class="my-div-span" style="background: white; width: auto; font-size: 9px; background-color: rgba(255, 0, 0, 0); ">${this._title ?? ""}</span>
     </div> 
      `;
     const icon: DivIcon = new DivIcon({
@@ -128,10 +118,11 @@ export class MarkerAM extends Marker {
     this.setIconType(this.iconType);
   }
 
+  /**
+   * @deprecated
+   */
   toMarkerDB(): MarkerDB {
     return {
-      id: this._markerId,
-      card_id: this._cardId,
       latitude: this.getLatLng().lat,
       longitude: this.getLatLng().lng,
       icon_name: this._iconType,
@@ -139,10 +130,39 @@ export class MarkerAM extends Marker {
     };
   }
 
-  fromMarkerDB(markerDB: Partial<MarkerDB>): void {
-    this._cardId = markerDB.card_id ?? 0;
-    this._markerId = markerDB.id ?? 0;
-    this.setIconType(markerDB.icon_name as keyof typeof ICONS);
-    this.setRadius(markerDB.radius);
+  toCard(): Card {
+    return {
+      latitude: this.getLatLng().lat,
+      longitude: this.getLatLng().lng,
+      icon_name: this._iconType,
+      radius: this._radiusLayer?.getRadius() ?? 0,
+      region_image_id: this._regionImageId,
+      stack_id: this._stackId,
+      title: this._title,
+      description: this._description,
+      id: this._cardId,
+    };
+  }
+
+  createPopup() {
+    const div: HTMLDivElement = document.createElement("div");
+    div.innerHTML =
+      `<strong style="font-size: 18px">` +
+      this._title +
+      `</strong>` +
+      `<p>` +
+      this._description +
+      `</p>`;
+    const button = document.createElement("button");
+    button.innerHTML =
+      "<div class='bg-[#D7E3FF] rounded-full h-10 w-30 flex justify-center items-center shadow-lg'><p class='text-center' style='font-weight: bold; '>Info-Seite Zeigen</p></div>";
+    button.onclick = () => {
+      createCardDetailsWindow(this.cardId ?? 0);
+    };
+    div.appendChild(button);
+    return div;
+  }
+  override bindPopup() {
+    return super.bindPopup(this.createPopup());
   }
 }

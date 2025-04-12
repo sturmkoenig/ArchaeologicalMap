@@ -15,7 +15,6 @@ import { ImageService } from "@service/image.service";
 
 @Component({
   selector: "app-image-list",
-  standalone: true,
   imports: [
     MatCardModule,
     AsyncPipe,

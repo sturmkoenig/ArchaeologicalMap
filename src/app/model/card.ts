@@ -1,4 +1,4 @@
-import { ICONS } from "../services/icon.service";
+import { ICONS } from "@service/icon.service";
 
 export interface CardinalDirection {
   north: number;
@@ -14,13 +14,18 @@ export interface MarkerLatLng {
   icon_name: keyof typeof ICONS;
 }
 
-export interface NewCard {
+export interface Card {
+  id?: number;
   title: string;
   description: string;
-  markers: MarkerLatLng[];
-  stackId?: number;
+  latitude: number;
+  longitude: number;
+  region_image_id?: number;
+  icon_name: keyof typeof ICONS;
+  radius: number;
+  stack_id?: number;
 }
-
+/** @deprecated */
 export interface CardDB {
   id?: number;
   title: string;
@@ -30,6 +35,7 @@ export interface CardDB {
   stack_id?: number | null;
 }
 
+/** @deprecated */
 export interface MarkerDB {
   id?: number;
   card_id?: number;
@@ -39,3 +45,12 @@ export interface MarkerDB {
   radius: number;
   icon_name: keyof typeof ICONS;
 }
+
+export type CardMetaData = Pick<
+  Card,
+  "title" | "description" | "region_image_id" | "stack_id"
+>;
+export type LocationData = Pick<
+  Card,
+  "latitude" | "longitude" | "radius" | "icon_name"
+>;

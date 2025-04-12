@@ -1,71 +1,45 @@
 import { Injectable } from "@angular/core";
 import { invoke } from "@tauri-apps/api/core";
-import { CardDB, CardinalDirection, MarkerDB } from "src/app/model/card";
+import { Card, CardinalDirection } from "src/app/model/card";
 import { Stack } from "@app/model/stack";
+import { emit } from "@tauri-apps/api/event";
 
 @Injectable({
   providedIn: "root",
 })
 export class CardService {
-  getAllCardsForStack(
+  async getAllCardsForStack(
     stack_id: number,
-  ): Promise<{ stack: Stack; cards: CardDB[] }> {
-    return invoke<[Stack, CardDB[]]>("get_cards_in_stack", {
+  ): Promise<{ stack: Stack; cards: Card[] }> {
+    const result = await invoke<[Stack, Card[]]>("read_cards_in_stack", {
       stackId: stack_id,
-    }).then((result) => {
-      return { stack: result[0], cards: result[1] };
+    });
+    return { stack: result[0], cards: result[1] };
+  }
+
+  createCard(card: Card): Promise<Card> {
+    return invoke("create_unified_card", {
+      card,
     });
   }
-
-  createCard(newCard: CardDB): Promise<CardDB> {
-    return invoke("create_card", {
-      card: {
-        title: newCard.title,
-        description: newCard.description,
-        markers: newCard.markers,
-      },
-    });
+  readCardsInArea(directions: CardinalDirection): Promise<Card[]> {
+    return invoke("read_cards_in_area", { cardinalDirections: directions });
   }
 
-  readCards(): Promise<CardDB[]> {
-    return invoke("read_cards", {});
-  }
-  readMarkersInArea(directions: CardinalDirection): Promise<MarkerDB[]> {
-    return invoke("read_markers_in_area", {
-      north: directions.north,
-      east: directions.east,
-      south: directions.south,
-      west: directions.west,
-    });
+  readCard(cardId: number): Promise<Card> {
+    return invoke("read_card_by_id", { id: cardId });
   }
 
-  readCardsInArea(directions: CardinalDirection): Promise<CardDB[]> {
-    return invoke("read_cards_in_area", {
-      north: directions.north,
-      east: directions.east,
-      south: directions.south,
-      west: directions.west,
-    });
+  readCardByTitle(titleFilter: string): Promise<Card[]> {
+    return invoke("read_cards_by_title", { title: titleFilter });
   }
 
-  readCardsPaginated(pageIndex: number, filter: string): Promise<CardDB[]> {
-    return invoke("read_cards_paginated", { page: pageIndex, filter: filter });
-  }
-
-  readCard(cardId: number): Promise<CardDB> {
-    return invoke("read_card", { id: cardId });
-  }
-
-  updateCard(updateCard: CardDB, markers?: MarkerDB[]): Promise<boolean> {
-    return invoke("update_card", {
-      card: {
-        id: updateCard.id,
-        title: updateCard.title,
-        description: updateCard.description,
-        markers: markers,
-        stack_id: updateCard.stack_id,
-        region_image_id: updateCard.region_image_id,
-      },
+  updateCard(card: Card): Promise<boolean> {
+    return invoke<boolean>("update_card_unified", {
+      card,
+    }).then(async (success: boolean) => {
+      await emit("card-changed", card);
+      return success;
     });
   }
 
@@ -78,16 +52,5 @@ export class CardService {
       id: id,
     });
     return;
-  }
-  deleteMarker(markerId: number): Promise<void> {
-    return invoke("delete_marker", { markerId: markerId });
-  }
-
-  deleteMarkers(removedMarkers: MarkerDB[]) {
-    removedMarkers
-      .filter((marker) => marker.id !== undefined && marker.id !== null)
-      .forEach((marker) => {
-        invoke("delete_marker", { markerId: marker.id! });
-      });
   }
 }

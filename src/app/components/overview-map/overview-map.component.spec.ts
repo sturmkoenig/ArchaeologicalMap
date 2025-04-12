@@ -10,10 +10,9 @@ import { RightSidebarComponent } from "@app/layout/right-sidebar/right-sidebar.c
 import { IconSizeSettingsComponent } from "@app/components/overview-map/map-settings/icon-size-settings/icon-size-settings.component";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { By } from "@angular/platform-browser";
-import { CardDB } from "src/app/model/card";
+import { Card } from "src/app/model/card";
 import * as TauriEvent from "@tauri-apps/api/event";
 import { MapSettings, SettingService } from "@service/setting.service";
-import { LeafletMarkerClusterModule } from "@bluehalo/ngx-leaflet-markercluster";
 import { NgIf } from "@angular/common";
 import { MapSettingsComponent } from "@app/components/overview-map/map-settings/map-settings.component";
 import { CardInputComponent } from "@app/components/cards/card-input/card-input.component";
@@ -58,6 +57,8 @@ describe("OverviewMapComponent", () => {
   let cardServiceMock: {
     createCard: jest.Mock;
     readCard: jest.Mock;
+    readCardsPaginated: jest.Mock;
+    updateCard: jest.Mock;
     deleteCard: jest.Mock;
     deleteMarker: jest.Mock;
   };
@@ -67,6 +68,10 @@ describe("OverviewMapComponent", () => {
   let iconServiceMock: { getIconSizeSettings: jest.Mock };
 
   beforeEach(async () => {
+    window.location = {
+      ...window.location,
+      reload: jest.fn(),
+    };
     jest
       .spyOn(TauriEvent, "listen")
       .mockImplementation((_eventName, _handler) => Promise.resolve(jest.fn()));
@@ -76,27 +81,23 @@ describe("OverviewMapComponent", () => {
     };
     mapSettings = {
       maxZoomLevel: 11,
-      markerClusterGroupOptions: {
-        maxClusterRadius: 100,
-        disableClusteringAtZoom: 1,
-      },
     };
 
-    readFileMock = (readFile as jest.Mock).mockImplementation(
-      async (...args) => {
-        const textEncoder = new TextEncoder();
-        return Promise.resolve(textEncoder.encode(JSON.stringify(mapSettings)));
-      },
-    );
+    readFileMock = (readFile as jest.Mock).mockImplementation(async (..._) => {
+      const textEncoder = new TextEncoder();
+      return Promise.resolve(textEncoder.encode(JSON.stringify(mapSettings)));
+    });
 
     writeTextFileMock = (writeTextFile as jest.Mock).mockImplementation(
-      async (fileName: string, settings: string, options: unknown) =>
+      async (fileName: string, settings: string, _: unknown) =>
         Promise.resolve((mapSettings = JSON.parse(settings))),
     );
     markerServiceMock.getMarkerAMInArea.mockResolvedValue([]);
     cardServiceMock = {
       createCard: jest.fn(),
+      updateCard: jest.fn(),
       readCard: jest.fn(),
+      readCardsPaginated: jest.fn(),
       deleteCard: jest.fn(),
       deleteMarker: jest.fn(),
     };
@@ -110,7 +111,6 @@ describe("OverviewMapComponent", () => {
     };
     await TestBed.configureTestingModule({
       imports: [
-        LeafletMarkerClusterModule,
         LeafletModule,
         RightSidebarComponent,
         IconSizeSettingsComponent,
@@ -144,16 +144,10 @@ describe("OverviewMapComponent", () => {
     expect(cardServiceMock.createCard).toHaveBeenCalledWith({
       title: "",
       description: "",
-      markers: [
-        {
-          id: 0,
-          card_id: 0,
-          longitude: expect.any(Number),
-          latitude: expect.any(Number),
-          radius: 0,
-          icon_name: "iconMiscRed",
-        },
-      ],
+      longitude: expect.any(Number),
+      latitude: expect.any(Number),
+      radius: 0,
+      icon_name: "iconMiscRed",
     });
     expect(component.selectedLayerGroup.getLayers().length).toBe(1);
   });
@@ -179,23 +173,7 @@ describe("OverviewMapComponent", () => {
     await fixture.whenStable();
     expect(mapSettings).toEqual({
       maxZoomLevel: 13,
-      markerClusterGroupOptions: {
-        maxClusterRadius: 100,
-        disableClusteringAtZoom: 1,
-      },
     });
-  });
-
-  it("should delete marker", async () => {
-    givenTheCard(testCardA);
-    whenIClickAButton("add-new-card");
-    await whenIClickTheMap();
-
-    await component.onDeleteSelectedMarker();
-
-    expect(cardServiceMock.deleteMarker).toHaveBeenCalledWith(testCardA.id!);
-    expect(component.selectedLayerGroup.getLayers()).toHaveLength(0);
-    expect(component.mainLayerGroup.getLayers()).toHaveLength(0);
   });
 
   it("should move existing marker", async () => {
@@ -206,14 +184,32 @@ describe("OverviewMapComponent", () => {
     component.onMoveExistingMarker();
     await whenIClickTheMap();
 
-    expect(markerServiceMock.updateMarker).toHaveBeenCalled();
+    expect(cardServiceMock.updateCard).toHaveBeenCalled();
+  });
+
+  it("should not update icon size different icon types", async () => {
+    givenTheCard(testCardA);
+    whenIClickAButton("add-new-card");
+    await whenIClickTheMap();
+    component.onUpdateIconSize({
+      iconType: "iconMiscBlack",
+      iconSize: 40,
+    });
+    const layer: MarkerAM =
+      component.selectedLayerGroup.getLayers()[0] as MarkerAM;
+    expect((layer.getIcon().options as DivIconOptions).html).toMatch(
+      "width: 20px; height: 20px",
+    );
   });
 
   it("should update icon size of selected layer correctly", async () => {
     givenTheCard(testCardA);
     whenIClickAButton("add-new-card");
     await whenIClickTheMap();
-    component.onUpdateIconSize({ iconType: "iconMiscRed", iconSize: 40 });
+    component.onUpdateIconSize({
+      iconType: "iconMiscRed",
+      iconSize: 40,
+    });
     const layer: MarkerAM =
       component.selectedLayerGroup.getLayers()[0] as MarkerAM;
     expect((layer.getIcon().options as DivIconOptions).html).toMatch(
@@ -230,47 +226,31 @@ describe("OverviewMapComponent", () => {
     whenIClickAButton("close-update-sidebar");
 
     expect(component.selectedLayerGroup.getLayers()).toHaveLength(0);
-    expect(component.overviewMapService.clusterGroup.getLayers()).toHaveLength(
-      1,
-    );
+    expect(
+      component.overviewMapService.mainLayerGroup.getLayers(),
+    ).toHaveLength(1);
 
-    component.onUpdateIconSize({ iconType: "iconMiscRed", iconSize: 40 });
+    await component.onUpdateIconSize({
+      iconType: "iconMiscRed",
+      iconSize: 40,
+    });
     const layer: MarkerAM = component.mainLayerGroup.getLayers()[0] as MarkerAM;
-    expect((layer.getIcon().options as DivIconOptions).html).toMatch(
+    expect((layer.getIcon().options as DivIconOptions).html).toContain(
       "width: 40px; height: 40px",
     );
   });
 
-  const testCardA: CardDB = {
+  const testCardA: Card = {
     id: 1,
     title: "a",
     description: "a's description",
-    markers: [
-      {
-        latitude: 1,
-        longitude: 1,
-        id: 1,
-        radius: 0,
-        icon_name: "iconMiscRed",
-      },
-    ],
-  };
-  const testCardB: CardDB = {
-    id: 1,
-    title: "b",
-    description: "b's description",
-    markers: [
-      {
-        latitude: 1,
-        longitude: 1,
-        id: 1,
-        radius: 0,
-        icon_name: "iconMiscRed",
-      },
-    ],
+    latitude: 1,
+    longitude: 1,
+    radius: 0,
+    icon_name: "iconMiscRed",
   };
 
-  const givenTheCard = (card: CardDB) => {
+  const givenTheCard = (card: Card) => {
     cardServiceMock.createCard.mockResolvedValue(card);
     cardServiceMock.readCard.mockResolvedValue(card);
   };
@@ -290,8 +270,9 @@ describe("OverviewMapComponent", () => {
   };
 
   const whenIUseASlider = async (testId: string, newSliderValue: string) => {
-    const slider = fixture.debugElement.query(By.css(`[data-testid="${testId}`))
-      .nativeElement as HTMLInputElement;
+    const slider = fixture.debugElement.query(
+      By.css(`[data-testid="${testId}"]`),
+    ).nativeElement as HTMLInputElement;
     slider.value = newSliderValue;
     slider.dispatchEvent(new Event("input"));
     slider.dispatchEvent(new Event("dragEnd"));

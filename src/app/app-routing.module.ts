@@ -2,8 +2,8 @@ import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { CardDetailsComponent } from "./components/cards/card-details/card-details.component";
 import { CardListComponent } from "./components/cards/card-list/card-list.component";
-import { OverviewMapComponent } from "./components/overview-map/overview-map.component";
 import { StackDisplayComponent } from "./components/stacks/stack-list/stack-list.component";
+import { MapContainerComponent } from "@app/layout/map/map-container/map-container.component";
 
 const routes: Routes = [
   {
@@ -16,7 +16,7 @@ const routes: Routes = [
     children: [
       {
         path: "",
-        component: OverviewMapComponent,
+        component: MapContainerComponent,
       },
     ],
   },

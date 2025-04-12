@@ -1,13 +1,13 @@
 import { TestBed } from "@angular/core/testing";
 import { MarkerService } from "@service/marker.service";
 import { CardService } from "@service/card.service";
-import { MarkerDB } from "@app/model/card";
+import { Card } from "@app/model/card";
 import { LatLngBounds } from "leaflet";
 import { MarkerAM } from "@app/model/markerAM";
 
 const MockCardService = {
   readCard: () => {},
-  readMarkersInArea: () => {
+  readCardsInArea: () => {
     return Promise.resolve([]);
   },
 };
@@ -15,11 +15,12 @@ const MockCardService = {
 describe("MarkerService", () => {
   let service: MarkerService;
 
-  const testMarkerDB: MarkerDB = {
+  const testCard: Card = {
     id: 1,
-    card_id: 1,
     latitude: 1,
     longitude: 1,
+    description: "my super helpful description",
+    title: "title of a super cool place in europe",
     icon_name: "iconCaveRed",
     radius: 1,
   };
@@ -42,22 +43,20 @@ describe("MarkerService", () => {
 
   it("should load MarkerAM correctly", async () => {
     jest
-      .spyOn(TestBed.inject(CardService), "readMarkersInArea")
-      .mockResolvedValue([testMarkerDB]);
+      .spyOn(TestBed.inject(CardService), "readCardsInArea")
+      .mockResolvedValue([testCard]);
     await service
       .getMarkerAMInArea(
         new LatLngBounds([
           [1, 1],
           [1, 1],
         ]),
-        false,
       )
       .then((markers: MarkerAM[]) => {
         expect(markers).toBeTruthy();
         expect(markers).toHaveLength(1);
-        expect(markers[0].markerId).toEqual(testMarkerDB.id!);
-        expect(markers[0].cardId).toEqual(testMarkerDB.card_id!);
-        expect(markers[0].iconType).toEqual(testMarkerDB.icon_name);
+        expect(markers[0].cardId).toEqual(testCard.id!);
+        expect(markers[0].iconType).toEqual(testCard.icon_name);
         expect(markers[0].radiusLayer).toBeTruthy();
       });
   });

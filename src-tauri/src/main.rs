@@ -6,47 +6,31 @@ extern crate diesel;
 extern crate diesel_migrations;
 
 pub mod persistence;
-use app::models::CardDTO;
-use app::models::ImageDTO;
-use app::models::Marker;
-use app::models::MarkerDTO;
+use app::models::Card;
 use app::models::NewImage;
 use app::models::NewStack;
 use app::models::Stack;
 use app::models::StackDTO;
-use diesel::SqliteConnection;
+use app::models::CardDTO;
+use app::models::{CardinalDirections, ImageDTO};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
-use persistence::cards::query_all_cards;
-use persistence::cards::query_card_by_id;
-use persistence::cards::query_cards_in_stack;
-use persistence::cards::query_cards_paginated;
-use persistence::cards::query_count_cards;
-use persistence::cards::query_create_card;
-use persistence::cards::query_delete_card;
-use persistence::cards::query_update_card;
 use persistence::images::query_create_image;
-use persistence::markers::query_create_marker;
-use persistence::markers::query_delete_all_markers_for_card;
-use persistence::markers::query_delete_marker;
-use persistence::markers::query_join_markers;
-use persistence::markers::query_marker_by_id;
-use persistence::markers::query_markers_in_geological_area;
-use persistence::markers::query_update_marker;
 use persistence::stacks::query_all_stacks;
 use persistence::stacks::query_create_stack;
 use persistence::stacks::query_delete_stack;
 use persistence::stacks::query_update_stack;
-use tauri_api::path::{app_dir, data_dir, local_data_dir, resolve_path, resource_dir};
+use tauri_api::path::app_dir;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
+use crate::persistence::images::query_update_image;
+use crate::persistence::stacks::query_stack_by_id;
+use crate::persistence::card::{query_cards_in_geological_area, query_create_unified_card, query_delete_unified_card, query_set_image_to_null, query_unified_card_by_id, query_unified_card_by_title, query_unified_cards_in_stack, query_update_unified_card};
+use app::establish_connection;
 use std::env;
 use std::fs;
 use std::path::Path;
 use tauri::{AppHandle, Manager};
-use app::{establish_connection, models::Card};
-use crate::persistence::images::query_update_image;
-use crate::persistence::stacks::query_stack_by_id;
 
 // main.rs
 fn main() {
@@ -62,25 +46,21 @@ fn main() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .invoke_handler(tauri::generate_handler![
-            create_card,
-            read_card,
-            read_cards,
-            read_cards_paginated,
-            update_card,
-            count_cards,
             write_card_content,
             read_card_content,
+
+            read_cards_in_area,
+            read_cards_in_stack,
+            read_cards_by_title,
+            read_card_by_id,
+            update_card_unified,
+            create_unified_card,
             delete_card,
-            create_marker,
-            read_marker,
-            read_markers_in_area,
-            update_marker,
-            delete_marker,
+
             create_stack,
             update_stack,
             delete_stack,
             read_all_stacks,
-            get_cards_in_stack,
 
             create_image,
             read_image,
@@ -89,12 +69,10 @@ fn main() {
             update_image_name,
             delete_image,
         ])
-        .setup(|app| {
-            let config = app.config();
-
+        .setup(|_app| {
             let data_path = app_dir().unwrap();
             if !data_path.exists() {
-                std::fs::create_dir_all(data_path)?;
+                fs::create_dir_all(data_path)?;
             }
 
             let conn = &mut establish_connection();
@@ -138,57 +116,43 @@ fn main() {
 }
 
 #[tauri::command]
-fn read_cards() -> Vec<Card> {
+fn read_cards_in_area(cardinal_directions: CardinalDirections) -> Result<Vec<CardDTO>, String> {
     let conn = &mut establish_connection();
-    query_all_cards(conn)
+
+    query_cards_in_geological_area(conn, cardinal_directions).map(|res|
+        res.into_iter().map(CardDTO::from).collect::<Vec<CardDTO>>()).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
-fn read_cards_paginated(page: i64, filter: String) -> Vec<CardDTO> {
+fn update_card_unified(card: CardDTO) -> Result<bool, String> {
     let conn = &mut establish_connection();
-    let cards = query_cards_paginated(conn, page, filter);
-    let mut card_dtos: Vec<CardDTO> = Vec::new();
-
-    for card in cards.iter() {
-        let markers_for_card = query_join_markers(conn, card.id);
-        let mut markers: Vec<MarkerDTO> = Vec::new();
-        for marker in markers_for_card.iter() {
-            markers.push(MarkerDTO {
-                id: Some(marker.id),
-                card_id: Some(card.id),
-                longitude: marker.longitude,
-                radius: marker.radius,
-                latitude: marker.latitude,
-                icon_name: marker.icon_name.clone(),
-            });
-        }
-        card_dtos.push(CardDTO {
-            id: Some(card.id),
-            title: card.title.clone(),
-            description: card.description.clone(),
-            markers,
+    let id = card.id.ok_or("id is missing".to_string())?;
+    query_update_unified_card(
+        conn,
+        Card {
+            id,
+            title: card.title.unwrap_or("".to_string()),
+            description: card.description.unwrap_or("".to_string()),
             stack_id: card.stack_id,
+            latitude: card.latitude,
+            longitude: card.longitude,
+            radius: card.radius.unwrap_or(0.0),
+            icon_name: card.icon_name,
             region_image_id: card.region_image_id,
-        })
-    }
-    return card_dtos;
+        },
+    ).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
-fn read_card(id: i32) -> CardDTO {
+fn read_card_by_id(id: i32) -> Result<CardDTO, String> {
     let conn = &mut establish_connection();
-    query_card_by_id(conn, id)
+    query_unified_card_by_id(conn, id).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
-fn create_card(card: CardDTO) -> CardDTO {
+fn create_unified_card(card: CardDTO) -> Result<CardDTO, String> {
     let conn = &mut establish_connection();
-    let card_id = query_create_card(&card, conn);
-
-    for marker in card.markers.iter() {
-        query_create_marker(conn, card_id, marker);
-    }
-    read_card(card_id)
+    query_create_unified_card(conn, card).map(CardDTO::from).map_err(|err| err.to_string())
 }
 
 // TODO may be moved to frontend
@@ -216,95 +180,12 @@ fn write_card_content(app_handle: tauri::AppHandle, id: String, content: String)
     fs::write(content_dir, content).expect("error opening file");
 }
 
-// updates card. Markers send with the card are updated as well when they have an id.
-// If the send marker has no id, it will be created. If a marker is missing from the card
-// it is not deleted!
-#[tauri::command]
-fn update_card(card: CardDTO) -> bool {
-    let conn = &mut establish_connection();
-    if card.id.is_none() {
-        return false;
-    }
-    query_update_card(
-        conn,
-        Card {
-            id: card.id.unwrap(),
-            title: card.title,
-            description: card.description,
-            stack_id: card.stack_id,
-            region_image_id: card.region_image_id,
-        },
-    );
-    create_markers_from_marker_dtos(card.id.unwrap(), card.markers, conn);
-
-    return true;
-}
-
-fn create_markers_from_marker_dtos(
-    card_id: i32,
-    markers: Vec<MarkerDTO>,
-    conn: &mut SqliteConnection,
-) {
-    for marker in markers.iter() {
-        match marker.id {
-            Some(id) => query_update_marker(
-                conn,
-                Marker {
-                    id,
-                    card_id,
-                    latitude: marker.latitude,
-                    longitude: marker.longitude,
-                    radius: marker.radius,
-                    icon_name: marker.icon_name.clone(),
-                },
-            ),
-            None => {
-                let _ = query_create_marker(conn, card_id, marker);
-            }
-        }
-    }
-}
-
-#[tauri::command]
-fn count_cards() -> i64 {
-    let conn = &mut establish_connection();
-    query_count_cards(conn)
-}
-
 #[tauri::command]
 fn delete_card(id: i32) {
     let conn = &mut establish_connection();
-    query_delete_all_markers_for_card(conn, id);
-    let _ = query_delete_card(conn, id);
+    let _ = query_delete_unified_card(conn, id);
 }
 
-#[tauri::command]
-fn delete_marker(marker_id: i32) {
-    let conn = &mut establish_connection();
-    query_delete_marker(conn, marker_id);
-}
-
-
-
-#[tauri::command]
-fn read_markers_in_area(north: f32, east: f32, south: f32, west: f32) -> Vec<Marker> {
-    let conn = &mut establish_connection();
-    let results = query_markers_in_geological_area(conn, north, east, south, west);
-    results
-}
-
-#[tauri::command]
-fn read_marker(id: i32) -> Marker {
-    let conn = &mut establish_connection();
-    query_marker_by_id(conn, id)
-}
-// TODO Add mehtod that sends number of entries!
-
-#[tauri::command]
-fn update_marker(marker: Marker) {
-    let conn = &mut establish_connection();
-    query_update_marker(conn, marker);
-}
 
 #[tauri::command]
 fn read_all_stacks() -> Vec<StackDTO> {
@@ -318,12 +199,18 @@ fn read_all_stacks() -> Vec<StackDTO> {
 }
 
 #[tauri::command]
-fn get_cards_in_stack(stack_id: i32) ->  (StackDTO, Vec<CardDTO>){
+fn read_cards_in_stack(stack_id: i32) ->  Result<(StackDTO, Vec<CardDTO>), String>{
     println!("stack_id: {}", stack_id);
     let conn = &mut establish_connection();
-    let cards = query_cards_in_stack(conn, stack_id);
+    let cards = query_unified_cards_in_stack(conn, stack_id).map(|cards| cards.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())?;
     let stack = query_stack_by_id(conn, stack_id);
-    (StackDTO::from(stack), cards)
+    Ok((StackDTO::from(stack), cards))
+}
+
+#[tauri::command]
+fn read_cards_by_title(title: String) -> Result<Vec<CardDTO>, String> {
+    let conn = &mut establish_connection();
+    query_unified_card_by_title(conn, title).map(|cards| cards.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
@@ -336,12 +223,6 @@ fn create_stack(stack: NewStack) -> Stack {
 fn update_stack(updated_stack: Stack) -> Stack {
     let conn = &mut establish_connection();
     query_update_stack(conn, &updated_stack)
-}
-
-#[tauri::command]
-fn create_marker(new_marker: MarkerDTO, card_id: i32) -> Marker {
-    let conn = &mut establish_connection();
-    query_create_marker(conn, card_id, &new_marker)
 }
 
 #[tauri::command]
@@ -408,7 +289,7 @@ fn read_image(image_id: i32) -> ImageDTO {
 fn delete_image(app_handle: AppHandle, image_name: &str, image_id: i32) -> Result<(), String> {
     let conn = &mut establish_connection();
     let image = persistence::images::query_read_image(conn, image_id);
-    persistence::cards::query_set_image_to_null(conn, image_id)?;
+    query_set_image_to_null(conn, image_id).map_err(|err| err.to_string())?;
     persistence::images::query_delete_image(conn, image_id)?;
     let delete_path = app_handle
         .path()
@@ -425,7 +306,7 @@ fn delete_image(app_handle: AppHandle, image_name: &str, image_id: i32) -> Resul
             return Err(e.to_string());
         }
     };
-    return Ok(());
+    Ok(())
 }
 
 #[tauri::command]
@@ -475,8 +356,186 @@ fn update_image_name(image_id: i32, new_name: String) {
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 5);
+    use crate::{create_stack, create_unified_card, read_card_by_id, read_cards_by_title, read_cards_in_area, read_cards_in_stack, update_card_unified, MIGRATIONS};
+    use app::establish_connection;
+    use app::models::{CardDTO, CardinalDirections, NewStack};
+    use assertor::{assert_that, IteratorAssertion};
+    use diesel_migrations::MigrationHarness;
+    use serial_test::serial;
+    use std::default::Default;
+    use std::env;
+    use std::fs;
+
+    fn given_test_card() -> CardDTO {
+        CardDTO {
+            id: None,
+            title: Some("My Title".to_string()),
+            description: Some("My Description".to_string()),
+            longitude:  2.690451,
+            latitude: 48.405937,
+            radius: Some(25.0),
+            icon_name: "IconMiscRed".to_string(),
+            ..Default::default()
+        }
     }
+    fn given_new_stack() -> NewStack {
+       NewStack {
+            name: "My French Stack".to_string(),
+            image_name: "french-flag.png".to_string()
+        }
+    }
+
+
+    struct TestDb {
+       name: String
+    }
+    impl TestDb {
+        fn initialize() -> Self {
+            let db_name = "testing.db".to_string();
+            println!("unique name: {}", db_name.clone() );
+            env::set_var("DB_PATH", db_name.clone());
+            let conn = &mut establish_connection();
+            conn.run_pending_migrations(MIGRATIONS).expect("Error running migrations");
+            Self {
+                name: db_name
+            }
+        }
+
+    }
+    impl Drop for TestDb {
+        fn drop(&mut self) {
+            let conn = &mut establish_connection();
+            conn.revert_all_migrations(MIGRATIONS).expect("Failed to revert migrations");
+            fs::remove_file(&self.name).expect("Failed to remove test database file");
+        }
+    }
+
+    fn given_database_has_card(card: CardDTO) -> CardDTO {
+        create_unified_card(card.clone()).expect(&format!("Error creating card {:?}", card))
+    }
+    fn initialize_test_env() -> TestDb{
+        TestDb::initialize()
+    }
+
+    fn given_a_stack(stack: Option<NewStack>) -> i32 {
+        match stack {
+            Some(stack) => create_stack(stack).id,
+            None => create_stack(given_new_stack()).id
+        }
+    }
+    #[test]
+    #[serial]
+    fn it_creates_a_card_with_all_properties_when_a_create_unified_card_command_is_received(){
+        let _test_env = initialize_test_env();
+        let titel = "a card".to_string();
+        let description = "a description".to_string();
+        let unified_card = CardDTO {
+            title: Some(titel.clone()),
+            description: Some(description.clone()),
+            longitude: 52.0,
+            latitude: 9.0,
+            stack_id: Some(1),
+            region_image_id: Some(1),
+            icon_name: "icon_default".to_string(),
+            ..CardDTO::default()
+        };
+
+        let created_card = create_unified_card(unified_card).expect("failed to create card!");
+        assert_ne!(created_card.id, None);
+        assert_eq!(created_card.title.unwrap(), titel);
+        assert_eq!(created_card.region_image_id.unwrap(), 1);
+        assert_eq!(created_card.stack_id.unwrap(), 1);
+        assert_eq!(created_card.description.unwrap(), description);
+        assert_eq!(created_card.longitude, 52.0);
+        assert_eq!(created_card.latitude, 9.0);
+        assert_eq!(created_card.icon_name, "icon_default");
+    }
+    #[test]
+    #[serial]
+    fn it_is_able_to_query_card_by_using_geo_boundaries(){
+        let _test_env = initialize_test_env();
+        let want_title = String::from("My wanted Card");
+        given_database_has_card(CardDTO::default());
+        given_database_has_card(CardDTO { title: Some(want_title.clone()), longitude: 10., latitude: 10., ..Default::default()});
+        let result = read_cards_in_area(CardinalDirections{north:11.0, east:11.0, south: 9., west:9.}).expect("could not read cards in area!");
+        assert_eq!(result.iter().len(), 1);
+        let card = result.get(0).expect("No card found in the result");
+        let got_title = card.title.as_ref().expect("No card title in the result");
+        assert_eq!(got_title, &want_title);
+    }
+    #[test]
+    #[serial]
+    fn it_is_able_to_query_a_card_by_using_its_id(){
+        let _test_env = initialize_test_env();
+        let want_card = given_test_card().clone();
+        let card_id = given_database_has_card(want_card.clone()).id.expect("id is empty");
+        let got_card = read_card_by_id(card_id).expect(&format!("Could not read card with id {}", card_id));
+        assert_eq!(got_card, CardDTO {id: Some(card_id),..want_card});
+    }
+    #[test]
+    #[serial]
+    fn it_should_exit_gracefully_when_id_was_not_found(){
+        let _test_env = initialize_test_env();
+        let got_card = read_card_by_id(1);
+        assert!(got_card.is_err());
+        assert_eq!(got_card.unwrap_err(), "Record not found");
+    }
+
+    #[test]
+    #[serial]
+    fn it_should_update_a_card(){
+        let _test_env = initialize_test_env();
+        let want_card = given_test_card().clone();
+        let card_id = given_database_has_card(want_card.clone()).id.expect("id is empty");
+        let update_card = CardDTO {
+            id: Some(card_id),
+            title: Some("My new Title".to_string()),
+            description: Some("a updated description, including more depth and details".to_string()),
+            longitude: 1.337,
+            latitude: -1.5,
+            radius: Some(99.9),
+            icon_name: "iconLimesSpecial".to_string(),
+            ..want_card
+        };
+        let update_result =update_card_unified(update_card.clone()).expect("update failed!");
+        assert!(update_result);
+        let got_card = read_card_by_id(card_id).expect("card not found");
+        assert_eq!(got_card, update_card);
+    }
+
+    #[test]
+    #[serial]
+    fn it_should_retrieve_all_cards_in_a_stack(){
+        let _test_env = initialize_test_env();
+        let stack_id = given_a_stack(None);
+        let number_of_cards_in_stack = 2;
+        given_database_has_card(CardDTO { stack_id: Some(stack_id), ..given_test_card().clone()});
+        given_database_has_card(CardDTO { stack_id: Some(stack_id), ..given_test_card().clone()});
+        given_database_has_card(CardDTO { stack_id: Some(stack_id+1), ..given_test_card().clone()});
+        let (stack, got_cards_in_stack) = read_cards_in_stack(stack_id).expect("Error reading cards in stack");
+        assert_eq!(got_cards_in_stack.iter().len(), number_of_cards_in_stack);
+    }
+
+    #[test]
+    #[serial]
+    fn it_should_retrieve_a_list_of_cards_with_matching_title_sorted_by_title(){
+        let _test_env = initialize_test_env();
+        let stack_id = given_a_stack(None);
+        let number_of_cards_in_stack = 2;
+        let title_monument_z = "Monument in Zentral Afrika".to_string();
+        let title_monument_a = "Monument in Ahrenshausen".to_string();
+        let title_church_a = "Kirche in Ahrenshausen".to_string();
+        given_database_has_card(CardDTO { title: Some(title_monument_z.clone()), ..given_test_card().clone()});
+        given_database_has_card(CardDTO {title: Some(title_monument_a.clone()), ..given_test_card().clone()});
+        given_database_has_card(CardDTO { title: Some(title_church_a.clone()), ..given_test_card().clone()});
+        let mut got_titles: Vec<String> = read_cards_by_title("Monument".to_string()).expect("Error could not retrieve cards with title").into_iter().map(|card| card.title.unwrap()).collect();
+        let mut want_titles: Vec<String> = vec![ title_monument_a.clone(), title_monument_z.clone()];
+        assert_that!(got_titles.into_iter()).contains_exactly_in_order(want_titles.into_iter());
+
+        got_titles = read_cards_by_title("Ahre".to_string()).expect("Error could not retrieve cards with title").into_iter().map(|card| card.title.unwrap()).collect();
+        want_titles =  vec![title_church_a, title_monument_a];
+        assert_that!(got_titles.into_iter()).contains_exactly_in_order(want_titles.into_iter());
+    }
+
+
 }

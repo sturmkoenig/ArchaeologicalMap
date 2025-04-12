@@ -2,15 +2,10 @@ import { Component, EventEmitter, Input, Output } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
-import {
-  ICONS,
-  IconService,
-  iconsSorted,
-} from "../../../services/icon.service";
+import { ICONS, IconService, iconsSorted } from "@service/icon.service";
 
 @Component({
   selector: "app-marker-button-toggle",
-  standalone: true,
   imports: [CommonModule, MatButtonModule, MatButtonToggleModule],
   template: `
     <mat-button-toggle-group
@@ -47,7 +42,7 @@ export class MarkerButtonToggleComponent {
   iconCategory!: keyof typeof iconsSorted;
 
   onSelectIcon(selectedIconType: ICONS) {
-    let icon: keyof typeof ICONS =
+    const icon: keyof typeof ICONS =
       IconService.getIconNameByPath(selectedIconType);
     this.selectedIcon.emit(icon);
   }
