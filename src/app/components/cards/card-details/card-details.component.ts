@@ -10,7 +10,6 @@ import { Card } from "@app/model/card";
 import { CardContentService } from "@service/card-content.service";
 import { CardDetailsStore } from "@app/state/card-details.store";
 import { ImageEntity } from "@app/model/image";
-import { Window } from "@tauri-apps/api/window";
 
 @Component({
   selector: "app-card-details",
@@ -38,10 +37,6 @@ export class CardDetailsComponent implements OnInit {
     this.currentStackId$ = this.cardDetailsStore.currentStackId$;
     this.card$ = this.cardDetailsStore.currentCard$;
     this.regionImage$ = this.cardDetailsStore.currentImage$;
-    this.cardDetailsStore.currentStack$.subscribe(async (stack) => {
-      await Window.getCurrent().setTitle(stack?.name ?? "");
-    });
-
     listen("tauri://focus", async () => {
       this.cardContentService.cardContent.next(this.editor.getContents());
       await this.cardContentService.saveCardContent();
