@@ -25,7 +25,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use crate::persistence::images::query_update_image;
 use crate::persistence::stacks::query_stack_by_id;
-use crate::persistence::card::{query_cards_in_geological_area, query_create_unified_card, query_delete_unified_card, query_set_image_to_null, query_unified_card_by_id, query_unified_card_by_title, query_unified_cards_in_stack, query_update_unified_card};
+use crate::persistence::card::{query_cards, query_cards_in_geological_area, query_create_unified_card, query_delete_unified_card, query_set_image_to_null, query_unified_card_by_id, query_unified_card_by_title, query_unified_cards_in_stack, query_update_unified_card};
 use app::establish_connection;
 use std::env;
 use std::fs;
@@ -56,11 +56,13 @@ fn main() {
             update_card_unified,
             create_unified_card,
             delete_card,
+            read_cards,
 
             create_stack,
             update_stack,
             delete_stack,
             read_all_stacks,
+
 
             create_image,
             read_image,
@@ -120,7 +122,13 @@ fn read_cards_in_area(cardinal_directions: CardinalDirections) -> Result<Vec<Car
     let conn = &mut establish_connection();
 
     query_cards_in_geological_area(conn, cardinal_directions).map(|res|
-        res.into_iter().map(CardDTO::from).collect::<Vec<CardDTO>>()).map_err(|err| err.to_string())
+        res.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())
+}
+
+#[tauri::command]
+fn read_cards() -> Result<Vec<CardDTO>, String> {
+    let conn = &mut establish_connection();
+    query_cards(conn).map(|cards| cards.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
@@ -358,10 +366,10 @@ fn update_image_name(image_id: i32, new_name: String) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{create_stack, create_unified_card, read_card_by_id, read_cards_by_title, read_cards_in_area, read_cards_in_stack, update_card_unified, MIGRATIONS};
+    use crate::{create_stack, create_unified_card, read_card_by_id, read_cards, read_cards_by_title, read_cards_in_area, read_cards_in_stack, update_card_unified, MIGRATIONS};
     use app::establish_connection;
-    use app::models::{CardDTO, CardinalDirections, NewStack};
-    use assertor::{assert_that, IteratorAssertion};
+    use app::models::{Card, CardDTO, CardinalDirections, NewStack};
+    use assertor::{assert_that, IteratorAssertion, VecAssertion};
     use diesel_migrations::MigrationHarness;
     use serial_test::serial;
     use std::default::Default;
@@ -537,6 +545,22 @@ mod tests {
         got_titles = read_cards_by_title("Ahre".to_string()).expect("Error could not retrieve cards with title").into_iter().map(|card| card.title.unwrap()).collect();
         want_titles =  vec![title_church_a, title_monument_a];
         assert_that!(got_titles.into_iter()).contains_exactly_in_order(want_titles.into_iter());
+    }
+    #[test]
+    #[serial]
+    fn it_should_load_all_cards(){
+        let _test_env = initialize_test_env();
+        let stack_id = given_a_stack(None);
+        let number_of_cards_in_stack = 2;
+        let card1 = CardDTO { title: Some("A".to_string()), ..given_test_card().clone()};
+        let card2 = CardDTO { title: Some("B".to_string()), ..given_test_card().clone()};
+        let card3 = CardDTO { title: Some("C".to_string()), ..given_test_card().clone()};
+        given_database_has_card(card1.clone());
+        given_database_has_card(card2.clone());
+        given_database_has_card(card3.clone());
+        let got_cards= read_cards().expect("Error could not retrieve cards with title");
+        let want_cards= vec![CardDTO{id: Some(1), ..card1},CardDTO{id: Some(2), ..card2},CardDTO{id:Some(3), ..card3}];
+        assert_that!(got_cards).contains_exactly(want_cards);
     }
 
 }

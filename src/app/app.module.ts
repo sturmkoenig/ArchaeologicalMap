@@ -51,6 +51,7 @@ import { OverviewMapService } from "@service/overview-map.service";
 import { NgOptimizedImage } from "@angular/common";
 import { MapSettingsComponent } from "./components/overview-map/map-settings/map-settings.component";
 import { CardListComponent } from "@app/components/cards/card-list/card-list.component";
+import { MaplibreComponent } from "@app/components/maplibre/maplibre.component";
 
 @NgModule({
   declarations: [
@@ -96,6 +97,7 @@ import { CardListComponent } from "@app/components/cards/card-list/card-list.com
     NgOptimizedImage,
     MapSettingsComponent,
     CardListComponent,
+    MaplibreComponent,
   ],
   providers: [
     StackStore,

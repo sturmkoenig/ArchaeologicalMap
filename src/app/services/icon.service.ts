@@ -173,6 +173,13 @@ export const iconsSorted = {
   ],
 };
 
+export const getIconPath = (iconType: keyof typeof ICONS): string => {
+  if (ICONS[iconType]) {
+    return ICONS[iconType];
+  }
+  return ICONS.iconMiscBlack;
+};
+
 @Injectable({
   providedIn: "root",
 })

@@ -88,3 +88,8 @@ pub fn query_set_image_to_null(conn: &mut SqliteConnection, image_id: i32) -> Qu
     .set(schema::card::region_image_id.eq(None::<i32>))
     .execute(conn)
 }
+
+pub fn query_cards(conn: &mut SqliteConnection) -> QueryResult<Vec<Card>> {
+    card::table().load::<Card>(conn)
+    
+}
