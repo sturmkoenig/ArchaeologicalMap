@@ -1,4 +1,13 @@
-import { Component, Input, OnInit } from "@angular/core";
+import {
+  AfterViewInit,
+  Component,
+  effect,
+  ElementRef,
+  OnInit,
+  signal,
+  ViewChild,
+  WritableSignal,
+} from "@angular/core";
 import Quill, { RangeStatic } from "quill";
 import ImageResize from "quill-image-resize-module";
 import { CardContentService } from "@service/card-content.service";
@@ -6,6 +15,9 @@ import QuillImageDropAndPaste, {
   ImageData as QuillImageData,
 } from "quill-image-drop-and-paste";
 import { SafeUrl } from "@angular/platform-browser";
+import { CardService } from "@service/card.service";
+import { Card } from "@app/model/card";
+import { createCardDetailsWindow } from "@app/util/window-util";
 
 interface IImageMeta {
   type: string;
@@ -87,7 +99,7 @@ Quill.register({ "formats/internal_link": LinkBlot });
   styleUrls: ["./editor.component.scss"],
   standalone: false,
 })
-export class EditorComponent implements OnInit {
+export class EditorComponent implements OnInit, AfterViewInit {
   toolbarOptions = [
     ["bold", "italic", "underline", "strike"], // toggled buttons
     ["blockquote", "code-block"],
@@ -114,11 +126,44 @@ export class EditorComponent implements OnInit {
     blobUrl: "",
     file: null,
   };
+  quill!: Quill;
+  searchText: WritableSignal<string> = signal("");
+  foundCards: WritableSignal<Card[]> = signal([]);
+  carrotPosition?: RangeStatic | null;
+  @ViewChild("editorContainer") editorContainer!: ElementRef;
 
-  constructor(cardContentService: CardContentService) {
+  constructor(
+    cardContentService: CardContentService,
+    cardService: CardService,
+  ) {
     cardContentService.cardContent.subscribe((content) => {
       if (content !== undefined) {
         this.setContents(content);
+      }
+    });
+    effect(async () => {
+      if (this.searchText() !== "")
+        this.foundCards.set(
+          await cardService.readCardByTitle(this.searchText(), 10),
+        );
+    });
+  }
+
+  ngAfterViewInit() {
+    const container = this.editorContainer.nativeElement;
+
+    container.addEventListener("click", async (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+
+      if (target.tagName === "A") {
+        event.preventDefault();
+        const cardId = Number(
+          target.getAttribute("href")?.replace("http://", ""),
+        );
+
+        if (!isNaN(cardId)) {
+          await createCardDetailsWindow(cardId);
+        }
       }
     });
   }
@@ -148,10 +193,6 @@ export class EditorComponent implements OnInit {
   stopPropagation($event: MouseEvent) {
     $event.stopPropagation();
   }
-  quill!: Quill;
-  @Input()
-  searchText: string = "";
-  carrotPosition?: RangeStatic | null;
 
   ngOnInit(): void {
     Quill.register("modules/imageDropAndPaste", QuillImageDropAndPaste);
@@ -180,7 +221,7 @@ export class EditorComponent implements OnInit {
       this.quill.getSelection()?.index ?? 0,
       title,
       "link",
-      "/cards/details?id=" + id,
+      `http://${id}`,
     );
   }
 }

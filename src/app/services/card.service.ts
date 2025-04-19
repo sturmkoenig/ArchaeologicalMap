@@ -30,8 +30,11 @@ export class CardService {
     return invoke("read_card_by_id", { id: cardId });
   }
 
-  readCardByTitle(titleFilter: string): Promise<Card[]> {
-    return invoke("read_cards_by_title", { title: titleFilter });
+  readCardByTitle(titleFilter: string, limit?: number): Promise<Card[]> {
+    return invoke("read_cards_by_title", {
+      title: titleFilter,
+      limit: limit ?? 1000,
+    });
   }
 
   updateCard(card: Card): Promise<boolean> {

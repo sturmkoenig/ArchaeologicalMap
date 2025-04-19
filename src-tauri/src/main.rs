@@ -210,9 +210,9 @@ fn read_cards_in_stack(stack_id: i32) ->  Result<(StackDTO, Vec<CardDTO>), Strin
 }
 
 #[tauri::command]
-fn read_cards_by_title(title: String) -> Result<Vec<CardDTO>, String> {
+fn read_cards_by_title(title: String, limit: i64) -> Result<Vec<CardDTO>, String> {
     let conn = &mut establish_connection();
-    query_unified_card_by_title(conn, title).map(|cards| cards.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())
+    query_unified_card_by_title(conn, title, limit).map(|cards| cards.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())
 }
 
 #[tauri::command]

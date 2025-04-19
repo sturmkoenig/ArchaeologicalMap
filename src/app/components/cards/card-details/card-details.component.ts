@@ -1,5 +1,5 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
+import { Component, HostListener, OnInit, ViewChild } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
 import { emit, listen } from "@tauri-apps/api/event";
 
 import { MatDialog } from "@angular/material/dialog";
@@ -32,6 +32,7 @@ export class CardDetailsComponent implements OnInit {
     public dialog: MatDialog,
     private cardContentService: CardContentService,
     public cardDetailsStore: CardDetailsStore,
+    private router: Router,
   ) {
     this.allCardsInStack$ = this.cardDetailsStore.allCardsInStack$;
     this.currentStackId$ = this.cardDetailsStore.currentStackId$;
