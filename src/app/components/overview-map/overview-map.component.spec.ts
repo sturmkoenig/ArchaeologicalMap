@@ -12,6 +12,7 @@ import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { By } from "@angular/platform-browser";
 import { Card } from "src/app/model/card";
 import * as TauriEvent from "@tauri-apps/api/event";
+import { listen } from "@tauri-apps/api/event";
 import { MapSettings, SettingService } from "@service/setting.service";
 import { NgIf } from "@angular/common";
 import { MapSettingsComponent } from "@app/components/overview-map/map-settings/map-settings.component";
@@ -21,6 +22,7 @@ import { readFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { StackStore } from "@app/state/stack.store";
 import { MarkerAM } from "@app/model/markerAM";
 import { DivIconOptions } from "leaflet";
+import { setWindowFocus } from "@app/util/window-util";
 
 jest.mock("@tauri-apps/api/event", () => {
   return {
@@ -33,7 +35,11 @@ jest.mock("@tauri-apps/api/window", () => ({
   getCurrentWindow: () => ({
     setTitle: jest.fn(),
     onCloseRequested: jest.fn(),
+    setFocus: jest.fn(),
   }),
+}));
+jest.mock("@app/util/window-util", () => ({
+  setWindowFocus: jest.fn(),
 }));
 
 jest.mock("@tauri-apps/api/webviewWindow", () => ({
@@ -46,6 +52,13 @@ jest.mock("@tauri-apps/plugin-fs", () => ({
   writeTextFile: jest.fn(),
   readFile: jest.fn(),
 }));
+const location: Location = window.location;
+// @ts-ignore
+delete window.location;
+window.location = {
+  ...location,
+  reload: jest.fn(),
+};
 
 describe("OverviewMapComponent", () => {
   let component: OverviewMapComponent;
@@ -62,6 +75,7 @@ describe("OverviewMapComponent", () => {
     deleteCard: jest.Mock;
     deleteMarker: jest.Mock;
   };
+  let listenSpy: jest.SpyInstance;
   let readFileMock: jest.Mock;
   let writeTextFileMock: jest.Mock;
   let mapSettings: MapSettings;
@@ -72,7 +86,7 @@ describe("OverviewMapComponent", () => {
       ...window.location,
       reload: jest.fn(),
     };
-    jest
+    listenSpy = jest
       .spyOn(TauriEvent, "listen")
       .mockImplementation((_eventName, _handler) => Promise.resolve(jest.fn()));
     markerServiceMock = {
@@ -134,6 +148,10 @@ describe("OverviewMapComponent", () => {
     component = fixture.componentInstance;
     await fixture.whenStable();
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it("should have mainLayerGroup property with mocked value", async () => {
@@ -240,6 +258,15 @@ describe("OverviewMapComponent", () => {
     );
   });
 
+  it("should pan to marker and focus the map when listener receives signal", async () => {
+    givenTheCard(testCardA);
+    whenIClickAButton("add-new-card");
+    await whenIClickTheMap();
+
+    whenPanToSignalIsReceived(testCardA);
+    expect(setWindowFocus).toHaveBeenCalled();
+  });
+
   const testCardA: Card = {
     id: 1,
     title: "a",
@@ -278,5 +305,14 @@ describe("OverviewMapComponent", () => {
     slider.dispatchEvent(new Event("dragEnd"));
     await fixture.whenStable();
     fixture.detectChanges();
+  };
+  const whenPanToSignalIsReceived = async (panToCard: Card) => {
+    listenSpy.mock.calls[0][1]({
+      payload: {
+        lat: panToCard.latitude,
+        lng: panToCard.longitude,
+        id: panToCard.id,
+      },
+    });
   };
 });

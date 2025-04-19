@@ -1,5 +1,6 @@
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { emit } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
 export const createCardDetailsWindow = async (cardId: number) => {
   const webview = new WebviewWindow(cardId.toString(), {
@@ -14,4 +15,8 @@ export const createCardDetailsWindow = async (cardId: number) => {
     console.log("created");
     webview.emit(`set-focus-to-${cardId}`);
   });
+};
+
+export const setWindowFocus = async () => {
+  await getCurrentWindow().setFocus();
 };

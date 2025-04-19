@@ -10,7 +10,7 @@ import {
 } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
-import { createCardDetailsWindow } from "@app/util/window-util";
+import { createCardDetailsWindow, setWindowFocus } from "@app/util/window-util";
 import {
   LatLng,
   latLng,
@@ -87,12 +87,15 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {
     this.unlistenPanTo = listen(
       "panTo",
-      (panToEvent: { payload: { lat: number; lng: number; id: number } }) => {
+      async (panToEvent: {
+        payload: { lat: number; lng: number; id: number };
+      }) => {
         const point: LatLng = new LatLng(
           panToEvent.payload.lat,
           panToEvent.payload.lng,
         );
         this.panToMarkerId = panToEvent.payload.id;
+        await setWindowFocus();
         this.map.flyTo(point, 14);
       },
     );
