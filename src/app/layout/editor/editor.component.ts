@@ -9,6 +9,7 @@ import {
   WritableSignal,
 } from "@angular/core";
 import Quill, { RangeStatic } from "quill";
+import Delta from "quill-delta";
 import { IImageMeta, registerQuillExtensions } from "@app/util/quill-util";
 import { CardContentService } from "@service/card-content.service";
 import { ImageData as QuillImageData } from "quill-image-drop-and-paste";
@@ -78,7 +79,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
         maxHeight: 320,
         quality: 0.7,
       })
-      .then((miniImageData: any) => {
+      .then((miniImageData: unknown) => {
         if (miniImageData instanceof QuillImageData) {
           this.quill.insertEmbed(
             this.quill.getSelection()?.index ?? 0,
@@ -111,11 +112,11 @@ export class EditorComponent implements OnInit, AfterViewInit {
       theme: "snow",
     });
   }
-  public setContents(delta: any): void {
+  public setContents(delta: Delta): void {
     this.quill.setContents(delta);
   }
 
-  public getContents(): any {
+  public getContents(): Delta {
     return this.quill.getContents();
   }
 
