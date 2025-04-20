@@ -11,9 +11,7 @@ import {
 import Quill, { RangeStatic } from "quill";
 import { IImageMeta, registerQuillExtensions } from "@app/util/quill-util";
 import { CardContentService } from "@service/card-content.service";
-import QuillImageDropAndPaste, {
-  ImageData as QuillImageData,
-} from "quill-image-drop-and-paste";
+import { ImageData as QuillImageData } from "quill-image-drop-and-paste";
 import { CardService } from "@service/card.service";
 import { Card } from "@app/model/card";
 import { createCardDetailsWindow } from "@app/util/window-util";
@@ -122,9 +120,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   onLink(id: number, title: string) {
-    console.log("onLink", `http://${id}`);
     this.quill.insertText(
-      this.quill.getSelection()?.index ?? 0,
+      this.carrotPosition?.index ?? 0,
       title,
       "link",
       `http://${id}`,
