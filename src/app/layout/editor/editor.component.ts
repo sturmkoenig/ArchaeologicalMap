@@ -9,89 +9,14 @@ import {
   WritableSignal,
 } from "@angular/core";
 import Quill, { RangeStatic } from "quill";
-import ImageResize from "quill-image-resize-module";
+import { IImageMeta, registerQuillExtensions } from "@app/util/quill-util";
 import { CardContentService } from "@service/card-content.service";
 import QuillImageDropAndPaste, {
   ImageData as QuillImageData,
 } from "quill-image-drop-and-paste";
-import { SafeUrl } from "@angular/platform-browser";
 import { CardService } from "@service/card.service";
 import { Card } from "@app/model/card";
 import { createCardDetailsWindow } from "@app/util/window-util";
-
-interface IImageMeta {
-  type: string;
-  dataUrl: string;
-  blobUrl: SafeUrl;
-  file: File | null;
-}
-
-Quill.register("modules/imageResize", ImageResize);
-
-const BaseImageFormat = Quill.import("formats/image");
-const ImageFormatAttributesList = ["alt", "height", "width", "style"];
-
-class ImageFormat extends BaseImageFormat {
-  static formats(domNode: any) {
-    return ImageFormatAttributesList.reduce(function (formats: any, attribute) {
-      if (domNode.hasAttribute(attribute)) {
-        formats[attribute] = domNode.getAttribute(attribute);
-      }
-      return formats;
-    }, {});
-  }
-  format(name: any, value: any) {
-    if (ImageFormatAttributesList.indexOf(name) > -1) {
-      if (value) {
-        this["domNode"].setAttribute(name, value);
-      } else {
-        this["domNode"].removeAttribute(name);
-      }
-    } else {
-      super.format(name, value);
-    }
-  }
-}
-
-Quill.register(ImageFormat, true);
-
-const Inline = Quill.import("blots/inline");
-class LinkBlot extends Inline {
-  static create(url: any) {
-    const node = super.create(url);
-    // node.setAttribute("routerLink", url);
-    node.setAttribute("href", url);
-    if (url.match("http")) {
-      node.setAttribute("target", "_self");
-    } else {
-      node.setAttribute("target", "_self");
-    }
-    node.setAttribute("title", node.textContent);
-    return node;
-  }
-
-  static formats(domNode: any) {
-    return domNode.getAttribute("href") || true;
-  }
-
-  format(name: any, value: any) {
-    if (name === "link" && value) {
-      this["domNode"].setAttribute("href", value);
-    } else {
-      super.format(name, value);
-    }
-  }
-
-  formats() {
-    const formats = super.formats();
-    formats["link"] = LinkBlot.formats(this["domNode"]);
-    return formats;
-  }
-}
-LinkBlot["blotName"] = "link";
-LinkBlot["tagName"] = "A";
-
-Quill.register({ "formats/internal_link": LinkBlot });
 
 @Component({
   selector: "app-editor",
@@ -100,26 +25,6 @@ Quill.register({ "formats/internal_link": LinkBlot });
   standalone: false,
 })
 export class EditorComponent implements OnInit, AfterViewInit {
-  toolbarOptions = [
-    ["bold", "italic", "underline", "strike"], // toggled buttons
-    ["blockquote", "code-block"],
-
-    [{ header: 1 }, { header: 2 }], // custom button values
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ script: "sub" }, { script: "super" }], // superscript/subscript
-    [{ indent: "-1" }, { indent: "+1" }], // outdent/indent
-    [{ direction: "rtl" }], // text direction
-
-    [{ size: ["small", false, "large", "huge"] }], // custom dropdown
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
-
-    [{ color: [] }, { background: [] }], // dropdown with defaults from theme
-    [{ font: [] }],
-    [{ align: [] }],
-
-    ["clean"], // remove formatting button
-  ];
-
   image: IImageMeta = {
     type: "",
     dataUrl: "",
@@ -195,7 +100,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    Quill.register("modules/imageDropAndPaste", QuillImageDropAndPaste);
+    registerQuillExtensions();
     this.quill = new Quill("#editor-container", {
       modules: {
         toolbar: "#toolbar",
@@ -217,6 +122,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   onLink(id: number, title: string) {
+    console.log("onLink", `http://${id}`);
     this.quill.insertText(
       this.quill.getSelection()?.index ?? 0,
       title,
