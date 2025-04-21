@@ -1,14 +1,7 @@
 import { Injectable } from "@angular/core";
 import { invoke } from "@tauri-apps/api/core";
 import Delta from "quill-delta";
-import {
-  BehaviorSubject,
-  EMPTY,
-  firstValueFrom,
-  of,
-  switchMap,
-  tap,
-} from "rxjs";
+import { BehaviorSubject, EMPTY, switchMap, tap } from "rxjs";
 
 @Injectable({
   providedIn: "root",

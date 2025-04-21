@@ -33,6 +33,7 @@
       <button
         style="dispay: flex; align-items: center; justify-content: center"
         [matMenuTriggerFor]="menu"
+        data-testid="link-button"
         (click)="saveCarrotPosition()"
       >
         <mat-icon
@@ -50,6 +51,7 @@
         <mat-form-field class="example-form-field">
           <mat-label>Suche</mat-label>
           <input
+            data-testid="card-title-search-input"
             matInput
             type="text"
             [(ngModel)]="searchText"
@@ -58,7 +60,11 @@
         </mat-form-field>
       </form>
       <ng-container *ngFor="let card of foundCards() | filterEmptyTitle">
-        <button mat-menu-item (click)="onLink(card.id!, card.title)">
+        <button
+          mat-menu-item
+          (click)="onLink(card.id!, card.title)"
+          [attr.data-testid]="'link-card-' + card.title"
+        >
           {{ card.title }}
         </button></ng-container
       >

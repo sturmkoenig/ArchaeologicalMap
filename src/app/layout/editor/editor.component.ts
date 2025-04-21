@@ -10,7 +10,11 @@ import {
 } from "@angular/core";
 import Quill, { RangeStatic } from "quill";
 import Delta from "quill-delta";
-import { IImageMeta, registerQuillExtensions } from "@app/util/quill-util";
+import {
+  createNewQuillInstance,
+  IImageMeta,
+  registerQuillExtensions,
+} from "@app/util/quill-util";
 import { CardContentService } from "@service/card-content.service";
 import { ImageData as QuillImageData } from "quill-image-drop-and-paste";
 import { CardService } from "@service/card.service";
@@ -51,6 +55,13 @@ export class EditorComponent implements OnInit, AfterViewInit {
           await cardService.readCardByTitle(this.searchText(), 10),
         );
     });
+  }
+
+  async ngOnInit() {
+    await registerQuillExtensions();
+    this.quill = createNewQuillInstance("#editor-container", () =>
+      this.imageHandler.bind(this),
+    );
   }
 
   ngAfterViewInit() {
@@ -98,20 +109,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
     $event.stopPropagation();
   }
 
-  ngOnInit(): void {
-    registerQuillExtensions();
-    this.quill = new Quill("#editor-container", {
-      modules: {
-        toolbar: "#toolbar",
-        imageResize: {},
-        imageDropAndPaste: {
-          handler: this.imageHandler.bind(this),
-        },
-      },
-      placeholder: "noch kein text..",
-      theme: "snow",
-    });
-  }
   public setContents(delta: Delta): void {
     this.quill.setContents(delta);
   }

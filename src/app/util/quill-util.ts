@@ -1,7 +1,7 @@
 import { SafeUrl } from "@angular/platform-browser";
-import Quill from "quill";
 import ImageResize from "quill-image-resize-module";
 import QuillImageDropAndPaste from "quill-image-drop-and-paste";
+import Quill from "quill";
 
 export interface IImageMeta {
   type: string;
@@ -10,7 +10,24 @@ export interface IImageMeta {
   file: File | null;
 }
 
-export const registerQuillExtensions = () => {
+export const createNewQuillInstance = (
+  containerName: string,
+  imageHandler: () => any,
+) =>
+  new Quill(containerName, {
+    modules: {
+      toolbar: "#toolbar",
+      imageResize: {},
+      imageDropAndPaste: {
+        handler: imageHandler(),
+      },
+    },
+    placeholder: "noch kein text..",
+    theme: "snow",
+  });
+
+export const registerQuillExtensions = async () => {
+  const Quill = (await import("quill")).default;
   Quill.register("modules/imageResize", ImageResize);
 
   const BaseImageFormat = Quill.import("formats/image");
