@@ -7,14 +7,15 @@ import {
 } from "@angular/animations";
 import {
   Component,
-  effect,
+  Input,
   model,
+  OnDestroy,
   OnInit,
   signal,
   WritableSignal,
 } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
-import { debounceTime, Subscription } from "rxjs";
+import { debounceTime, Observable, Subscription } from "rxjs";
 import { Card } from "@app/model/card";
 import { CardService } from "@service/card.service";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
@@ -24,7 +25,7 @@ import { MatTableModule } from "@angular/material/table";
 import { MatFormField, MatLabel } from "@angular/material/form-field";
 import { CommonModule } from "@angular/common";
 import { MatInputModule } from "@angular/material/input";
-import { emit, listen } from "@tauri-apps/api/event";
+import { emit, listen, UnlistenFn } from "@tauri-apps/api/event";
 import { MatDivider } from "@angular/material/divider";
 import { MatTooltip } from "@angular/material/tooltip";
 import { toObservable } from "@angular/core/rxjs-interop";
@@ -105,34 +106,45 @@ import { createCardDetailsWindow } from "@app/util/window-util";
     ]),
   ],
 })
-export class CardListComponent implements OnInit {
+export class CardListComponent implements OnInit, OnDestroy {
   allCards: WritableSignal<Card[]> = signal([]);
-  subscription!: Subscription;
-  debounceTime = 300;
+  subscription!: UnlistenFn;
+  @Input()
+  debounceTime?: number;
   filter = model<string>("");
+  filter$: Observable<string>;
 
   constructor(
     private cardService: CardService,
     public dialog: MatDialog,
   ) {
-    listen("card-deleted", (event: { payload: number }) => {
-      this.allCards.update((allCards) =>
-        allCards.reduce<Card[]>(
-          (acc, card) =>
-            card.id !== event.payload ? [...acc, ...[card]] : acc,
-          [],
-        ),
-      );
-    });
-    this.subscription = toObservable(this.filter)
-      .pipe(debounceTime(this.debounceTime))
-      .subscribe(async (filter) => {
-        this.allCards.set(await this.cardService.readCardByTitle(filter));
-      });
+    this.filter$ = toObservable(this.filter);
+  }
+
+  ngOnDestroy(): void {
+    this.subscription();
   }
 
   async ngOnInit() {
     this.allCards.set(await this.cardService.readCardByTitle(""));
+    console.log(this.debounceTime);
+    this.filter$
+      .pipe(debounceTime(this.debounceTime ?? 200))
+      .subscribe(async (filter) =>
+        this.allCards.set(await this.cardService.readCardByTitle(filter)),
+      );
+    this.subscription = await listen(
+      "card-deleted",
+      (event: { payload: number }) => {
+        this.allCards.update((allCards) =>
+          allCards.reduce<Card[]>(
+            (acc, card) =>
+              card.id !== event.payload ? [...acc, ...[card]] : acc,
+            [],
+          ),
+        );
+      },
+    );
   }
 
   async goToDetailsPage(cardId: number) {
