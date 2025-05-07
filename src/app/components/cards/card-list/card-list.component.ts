@@ -127,7 +127,6 @@ export class CardListComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.allCards.set(await this.cardService.readCardByTitle(""));
-    console.log(this.debounceTime);
     this.filter$
       .pipe(debounceTime(this.debounceTime ?? 200))
       .subscribe(async (filter) =>

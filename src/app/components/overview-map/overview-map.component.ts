@@ -78,7 +78,6 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   cardMetadata: Signal<CardMetaData | undefined>;
   editCard: Signal<Card | undefined>;
   private panToMarkerId?: number;
-
   constructor(
     private route: ActivatedRoute,
     private ngZone: NgZone,
