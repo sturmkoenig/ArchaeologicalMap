@@ -58,7 +58,10 @@ export class StackStore extends ComponentStore<StackState> {
       switchMap((newStack: StackPost) =>
         from(this.stackService.createStack(newStack)).pipe(
           tap({
-            next: (stack: Stack) => {
+            next: (stack?: Stack) => {
+              if (!stack) {
+                return;
+              }
               this.getImageUrl(stack.image_name).then((imageUrl) => {
                 if (imageUrl !== undefined) {
                   stack.image_name = imageUrl.toString();

@@ -100,8 +100,8 @@ import { MatButtonModule } from "@angular/material/button";
   ],
 })
 export class StackCreatorComponent {
-  stackName: string = "";
-  fileName: string = "";
+  stackName?: string;
+  fileName?: string;
   fileUrl$: BehaviorSubject<string> = new BehaviorSubject("");
 
   constructor(
@@ -137,9 +137,6 @@ export class StackCreatorComponent {
   }
 
   onSaveStack() {
-    if (this.stackName === "" || this.fileName === "") {
-      return;
-    }
     this.stackStore.createStack({
       name: this.stackName,
       image_name: this.fileName,
