@@ -1,5 +1,5 @@
-import { Component } from "@angular/core";
-import { MatDialog } from "@angular/material/dialog";
+import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { StackCreatorComponent } from "@app/components/stacks/stack-creator/stack-creator.component";
 import { Stack, StackPost } from "src/app/model/stack";
 import { Observable } from "rxjs";
@@ -9,17 +9,24 @@ import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 
-/**
- * @deprecated
- */
-
 @Component({
   imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule],
   selector: "app-stack-display",
   template: `
-    <div class="stack-display__container">
+    <div class="stack-display__container mt-7">
       <div class="gridbox">
-        <div *ngFor="let stack of stacks$ | async" class="card-container">
+        <button
+          mat-fab
+          aria-label="add a new stack button"
+          (click)="onAddStack()"
+        >
+          <mat-icon>add</mat-icon>
+        </button>
+        <div
+          [attr.data-testid]="'stack-card-' + stack.id"
+          *ngFor="let stack of stacks$ | async"
+          class="card-container"
+        >
           <mat-card class="card">
             <mat-card-header>
               <div mat-card-avatar class="example-header-image"></div>
@@ -31,34 +38,37 @@ import { MatButtonModule } from "@angular/material/button";
               src="{{ stack.image_name }}"
             />
             <mat-card-content> </mat-card-content>
-            <mat-card-actions class="card__actions">
+            <mat-card-actions class="card__actions gap-[10px]">
+              <button mat-icon-button (click)="onUpdateStack(stack)">
+                <mat-icon>menu_book</mat-icon>
+              </button>
               <button
-                mat-raised-button
-                color="primary"
+                [attr.data-testid]="'update-stack-button-' + stack.id"
+                mat-icon-button
+                (click)="onUpdateStack(stack)"
+              >
+                <mat-icon>update</mat-icon>
+              </button>
+              <button
+                class=" ml-auto"
+                mat-icon-button
+                [attr.data-testid]="'delete-stack-' + stack.id"
                 (click)="onDeleteStack(stack)"
               >
-                Loeschen
+                <mat-icon class="material-icons color_danger">delete</mat-icon>
               </button>
             </mat-card-actions>
           </mat-card>
-        </div>
-        <div>
-          <div class="example-button-container button-add">
-            <button
-              mat-fab
-              color="primary"
-              aria-label="Example icon button with a delete icon"
-              (click)="onAddStack()"
-            >
-              <mat-icon>add</mat-icon>
-            </button>
-          </div>
         </div>
       </div>
     </div>
   `,
   styles: [
     `
+      .material-icons.color_danger {
+        color: #f54257;
+      }
+
       .stack-display__container {
         display: flex;
         flex-direction: row;
@@ -81,9 +91,11 @@ import { MatButtonModule } from "@angular/material/button";
         height: 300px;
       }
       .gridbox {
+        width: 100%;
         display: flex;
-        flex-flow: row;
-        flex-wrap: wrap;
+        flex-flow: column;
+        justify-content: center;
+        align-items: center;
       }
       .gridbox > div {
         margin: 6px;
@@ -107,7 +119,7 @@ import { MatButtonModule } from "@angular/material/button";
     `,
   ],
 })
-export class StackDisplayComponent {
+export class StackListComponent {
   public stacks?: StackPost[];
   public stacks$: Observable<Stack[]>;
 
@@ -119,12 +131,39 @@ export class StackDisplayComponent {
   }
 
   onAddStack() {
-    this.dialog.open(StackCreatorComponent, {
-      enterAnimationDuration: "200ms",
-      exitAnimationDuration: "150ms",
-    });
+    this.dialog.open(StackCreatorComponent);
   }
   onDeleteStack(stack: Stack) {
-    this.stackStore.deleteStack(stack);
+    const dialogRef = this.dialog.open(DeleteStackDialogComponent);
+    dialogRef.afterClosed().subscribe((shouldDelete) => {
+      if (shouldDelete) {
+        this.stackStore.deleteStack(stack);
+      }
+    });
+  }
+  onUpdateStack(stack: Stack) {
+    const dialogRef = this.dialog.open(StackCreatorComponent, {
+      data: {
+        stack,
+      },
+    });
   }
 }
+
+@Component({
+  selector: "app-delete-stack-dialog",
+  template: `<mat-dialog-content
+      ><p>
+        Stapel löschen? Alle Karten in diesem Stapel sind danach ohne Stapel.
+      </p>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Abbrechen</button>
+      <button mat-button [mat-dialog-close]="true" cdkFocusInitial>
+        Löschen
+      </button>
+    </mat-dialog-actions> `,
+  imports: [MatDialogModule, MatButtonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class DeleteStackDialogComponent {}

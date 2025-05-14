@@ -41,6 +41,21 @@ export class StackService {
         return undefined;
       });
   }
+  updateStack(updatedStack: Stack): Promise<Stack | undefined> {
+    console.log("update stack", updatedStack);
+    if (!updatedStack.id) {
+      this.notificationService.createNotification({
+        text: "Stack kann nicht gespeichert werden",
+      });
+      return new Promise(() => undefined);
+    }
+    return invoke<Stack>("update_stack", { updatedStack }).catch(
+      (error: string) => {
+        this.notificationService.createNotification({ text: error });
+        return undefined;
+      },
+    );
+  }
   getAll(): Promise<Stack[]> {
     return invoke("read_all_stacks", {});
   }
@@ -51,6 +66,10 @@ export class StackService {
     stackIdToDelete: number,
     stackHeaderImage: string,
   ): Promise<void> {
-    return invoke("delete_stack", { stackId: stackIdToDelete });
+    return invoke<void>("delete_stack", { stackId: stackIdToDelete }).catch(
+      (error: string) => {
+        this.notificationService.createNotification({ text: error });
+      },
+    );
   }
 }

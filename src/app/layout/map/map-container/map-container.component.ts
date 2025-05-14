@@ -5,7 +5,7 @@ import { MatIcon } from "@angular/material/icon";
 import { OverviewMapComponent } from "@app/components/overview-map/overview-map.component";
 import { MatFabButton } from "@angular/material/button";
 import { CommonModule } from "@angular/common";
-import { StackDisplayComponent } from "@app/components/stacks/stack-list/stack-list.component";
+import { StackListComponent } from "@app/components/stacks/stack-list/stack-list.component";
 
 type AvailableSidebarViews = "card-list" | "stack-list";
 @Component({
@@ -17,7 +17,7 @@ type AvailableSidebarViews = "card-list" | "stack-list";
     CommonModule,
     OverviewMapComponent,
     MatFabButton,
-    StackDisplayComponent,
+    StackListComponent,
   ],
   template: `
     <div class="flex flex-col h-full">

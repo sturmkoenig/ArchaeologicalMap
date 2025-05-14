@@ -1,10 +1,9 @@
 import { Injectable } from "@angular/core";
 import { ComponentStore } from "@ngrx/component-store";
 import { Stack, StackPost } from "../model/stack";
-import { EMPTY, Observable, catchError, from, switchMap, tap } from "rxjs";
+import { catchError, EMPTY, from, Observable, switchMap, tap } from "rxjs";
 import { StackService } from "@service/stack.service";
-import { path } from "@tauri-apps/api";
-import { convertFileSrc } from "@tauri-apps/api/core";
+import { ImageService } from "@service/image.service";
 
 export interface StackState {
   stacks: Stack[];
@@ -22,6 +21,12 @@ export class StackStore extends ComponentStore<StackState> {
     stacks: stacks,
   }));
 
+  readonly setStack = this.updater((state, updateStack: Stack) => ({
+    stacks: state.stacks
+      .filter((stack) => stack.id !== updateStack.id)
+      .concat([updateStack]),
+  }));
+
   readonly deleteStackId = this.updater((state, stackIdToDelete: number) => ({
     stacks: state.stacks.filter((stack) => stack.id !== stackIdToDelete),
   }));
@@ -30,7 +35,7 @@ export class StackStore extends ComponentStore<StackState> {
     from(this.stackService.getAll()).pipe(
       tap((stacks: Stack[]) => {
         for (const stack of stacks) {
-          this.getImageUrl(stack.image_name).then((imageUrl) => {
+          this.imageService.getImageUrl(stack.image_name).then((imageUrl) => {
             if (imageUrl !== undefined) {
               stack.image_name = imageUrl.toString();
             }
@@ -53,37 +58,45 @@ export class StackStore extends ComponentStore<StackState> {
     );
   });
 
+  readonly updateStack = this.effect((updatedStack$: Observable<Stack>) => {
+    return updatedStack$.pipe(
+      switchMap((stack) => {
+        console.log("hi from store");
+        return from(this.stackService.updateStack(stack));
+      }),
+      tap((updatedStack?: Stack) => {
+        if (updatedStack) {
+          this.setStack(updatedStack);
+        }
+      }),
+    );
+  });
   readonly createStack = this.effect((newStack$: Observable<StackPost>) => {
     return newStack$.pipe(
       switchMap((newStack: StackPost) =>
-        from(this.stackService.createStack(newStack)).pipe(
-          tap({
-            next: (stack?: Stack) => {
-              if (!stack) {
-                return;
-              }
-              this.getImageUrl(stack.image_name).then((imageUrl) => {
-                if (imageUrl !== undefined) {
-                  stack.image_name = imageUrl.toString();
-                }
-                this.addStack(stack);
-              });
-            },
-            error: (e) => console.error(e),
-          }),
-          catchError(() => EMPTY),
-        ),
+        from(this.stackService.createStack(newStack)),
       ),
+      tap({
+        next: (stack?: Stack) => {
+          if (!stack) {
+            return;
+          }
+          this.imageService.getImageUrl(stack.image_name).then((imageUrl) => {
+            if (imageUrl !== undefined) {
+              stack.image_name = imageUrl.toString();
+            }
+            this.addStack(stack);
+          });
+        },
+        error: (e) => console.error(e),
+      }),
     );
   });
 
-  private async getImageUrl(image_name: string): Promise<void | string> {
-    const dataDir = await path.appDataDir();
-    const imagePath = await path.join(dataDir, "content", "images", image_name);
-    return convertFileSrc(imagePath);
-  }
-
-  constructor(private stackService: StackService) {
+  constructor(
+    private stackService: StackService,
+    private imageService: ImageService,
+  ) {
     super({ stacks: [] });
     this.loadStacks();
   }

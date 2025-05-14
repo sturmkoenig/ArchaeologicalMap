@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Subject } from "rxjs";
 
-type Notifcation = {
+type Notification = {
   text: string;
 };
 
@@ -9,9 +9,9 @@ type Notifcation = {
   providedIn: "root",
 })
 export class NotificationService {
-  notifications$ = new Subject<Notifcation>();
+  notifications$ = new Subject<Notification>();
 
-  createNotification(notification: Notifcation) {
+  createNotification(notification: Notification) {
     this.notifications$.next(notification);
   }
 }
