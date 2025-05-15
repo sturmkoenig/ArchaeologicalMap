@@ -16,7 +16,7 @@ import {
 } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { debounceTime, Observable, Subscription } from "rxjs";
-import { LocationCard } from "@app/model/card";
+import { InfoCard, isLocationCard, LocationCard } from "@app/model/card";
 import { CardService } from "@service/card.service";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatIconModule } from "@angular/material/icon";
@@ -71,6 +71,7 @@ import { createCardDetailsWindow } from "@app/util/window-util";
         <div data-testid="card-row" class="flex flex-direction items-center">
           <span class="flex-1 pl-5">{{ card.title }}</span>
           <button
+            *ngIf="isLocationCard(card)"
             [attr.data-testid]="'nav-to-card-' + card.id"
             class="flex-none"
             mat-icon-button
@@ -107,7 +108,7 @@ import { createCardDetailsWindow } from "@app/util/window-util";
   ],
 })
 export class CardListComponent implements OnInit, OnDestroy {
-  allCards: WritableSignal<LocationCard[]> = signal([]);
+  allCards: WritableSignal<(LocationCard | InfoCard)[]> = signal([]);
   subscription!: UnlistenFn;
   @Input()
   debounceTime?: number;
@@ -136,7 +137,7 @@ export class CardListComponent implements OnInit, OnDestroy {
       "card-deleted",
       (event: { payload: number }) => {
         this.allCards.update((allCards) =>
-          allCards.reduce<LocationCard[]>(
+          allCards.reduce<(LocationCard | InfoCard)[]>(
             (acc, card) =>
               card.id !== event.payload ? [...acc, ...[card]] : acc,
             [],
@@ -157,4 +158,6 @@ export class CardListComponent implements OnInit, OnDestroy {
       id: card.id,
     });
   }
+
+  protected readonly isLocationCard = isLocationCard;
 }

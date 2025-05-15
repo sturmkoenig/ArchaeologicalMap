@@ -6,6 +6,8 @@ import {
   CardinalDirection,
   fromCardDTO,
   toCardDTO,
+  InfoCard,
+  isLocationCard,
 } from "@app/model/card";
 import { Stack } from "@app/model/stack";
 import { emit } from "@tauri-apps/api/event";
@@ -28,7 +30,7 @@ export class CardService {
     return { stack: result[0], cards: result[1] };
   }
 
-  createCard(card: LocationCard): Promise<LocationCard> {
+  createCard(card: LocationCard | InfoCard): Promise<LocationCard> {
     return invoke("create_unified_card", {
       card: toCardDTO(card),
     });
@@ -39,10 +41,10 @@ export class CardService {
     const cardDTOs = await invoke<CardDTO[]>("read_cards_in_area", {
       cardinalDirections: directions,
     });
-    return cardDTOs.map(fromCardDTO);
+    return cardDTOs.map(fromCardDTO).filter(isLocationCard);
   }
 
-  async readCard(cardId: number): Promise<LocationCard> {
+  async readCard(cardId: number): Promise<LocationCard | InfoCard> {
     const cardDTO = await invoke<CardDTO>("read_card_by_id", { id: cardId });
     return fromCardDTO(cardDTO);
   }
@@ -50,7 +52,7 @@ export class CardService {
   async readCardByTitle(
     titleFilter: string,
     limit?: number,
-  ): Promise<LocationCard[]> {
+  ): Promise<(LocationCard | InfoCard)[]> {
     const cardDTOs = await invoke<CardDTO[]>("read_cards_by_title", {
       title: titleFilter,
       limit: limit ?? 1000,

@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { emit, listen } from "@tauri-apps/api/event";
 
@@ -6,10 +6,11 @@ import { MatDialog } from "@angular/material/dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Observable } from "rxjs";
 import { EditorComponent } from "@app/layout/editor/editor.component";
-import { LocationCard } from "@app/model/card";
+import { Card, LocationCard } from "@app/model/card";
 import { CardContentService } from "@service/card-content.service";
 import { CardDetailsStore } from "@app/state/card-details.store";
 import { ImageEntity } from "@app/model/image";
+import { isLocationCard } from "@app/model/card";
 
 @Component({
   selector: "app-card-details",
@@ -19,11 +20,11 @@ import { ImageEntity } from "@app/model/image";
 })
 export class CardDetailsComponent implements OnInit {
   cardId!: number;
-  card$!: Observable<LocationCard | undefined>;
+  card$!: Observable<Card | undefined>;
 
   @ViewChild(EditorComponent)
   editor!: EditorComponent;
-  allCardsInStack$: Observable<LocationCard[]>;
+  allCardsInStack$: Observable<Card[]>;
   currentStackId$: Observable<number | undefined>;
   regionImage$: Observable<ImageEntity | undefined>;
 
@@ -81,4 +82,6 @@ export class CardDetailsComponent implements OnInit {
       id: card.id ?? 0,
     });
   }
+
+  protected readonly isLocationCard = isLocationCard;
 }

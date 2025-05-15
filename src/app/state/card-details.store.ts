@@ -10,7 +10,7 @@ import {
   switchMap,
   tap,
 } from "rxjs";
-import { LocationCard } from "../model/card";
+import { Card } from "../model/card";
 import { CardService } from "@service/card.service";
 import { ImageEntity } from "../model/image";
 import { ImageService } from "@service/image.service";
@@ -26,12 +26,12 @@ export type CardDetailsState =
   | {
       status: status.loaded;
       currentStackId?: number;
-      previousCard?: LocationCard;
-      currentCard: LocationCard;
+      previousCard?: Card;
+      currentCard: Card;
       currentImage?: ImageEntity;
       currentStack?: Stack;
-      nextCard?: LocationCard;
-      cardsInStack: LocationCard[];
+      nextCard?: Card;
+      cardsInStack: Card[];
     }
   | {
       status: status.loading;
@@ -41,11 +41,11 @@ export type CardDetailsState =
 @Injectable()
 export class CardDetailsStore extends ComponentStore<CardDetailsState> {
   private calculateNextAndPreviousCard(
-    allCardsInStack: LocationCard[],
+    allCardsInStack: Card[],
     currentCardIndex: number,
-  ): { previousCard?: LocationCard; nextCard?: LocationCard } {
-    let previousCard: LocationCard | undefined = undefined;
-    let nextCard: LocationCard | undefined = undefined;
+  ): { previousCard?: Card; nextCard?: Card } {
+    let previousCard: Card | undefined = undefined;
+    let nextCard: Card | undefined = undefined;
 
     if (currentCardIndex > 0 && currentCardIndex < allCardsInStack.length) {
       previousCard = allCardsInStack[currentCardIndex - 1];

@@ -18,7 +18,7 @@ import {
 import { CardContentService } from "@service/card-content.service";
 import { ImageData as QuillImageData } from "quill-image-drop-and-paste";
 import { CardService } from "@service/card.service";
-import { LocationCard } from "@app/model/card";
+import { InfoCard, LocationCard } from "@app/model/card";
 import { createCardDetailsWindow } from "@app/util/window-util";
 
 @Component({
@@ -36,7 +36,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   };
   quill!: Quill;
   searchText: WritableSignal<string> = signal("");
-  foundCards: WritableSignal<LocationCard[]> = signal([]);
+  foundCards: WritableSignal<(InfoCard | LocationCard)[]> = signal([]);
   carrotPosition?: RangeStatic | null;
   @ViewChild("editorContainer") editorContainer!: ElementRef;
 

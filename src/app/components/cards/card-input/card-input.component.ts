@@ -1,5 +1,5 @@
 import { Component, effect, model } from "@angular/core";
-import { CardMetaData } from "@app/model/card";
+import { InfoCard } from "@app/model/card";
 import { StackStore } from "@app/state/stack.store";
 import { Observable } from "rxjs";
 import { Stack } from "@app/model/stack";
@@ -124,7 +124,7 @@ import { AsyncPipe, NgForOf } from "@angular/common";
   `,
 })
 export class CardInputComponent {
-  card = model.required<CardMetaData>();
+  card = model.required<InfoCard>();
   stacks$: Observable<Stack[]>;
   image?: ImageEntity;
 
@@ -143,7 +143,7 @@ export class CardInputComponent {
     });
   }
 
-  cloneCard(card: CardMetaData, override: Partial<CardMetaData>): CardMetaData {
+  cloneCard(card: InfoCard, override: Partial<InfoCard>): InfoCard {
     return { ...card, ...override };
   }
 

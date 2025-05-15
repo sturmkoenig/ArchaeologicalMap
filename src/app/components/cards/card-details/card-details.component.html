@@ -32,6 +32,7 @@
             <div class="card--content_navigate-to-position-button">
               @if (regionImage$ | async) {
                 <button
+                  *ngIf="isLocationCard(card)"
                   class="region-image-button"
                   data-testid="show-on-map-button"
                   (click)="panToLatLng(card)"
@@ -46,6 +47,7 @@
                 <button
                   mat-mini-fab
                   color="warn"
+                  *ngIf="isLocationCard(card)"
                   data-testid="show-on-map-button"
                   (click)="panToLatLng(card)"
                   aria-label="Example icon button with a home icon"
