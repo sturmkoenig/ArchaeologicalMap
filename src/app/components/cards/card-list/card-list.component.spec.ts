@@ -41,7 +41,7 @@ const testCards: Card[] = [
     description: "schöne Lage",
     latitude: 0,
     longitude: 0,
-    icon_name: "iconCaveBlack",
+    iconName: "iconCaveBlack",
     radius: 0,
   },
   {
@@ -50,7 +50,7 @@ const testCards: Card[] = [
     description: "schöne Lage",
     latitude: 0,
     longitude: 0,
-    icon_name: "iconCaveBlack",
+    iconName: "iconCaveBlack",
     radius: 0,
   },
   {
@@ -59,7 +59,7 @@ const testCards: Card[] = [
     description: "schöne Lage",
     latitude: 0,
     longitude: 0,
-    icon_name: "iconCaveBlack",
+    iconName: "iconCaveBlack",
     radius: 0,
   },
 ];
@@ -205,7 +205,7 @@ describe("CardListComponent", () => {
     const cardWithPosition: Card = {
       id: 420,
       description: "The best boulders in town",
-      icon_name: "iconMiscRed",
+      iconName: "iconMiscRed",
       latitude: 48.404675,
       longitude: 2.70162,
       radius: 0,

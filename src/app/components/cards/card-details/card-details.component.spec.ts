@@ -40,7 +40,7 @@ jest.mock("@tauri-apps/api/webviewWindow", () => ({
 const defaultCard: Card = {
   description: "A simple test card",
   id: 1,
-  icon_name: "iconBorderLimesRed",
+  iconName: "iconBorderLimesRed",
   radius: 0,
   latitude: 0,
   longitude: 0,
@@ -50,21 +50,21 @@ const testStack: Card[] = [
   {
     description: "",
     id: 2,
-    stack_id: 1,
+    stackId: 1,
     radius: 0,
     latitude: 0,
     longitude: 0,
-    icon_name: "iconBorderLimesRed",
+    iconName: "iconBorderLimesRed",
     title: "A. First card.",
   },
   {
     description: "",
     id: 3,
-    stack_id: 1,
+    stackId: 1,
     radius: 0,
     latitude: 0,
     longitude: 0,
-    icon_name: "iconBorderLimesRed",
+    iconName: "iconBorderLimesRed",
     title: "B. Last card.",
   },
 ];
@@ -220,7 +220,7 @@ describe("CardDetailsComponent", () => {
 
   it("should pan to a single marker of a card", async () => {
     const givenMarker: LocationData = {
-      icon_name: "iconBorderLimesRed",
+      iconName: "iconBorderLimesRed",
       radius: 0,
       latitude: 0,
       longitude: 0,

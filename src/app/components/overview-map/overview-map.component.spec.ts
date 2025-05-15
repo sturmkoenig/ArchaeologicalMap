@@ -165,7 +165,7 @@ describe("OverviewMapComponent", () => {
       longitude: expect.any(Number),
       latitude: expect.any(Number),
       radius: 0,
-      icon_name: "iconMiscRed",
+      iconName: "iconMiscRed",
     });
     expect(component.selectedLayerGroup.getLayers().length).toBe(1);
   });
@@ -274,7 +274,7 @@ describe("OverviewMapComponent", () => {
     latitude: 1,
     longitude: 1,
     radius: 0,
-    icon_name: "iconMiscRed",
+    iconName: "iconMiscRed",
   };
 
   const givenTheCard = (card: Card) => {

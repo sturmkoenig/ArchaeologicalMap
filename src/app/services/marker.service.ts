@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { LatLng, LatLngBounds } from "leaflet";
-import { LocationData, MarkerDB } from "src/app/model/card";
+import { LocationData } from "src/app/model/card";
 import { CardService } from "./card.service";
 import { IconKeys, IconService } from "./icon.service";
 import { MarkerAM } from "@app/model/markerAM";
@@ -24,7 +24,7 @@ export class MarkerService {
   async getMarker(markerId: number): Promise<MarkerAM> {
     return this.cardService.readCard(markerId).then((card) => {
       return new MarkerAM([card.latitude, card.longitude], {}, card, {
-        iconSize: this.iconSizeMap.get(card.icon_name),
+        iconSize: this.iconSizeMap.get(card.iconName),
       });
     });
   }
@@ -38,7 +38,7 @@ export class MarkerService {
     });
     return markersDB.map((card) => {
       return new MarkerAM([card.latitude, card.longitude], {}, card, {
-        iconSize: this.iconSizeMap.get(card.icon_name),
+        iconSize: this.iconSizeMap.get(card.iconName),
       });
     });
   }

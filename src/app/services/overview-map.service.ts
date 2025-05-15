@@ -73,7 +73,7 @@ export class OverviewMapService {
     const newCard: Card = {
       title: "",
       description: "",
-      icon_name: "iconMiscRed",
+      iconName: "iconMiscRed",
       radius: 0.0,
       latitude: latLng.lat,
       longitude: latLng.lng,
@@ -100,7 +100,7 @@ export class OverviewMapService {
     };
     this.selectedMarker.set(
       new MarkerAM([newCard.latitude, newCard.longitude], {}, newCard, {
-        iconSize: this.iconSizeMap.get(newCard.icon_name),
+        iconSize: this.iconSizeMap.get(newCard.iconName),
       }),
     );
     this.cardService.updateCard(newCard);

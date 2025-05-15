@@ -76,7 +76,7 @@ import { AsyncPipe, NgForOf } from "@angular/common";
         <mat-form-field>
           <mat-label>Stapel:</mat-label>
           <mat-select
-            [value]="card().stack_id"
+            [value]="card().stackId"
             (valueChange)="onStackIdChange($event)"
           >
             <mat-option
@@ -136,7 +136,7 @@ export class CardInputComponent {
     this.stacks$ = stackStore.stacks$;
     effect(() => {
       this.imageService
-        .readImage(this.card().region_image_id)
+        .readImage(this.card().regionImageId)
         .then((image: ImageEntity) => {
           this.image = image;
         });
@@ -153,7 +153,7 @@ export class CardInputComponent {
     });
     dialogRef.afterClosed().subscribe((result: ImageEntity) => {
       this.image = result;
-      this.card().region_image_id = result.id;
+      this.card().regionImageId = result.id;
     });
   }
 
@@ -164,13 +164,13 @@ export class CardInputComponent {
     dialogRef.afterClosed().subscribe((image: ImageEntity) => {
       this.image = image;
       this.card.update((card) =>
-        this.cloneCard(card, { region_image_id: image.id }),
+        this.cloneCard(card, { regionImageId: image.id }),
       );
     });
   }
 
   onStackIdChange(newStackId: number) {
-    this.card.update((card) => this.cloneCard(card, { stack_id: newStackId }));
+    this.card.update((card) => this.cloneCard(card, { stackId: newStackId }));
   }
 
   onTitleChange(newTitle: string) {

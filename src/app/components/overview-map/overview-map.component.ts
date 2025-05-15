@@ -101,8 +101,8 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cardMetadata = computed(() => ({
       title: this.editCard()?.title ?? "",
       description: this.editCard()?.description ?? "",
-      stack_id: this.editCard()?.stack_id,
-      region_image_id: this.editCard()?.region_image_id,
+      stackId: this.editCard()?.stackId,
+      regionImageId: this.editCard()?.regionImageId,
     }));
     this.mainLayerGroup = this.overviewMapService.mainLayerGroup;
     this.selectedLayerGroup = this.overviewMapService.selectedLayerGroup;

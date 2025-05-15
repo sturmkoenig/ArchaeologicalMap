@@ -138,7 +138,7 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
     );
     return combineLatest([card$, this.currentStackId$]).pipe(
       switchMap(([card, currentStackId]) => {
-        if (card.stack_id === undefined || card.stack_id === null) {
+        if (card.stackId === undefined || card.stackId === null) {
           this.setAllCards(
             of({
               status: status.loaded,
@@ -149,12 +149,12 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
           return EMPTY;
         }
 
-        if (currentStackId && currentStackId === card.stack_id) {
+        if (currentStackId && currentStackId === card.stackId) {
           this.updateCurrentCard(card.id!);
           return EMPTY;
         }
 
-        return from(this.cardService.getAllCardsForStack(card.stack_id)).pipe(
+        return from(this.cardService.getAllCardsForStack(card.stackId)).pipe(
           map((cards) => ({
             cards: cards.cards,
             stack: cards.stack,
@@ -179,7 +179,7 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
           this.setAllCards({
             status: status.loaded,
             previousCard: previousCard,
-            currentStackId: card.stack_id ?? undefined,
+            currentStackId: card.stackId ?? undefined,
             currentStack: stack,
             nextCard: nextCard,
             currentCard: card,
@@ -229,7 +229,7 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
         state.cardsInStack,
         currentCardIndex,
       );
-      const imageId = state.cardsInStack[currentCardIndex].region_image_id;
+      const imageId = state.cardsInStack[currentCardIndex].regionImageId;
       this.updateCurrentImage(imageId);
       return {
         ...state,

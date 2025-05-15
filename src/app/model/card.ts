@@ -7,14 +7,19 @@ export interface CardinalDirection {
   west: number;
 }
 
-export interface MarkerLatLng {
+export interface Card {
+  id?: number;
+  title: string;
+  description: string;
   latitude: number;
   longitude: number;
+  regionImageId?: number;
+  iconName: keyof typeof ICONS;
   radius: number;
-  icon_name: keyof typeof ICONS;
+  stackId?: number;
 }
 
-export interface Card {
+export interface CardDTO {
   id?: number;
   title: string;
   description: string;
@@ -25,32 +30,36 @@ export interface Card {
   radius: number;
   stack_id?: number;
 }
-/** @deprecated */
-export interface CardDB {
-  id?: number;
-  title: string;
-  description: string;
-  markers: MarkerDB[];
-  region_image_id?: number;
-  stack_id?: number | null;
-}
 
-/** @deprecated */
-export interface MarkerDB {
-  id?: number;
-  card_id?: number;
-  card?: CardDB;
-  longitude: number;
-  latitude: number;
-  radius: number;
-  icon_name: keyof typeof ICONS;
-}
+export const fromCardDTO = (cardDTO: CardDTO): Card => ({
+  id: cardDTO.id,
+  title: cardDTO.title,
+  description: cardDTO.description,
+  latitude: cardDTO.latitude,
+  longitude: cardDTO.longitude,
+  regionImageId: cardDTO.region_image_id,
+  iconName: cardDTO.icon_name,
+  radius: cardDTO.radius,
+  stackId: cardDTO.stack_id,
+});
+
+export const toCardDTO = (card: Card): CardDTO => ({
+  id: card.id,
+  title: card.title,
+  description: card.description,
+  latitude: card.latitude,
+  longitude: card.longitude,
+  region_image_id: card.regionImageId,
+  icon_name: card.iconName,
+  radius: card.radius,
+  stack_id: card.stackId,
+});
 
 export type CardMetaData = Pick<
   Card,
-  "title" | "description" | "region_image_id" | "stack_id"
+  "title" | "description" | "regionImageId" | "stackId"
 >;
 export type LocationData = Pick<
   Card,
-  "latitude" | "longitude" | "radius" | "icon_name"
+  "latitude" | "longitude" | "radius" | "iconName"
 >;

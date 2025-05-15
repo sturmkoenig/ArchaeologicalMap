@@ -36,7 +36,7 @@ describe("OverviewMapService", () => {
       {},
       {
         id: card.id ?? 0,
-        icon_name: card.icon_name ?? "iconMiscRed",
+        iconName: card.iconName ?? "iconMiscRed",
         radius: card.radius,
       },
     );
@@ -191,14 +191,14 @@ describe("OverviewMapService", () => {
   });
 
   it("should create new marker+card and select it", async () => {
-    const cardMock = {
+    const cardMock: Card = {
       id: 0,
       title: "",
       description: "",
       latitude: 0,
       longitude: 0,
       radius: 0,
-      icon_name: "iconMiscRed",
+      iconName: "iconMiscRed",
     };
     cardServiceMock.createCard.mockResolvedValue(cardMock);
     await service.addNewCard(new LatLng(0, 0));
