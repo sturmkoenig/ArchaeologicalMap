@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { invoke } from "@tauri-apps/api/core";
 import {
-  Card,
+  LocationCard,
   CardDTO,
   CardinalDirection,
   fromCardDTO,
@@ -18,31 +18,39 @@ export class CardService {
   constructor(private notificationService: NotificationService) {}
   async getAllCardsForStack(
     stack_id: number,
-  ): Promise<{ stack: Stack; cards: Card[] }> {
-    const result = await invoke<[Stack, Card[]]>("read_cards_in_stack", {
-      stackId: stack_id,
-    });
+  ): Promise<{ stack: Stack; cards: LocationCard[] }> {
+    const result = await invoke<[Stack, LocationCard[]]>(
+      "read_cards_in_stack",
+      {
+        stackId: stack_id,
+      },
+    );
     return { stack: result[0], cards: result[1] };
   }
 
-  createCard(card: Card): Promise<Card> {
+  createCard(card: LocationCard): Promise<LocationCard> {
     return invoke("create_unified_card", {
       card: toCardDTO(card),
     });
   }
-  async readCardsInArea(directions: CardinalDirection): Promise<Card[]> {
+  async readCardsInArea(
+    directions: CardinalDirection,
+  ): Promise<LocationCard[]> {
     const cardDTOs = await invoke<CardDTO[]>("read_cards_in_area", {
       cardinalDirections: directions,
     });
     return cardDTOs.map(fromCardDTO);
   }
 
-  async readCard(cardId: number): Promise<Card> {
+  async readCard(cardId: number): Promise<LocationCard> {
     const cardDTO = await invoke<CardDTO>("read_card_by_id", { id: cardId });
     return fromCardDTO(cardDTO);
   }
 
-  async readCardByTitle(titleFilter: string, limit?: number): Promise<Card[]> {
+  async readCardByTitle(
+    titleFilter: string,
+    limit?: number,
+  ): Promise<LocationCard[]> {
     const cardDTOs = await invoke<CardDTO[]>("read_cards_by_title", {
       title: titleFilter,
       limit: limit ?? 1000,
@@ -50,7 +58,7 @@ export class CardService {
     return cardDTOs.map(fromCardDTO);
   }
 
-  async updateCard(card: Card): Promise<boolean> {
+  async updateCard(card: LocationCard): Promise<boolean> {
     const success = await invoke<boolean>("update_card_unified", {
       card: toCardDTO(card),
     });
@@ -65,10 +73,9 @@ export class CardService {
   async deleteCard(id: number): Promise<void> {
     await invoke("delete_card", {
       id: id,
-    }).catch((err) => {
-      (err: string) =>
-        this.notificationService.createNotification({ text: err });
-    });
+    }).catch((err: string) =>
+      this.notificationService.createNotification({ text: err }),
+    );
     return;
   }
 }

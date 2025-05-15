@@ -20,7 +20,7 @@ import {
   tileLayer,
 } from "leaflet";
 import "leaflet.markercluster";
-import { Card, CardMetaData, LocationData } from "@app/model/card";
+import { LocationCard, CardMetaData, LocationData } from "@app/model/card";
 import { MapSettings, SettingService } from "@service/setting.service";
 import { IconSizeSetting } from "@service/icon.service";
 import { OverviewMapService } from "@service/overview-map.service";
@@ -76,7 +76,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   unlistenPanTo: Promise<UnlistenFn>;
   selectedMarker: WritableSignal<MarkerAM | undefined>;
   cardMetadata: Signal<CardMetaData | undefined>;
-  editCard: Signal<Card | undefined>;
+  editCard: Signal<LocationCard | undefined>;
   private panToMarkerId?: number;
   constructor(
     private route: ActivatedRoute,

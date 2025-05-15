@@ -7,7 +7,7 @@ export interface CardinalDirection {
   west: number;
 }
 
-export interface Card {
+export interface LocationCard {
   id?: number;
   title: string;
   description: string;
@@ -31,8 +31,8 @@ export interface CardDTO {
   stack_id?: number;
 }
 
-export const fromCardDTO = (cardDTO: CardDTO): Card => ({
-  id: cardDTO.id,
+export const fromCardDTO = (cardDTO: CardDTO): LocationCard => ({
+  ...(cardDTO.id ? { id: cardDTO.id } : {}),
   title: cardDTO.title,
   description: cardDTO.description,
   latitude: cardDTO.latitude,
@@ -43,23 +43,24 @@ export const fromCardDTO = (cardDTO: CardDTO): Card => ({
   stackId: cardDTO.stack_id,
 });
 
-export const toCardDTO = (card: Card): CardDTO => ({
-  id: card.id,
+export const toCardDTO = (card: LocationCard): CardDTO => ({
+  ...(card.id ? { id: card.id } : {}),
   title: card.title,
   description: card.description,
   latitude: card.latitude,
   longitude: card.longitude,
-  region_image_id: card.regionImageId,
+  ...(card.regionImageId ? { region_image_id: card.regionImageId } : {}),
   icon_name: card.iconName,
   radius: card.radius,
   stack_id: card.stackId,
 });
 
-export type CardMetaData = Pick<
-  Card,
+export type Card = Pick<
+  LocationCard,
   "title" | "description" | "regionImageId" | "stackId"
 >;
+
 export type LocationData = Pick<
-  Card,
+  LocationCard,
   "latitude" | "longitude" | "radius" | "iconName"
 >;

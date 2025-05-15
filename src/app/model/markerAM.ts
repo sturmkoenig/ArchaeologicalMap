@@ -5,7 +5,7 @@ import {
   Marker,
   MarkerOptions,
 } from "leaflet";
-import { Card, LocationData } from "@app/model/card";
+import { LocationCard, LocationData } from "@app/model/card";
 import { ICONS } from "@service/icon.service";
 import { RadiusVisibility } from "@app/model/marker";
 import { createCardDetailsWindow } from "@app/util/window-util";
@@ -34,7 +34,7 @@ export class MarkerAM extends Marker {
   constructor(
     latlng: LatLngExpression,
     options?: MarkerOptions,
-    card?: Partial<Card>,
+    card?: Partial<LocationCard>,
     amOptions?: {
       iconType?: keyof typeof ICONS;
       iconSize?: number;
@@ -130,7 +130,7 @@ export class MarkerAM extends Marker {
     };
   }
 
-  toCard(): Card {
+  toCard(): LocationCard {
     return {
       latitude: this.getLatLng().lat,
       longitude: this.getLatLng().lng,

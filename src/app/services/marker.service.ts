@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { LatLng, LatLngBounds } from "leaflet";
-import { LocationData } from "src/app/model/card";
+import { LocationData } from "@app/model/card";
 import { CardService } from "./card.service";
 import { IconKeys, IconService } from "./icon.service";
 import { MarkerAM } from "@app/model/markerAM";

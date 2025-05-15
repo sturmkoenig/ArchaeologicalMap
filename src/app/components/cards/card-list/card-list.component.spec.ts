@@ -1,7 +1,7 @@
 import { CardListComponent } from "./card-list.component";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { CardService } from "@service/card.service";
-import { Card } from "@app/model/card";
+import { LocationCard } from "@app/model/card";
 import { By } from "@angular/platform-browser";
 import { CommonModule } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
@@ -34,7 +34,7 @@ jest.mock("@tauri-apps/api/event", () => ({
 jest.mock("@tauri-apps/api/webviewWindow", () => ({
   WebviewWindow: jest.fn().mockImplementation(() => ({ once: jest.fn() })),
 }));
-const testCards: Card[] = [
+const testCards: LocationCard[] = [
   {
     id: 0,
     title: "Monument in Deutschland",
@@ -202,7 +202,7 @@ describe("CardListComponent", () => {
   });
 
   it("should pan to the card on the map when showOnMap button is clicked", async () => {
-    const cardWithPosition: Card = {
+    const cardWithPosition: LocationCard = {
       id: 420,
       description: "The best boulders in town",
       iconName: "iconMiscRed",

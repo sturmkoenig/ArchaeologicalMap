@@ -16,7 +16,7 @@ import {
 } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { debounceTime, Observable, Subscription } from "rxjs";
-import { Card } from "@app/model/card";
+import { LocationCard } from "@app/model/card";
 import { CardService } from "@service/card.service";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatIconModule } from "@angular/material/icon";
@@ -107,7 +107,7 @@ import { createCardDetailsWindow } from "@app/util/window-util";
   ],
 })
 export class CardListComponent implements OnInit, OnDestroy {
-  allCards: WritableSignal<Card[]> = signal([]);
+  allCards: WritableSignal<LocationCard[]> = signal([]);
   subscription!: UnlistenFn;
   @Input()
   debounceTime?: number;
@@ -136,7 +136,7 @@ export class CardListComponent implements OnInit, OnDestroy {
       "card-deleted",
       (event: { payload: number }) => {
         this.allCards.update((allCards) =>
-          allCards.reduce<Card[]>(
+          allCards.reduce<LocationCard[]>(
             (acc, card) =>
               card.id !== event.payload ? [...acc, ...[card]] : acc,
             [],
@@ -150,7 +150,7 @@ export class CardListComponent implements OnInit, OnDestroy {
     await createCardDetailsWindow(cardId);
   }
 
-  showCardOnMap(card: Card) {
+  showCardOnMap(card: LocationCard) {
     return emit("panTo", {
       lat: card.latitude,
       lng: card.longitude,

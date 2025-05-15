@@ -8,7 +8,7 @@ import { ImageService } from "@service/image.service";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { provideRouter, RouterModule } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
-import { Card, LocationData } from "@app/model/card";
+import { LocationCard, LocationData } from "@app/model/card";
 import { By } from "@angular/platform-browser";
 import { emit } from "@tauri-apps/api/event";
 import { RouterTestingHarness } from "@angular/router/testing";
@@ -37,7 +37,7 @@ jest.mock("@tauri-apps/api/webviewWindow", () => ({
   },
 }));
 
-const defaultCard: Card = {
+const defaultCard: LocationCard = {
   description: "A simple test card",
   id: 1,
   iconName: "iconBorderLimesRed",
@@ -46,7 +46,7 @@ const defaultCard: Card = {
   longitude: 0,
   title: "A simple title",
 };
-const testStack: Card[] = [
+const testStack: LocationCard[] = [
   {
     description: "",
     id: 2,
@@ -131,7 +131,7 @@ describe("CardDetailsComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  const givenACard = async (card: Partial<Card>) => {
+  const givenACard = async (card: Partial<LocationCard>) => {
     cardServiceMock.readCard.mockResolvedValue({
       ...card,
     });
@@ -248,7 +248,10 @@ describe("CardDetailsComponent", () => {
     );
   };
 
-  const givenAStackWithCards = (cards: Card[], stack = defaultStack) => {
+  const givenAStackWithCards = (
+    cards: LocationCard[],
+    stack = defaultStack,
+  ) => {
     cardServiceMock.getAllCardsForStack.mockResolvedValue({ stack, cards });
   };
   const whenIClickAButton = async (

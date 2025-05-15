@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { MarkerService } from "@service/marker.service";
 import { CardService } from "@service/card.service";
-import { Card } from "@app/model/card";
+import { LocationCard } from "@app/model/card";
 import { LatLngBounds } from "leaflet";
 import { MarkerAM } from "@app/model/markerAM";
 
@@ -15,7 +15,7 @@ const MockCardService = {
 describe("MarkerService", () => {
   let service: MarkerService;
 
-  const testCard: Card = {
+  const testCard: LocationCard = {
     id: 1,
     latitude: 1,
     longitude: 1,

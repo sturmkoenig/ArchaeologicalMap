@@ -6,7 +6,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Observable } from "rxjs";
 import { EditorComponent } from "@app/layout/editor/editor.component";
-import { Card } from "@app/model/card";
+import { LocationCard } from "@app/model/card";
 import { CardContentService } from "@service/card-content.service";
 import { CardDetailsStore } from "@app/state/card-details.store";
 import { ImageEntity } from "@app/model/image";
@@ -19,11 +19,11 @@ import { ImageEntity } from "@app/model/image";
 })
 export class CardDetailsComponent implements OnInit {
   cardId!: number;
-  card$!: Observable<Card | undefined>;
+  card$!: Observable<LocationCard | undefined>;
 
   @ViewChild(EditorComponent)
   editor!: EditorComponent;
-  allCardsInStack$: Observable<Card[]>;
+  allCardsInStack$: Observable<LocationCard[]>;
   currentStackId$: Observable<number | undefined>;
   regionImage$: Observable<ImageEntity | undefined>;
 
@@ -74,7 +74,7 @@ export class CardDetailsComponent implements OnInit {
     });
   }
 
-  async panToLatLng(card: Card) {
+  async panToLatLng(card: LocationCard) {
     return emit("panTo", {
       lat: card.latitude,
       lng: card.longitude,

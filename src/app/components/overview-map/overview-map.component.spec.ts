@@ -10,7 +10,7 @@ import { RightSidebarComponent } from "@app/layout/right-sidebar/right-sidebar.c
 import { IconSizeSettingsComponent } from "@app/components/overview-map/map-settings/icon-size-settings/icon-size-settings.component";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { By } from "@angular/platform-browser";
-import { Card } from "src/app/model/card";
+import { LocationCard } from "@app/model/card";
 import * as TauriEvent from "@tauri-apps/api/event";
 import { listen } from "@tauri-apps/api/event";
 import { MapSettings, SettingService } from "@service/setting.service";
@@ -267,7 +267,7 @@ describe("OverviewMapComponent", () => {
     expect(setWindowFocus).toHaveBeenCalled();
   });
 
-  const testCardA: Card = {
+  const testCardA: LocationCard = {
     id: 1,
     title: "a",
     description: "a's description",
@@ -277,7 +277,7 @@ describe("OverviewMapComponent", () => {
     iconName: "iconMiscRed",
   };
 
-  const givenTheCard = (card: Card) => {
+  const givenTheCard = (card: LocationCard) => {
     cardServiceMock.createCard.mockResolvedValue(card);
     cardServiceMock.readCard.mockResolvedValue(card);
   };
@@ -306,7 +306,7 @@ describe("OverviewMapComponent", () => {
     await fixture.whenStable();
     fixture.detectChanges();
   };
-  const whenPanToSignalIsReceived = async (panToCard: Card) => {
+  const whenPanToSignalIsReceived = async (panToCard: LocationCard) => {
     listenSpy.mock.calls[0][1]({
       payload: {
         lat: panToCard.latitude,
