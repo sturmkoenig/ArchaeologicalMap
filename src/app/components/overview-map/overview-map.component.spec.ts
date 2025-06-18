@@ -12,7 +12,6 @@ import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { By } from "@angular/platform-browser";
 import { LocationCard } from "@app/model/card";
 import * as TauriEvent from "@tauri-apps/api/event";
-import { listen } from "@tauri-apps/api/event";
 import { MapSettings, SettingService } from "@service/setting.service";
 import { NgIf } from "@angular/common";
 import { MapSettingsComponent } from "@app/components/overview-map/map-settings/map-settings.component";

@@ -32,6 +32,10 @@ const routes: Routes = [
           },
         ],
       },
+      {
+        path: "details/:stackId",
+        component: CardDetailsComponent,
+      },
     ],
   },
   {
@@ -47,7 +51,7 @@ const routes: Routes = [
         ],
       },
       {
-        path: "details/:id",
+        path: "details/:cardId",
         component: CardDetailsComponent,
       },
     ],

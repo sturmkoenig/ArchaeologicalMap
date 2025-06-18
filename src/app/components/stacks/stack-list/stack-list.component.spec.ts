@@ -8,6 +8,8 @@ import userEvent from "@testing-library/user-event";
 import { ImageService } from "@service/image.service";
 import { StackCreatorComponent } from "@app/components/stacks/stack-creator/stack-creator.component";
 import { WindowService } from "@service/window.service";
+import { createAndFocusWebview } from "@app/util/window-util";
+import * as WindowUtil from "@app/util/window-util";
 
 const MockStacks = [
   { id: 1, name: "MyStack1", image_name: "/path/to/an/image" },
@@ -32,6 +34,8 @@ jest.mock("@tauri-apps/api/webviewWindow", () => ({
     jest.fn();
   },
 }));
+
+jest.spyOn(WindowUtil, "createAndFocusWebview").mockImplementation(jest.fn());
 
 const tearDownStackList = async () => jest.clearAllMocks();
 
@@ -75,6 +79,23 @@ it("should display all given stacks with their title", async () => {
     expect(title).toBeVisible();
   }
   await tearDownStackList();
+});
+
+it("should open a new window with the stack when pressing the button", async () => {
+  await setupStackList();
+  const stackId = MockStacks[0].id;
+  //when I open stack with id
+  const openStackWindowButton = screen.getByTestId(
+    `open-stack-button-${stackId}`,
+  );
+  await userEvent.click(openStackWindowButton);
+
+  //then
+  expect(createAndFocusWebview).toHaveBeenCalledWith(
+    `stackId-${stackId}`,
+    `/stack/details/${stackId}`,
+    `focus-stack-${stackId}`,
+  );
 });
 
 it("should delete a stack and remove it from the list after confirming in the dialog", async () => {

@@ -51,7 +51,7 @@ export class CardDetailsComponent implements OnInit {
       if (this.editor) {
         this.cardContentService.cardContent.next(this.editor.getContents());
       }
-      const cardId = params.get("id");
+      const cardId = params.get("cardId");
       if (cardId) {
         this.cardId = Number(cardId);
       } else {

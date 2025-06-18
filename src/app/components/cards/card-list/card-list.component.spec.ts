@@ -226,7 +226,7 @@ describe("CardListComponent", () => {
     await whenISearchForTitle("Monument");
     thenISeeCardsWithTitle([testCards[0].title]);
     whenIClickTheButton(`open-details-for-card-${testCards[0].id}`);
-    expect(WebviewWindow).toBeCalledWith(`${testCards[0].id}`, {
+    expect(WebviewWindow).toBeCalledWith(`cardId-${testCards[0].id}`, {
       url: `/cards/details/${testCards[0].id}`,
       height: 800,
     });

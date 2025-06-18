@@ -8,6 +8,7 @@ import { CommonModule } from "@angular/common";
 import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
+import { createStackDetailWindow } from "@app/util/window-util";
 
 @Component({
   imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule],
@@ -39,7 +40,11 @@ import { MatButtonModule } from "@angular/material/button";
             />
             <mat-card-content> </mat-card-content>
             <mat-card-actions class="card__actions gap-[10px]">
-              <button mat-icon-button (click)="onUpdateStack(stack)">
+              <button
+                [attr.data-testid]="'open-stack-button-' + stack.id"
+                mat-icon-button
+                (click)="onOpenStack(stack)"
+              >
                 <mat-icon>menu_book</mat-icon>
               </button>
               <button
@@ -141,6 +146,10 @@ export class StackListComponent {
       }
     });
   }
+  async onOpenStack(stack: Stack) {
+    await createStackDetailWindow(stack.id);
+  }
+
   onUpdateStack(stack: Stack) {
     const dialogRef = this.dialog.open(StackCreatorComponent, {
       data: {

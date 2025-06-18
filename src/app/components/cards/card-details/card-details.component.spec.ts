@@ -96,8 +96,8 @@ describe("CardDetailsComponent", () => {
   const imageServiceMock = {
     readImage: jest.fn(),
   };
-  const queryParamsSubject: BehaviorSubject<{ id: number }> =
-    new BehaviorSubject({ id: 1 });
+  const queryParamsSubject: BehaviorSubject<{ cardId: number }> =
+    new BehaviorSubject({ cardId: 1 });
 
   beforeAll(async () => {});
 
@@ -107,7 +107,7 @@ describe("CardDetailsComponent", () => {
       imports: [RouterModule],
       providers: [
         provideRouter([
-          { path: "cards/details/:id", component: CardDetailsComponent },
+          { path: "cards/details/:cardId", component: CardDetailsComponent },
         ]),
         { provide: MarkerService, useValue: markerServiceMock },
         { provide: StackService, useValue: stackServiceMock },
@@ -135,7 +135,7 @@ describe("CardDetailsComponent", () => {
     cardServiceMock.readCard.mockResolvedValue({
       ...card,
     });
-    queryParamsSubject.next({ id: card.id ?? 1 });
+    queryParamsSubject.next({ cardId: card.id ?? 1 });
   };
 
   it("should display no side-nav if given card has no stackId", async () => {
@@ -160,9 +160,7 @@ describe("CardDetailsComponent", () => {
   it("should display a side-nav and highlight the current card when the card is in a stack", async () => {
     givenAStackWithCards(testStack);
     await givenACard(testStack[0]);
-    const harness = await RouterTestingHarness.create(
-      "/cards/details/2?stackId=1",
-    );
+    const harness = await RouterTestingHarness.create("/cards/details/2");
     harness.detectChanges();
     expect(getElementByDataTestId("stack-side-nav", harness)).toBeTruthy();
     expect(
