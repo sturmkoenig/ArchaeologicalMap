@@ -93,7 +93,7 @@ it("should open a new window with the stack when pressing the button", async () 
   //then
   expect(createAndFocusWebview).toHaveBeenCalledWith(
     `stackId-${stackId}`,
-    `/stack/details/${stackId}`,
+    `/stacks/details/${stackId}`,
     `focus-stack-${stackId}`,
   );
 });
@@ -131,7 +131,7 @@ it("should not delete stack when deletion is canceled in the dialog", async () =
 
 it("should open an update dialog with all stack properties when clicking the 'update' button", async () => {
   const givenStack = MockStacks[0];
-  const fixture = await setupStackList();
+  await setupStackList();
   const updateButton = screen.getByTestId(
     `update-stack-button-${givenStack.id}`,
   );

@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { ComponentStore } from "@ngrx/component-store";
 import { Stack, StackPost } from "../model/stack";
-import { catchError, EMPTY, from, Observable, switchMap, tap } from "rxjs";
+import { from, Observable, switchMap, tap } from "rxjs";
 import { StackService } from "@service/stack.service";
 import { ImageService } from "@service/image.service";
 
@@ -61,7 +61,6 @@ export class StackStore extends ComponentStore<StackState> {
   readonly updateStack = this.effect((updatedStack$: Observable<Stack>) => {
     return updatedStack$.pipe(
       switchMap((stack) => {
-        console.log("hi from store");
         return from(this.stackService.updateStack(stack));
       }),
       tap((updatedStack?: Stack) => {

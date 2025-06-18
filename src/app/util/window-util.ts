@@ -30,7 +30,7 @@ export const createCardDetailsWindow = async (cardId: number) => {
 export const createStackDetailWindow = async (stackId: number) => {
   createAndFocusWebview(
     `stackId-${stackId}`,
-    `/stack/details/${stackId}`,
+    `/stacks/details/${stackId}`,
     `focus-stack-${stackId}`,
   );
 };

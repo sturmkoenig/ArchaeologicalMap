@@ -33,7 +33,6 @@ export class CardDetailsComponent implements OnInit {
     public dialog: MatDialog,
     private cardContentService: CardContentService,
     public cardDetailsStore: CardDetailsStore,
-    private router: Router,
   ) {
     this.allCardsInStack$ = this.cardDetailsStore.allCardsInStack$;
     this.currentStackId$ = this.cardDetailsStore.currentStackId$;
@@ -51,17 +50,21 @@ export class CardDetailsComponent implements OnInit {
       if (this.editor) {
         this.cardContentService.cardContent.next(this.editor.getContents());
       }
-      const cardId = params.get("cardId");
+      const cardId = Number(params.get("cardId"));
+      const stackId = Number(params.get("stackId"));
+      this.cardDetailsStore.currentCard$.subscribe((card) => {
+        this.cardId = card?.id ?? 0;
+      });
       if (cardId) {
-        this.cardId = Number(cardId);
+        this.cardDetailsStore.loadStackOfCards(cardId);
+        listen(`set-focus-to-${cardId}`, async () => {
+          await appWindow.setFocus();
+        });
+      } else if (stackId) {
+        this.cardDetailsStore.loadStack(stackId);
       } else {
         console.error("cardId not provided!");
       }
-      this.cardDetailsStore.loadStackOfCards(this.cardId);
-      this.cardContentService.setCardId(this.cardId);
-      listen(`set-focus-to-${cardId}`, async () => {
-        await appWindow.setFocus();
-      });
     });
     listen("card-changed", (_) => {
       // TODO only reload if changed card is in stack!

@@ -68,10 +68,6 @@ export class CardService {
     return success;
   }
 
-  async getNumberOfCards(): Promise<number> {
-    return invoke("count_cards", {});
-  }
-
   async deleteCard(id: number): Promise<void> {
     await invoke("delete_card", {
       id: id,

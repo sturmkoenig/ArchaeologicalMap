@@ -27,7 +27,7 @@ export type CardDetailsState =
       status: status.loaded;
       currentStackId?: number;
       previousCard?: Card;
-      currentCard: Card;
+      currentCard?: Card;
       currentImage?: ImageEntity;
       currentStack?: Stack;
       nextCard?: Card;
@@ -56,6 +56,46 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
 
     return { previousCard: previousCard, nextCard: nextCard };
   }
+
+  private readonly setCardsFromStack = this.updater(
+    (
+      state,
+      {
+        cards,
+        stack,
+        currentCardId,
+      }: {
+        cards: Card[];
+        stack: Stack;
+        currentCardId?: number;
+      },
+    ): CardDetailsState => {
+      cards.sort((a, b) => a.title.localeCompare(b.title));
+
+      const index =
+        currentCardId !== undefined
+          ? cards.findIndex((x) => x.id === currentCardId)
+          : 0;
+
+      const currentCard = cards[index];
+      const { previousCard, nextCard } = this.calculateNextAndPreviousCard(
+        cards,
+        index,
+      );
+
+      this.updateCurrentImage(currentCard?.regionImageId);
+
+      return {
+        status: status.loaded,
+        previousCard,
+        currentCard,
+        nextCard,
+        currentStack: stack,
+        currentStackId: stack.id,
+        cardsInStack: cards,
+      };
+    },
+  );
 
   readonly allCardsInStack$ = this.select((state) => {
     if (state.status === status.loading) {
@@ -129,6 +169,37 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
       };
     },
   );
+  readonly loadStack = this.effect((stackId$: Observable<number>) => {
+    return stackId$.pipe(
+      switchMap((stackId) =>
+        from(this.cardService.getAllCardsForStack(stackId)).pipe(
+          map(({ cards, stack }) => ({ cards, stack })),
+        ),
+      ),
+      tap({
+        next: ({ cards, stack }) => {
+          if (!cards || cards.length === 0) {
+            this.setAllCards({
+              status: status.loaded,
+              cardsInStack: [],
+              currentStackId: stack.id,
+              currentStack: stack,
+              currentCard: undefined, // optionally guard against this in your template
+              previousCard: undefined,
+              nextCard: undefined,
+            });
+            return;
+          }
+
+          this.setCardsFromStack({
+            cards,
+            stack,
+          });
+        },
+        error: (e) => console.error("Failed to load stack", e),
+      }),
+    );
+  });
 
   readonly loadStackOfCards = this.effect((cardId$: Observable<number>) => {
     const card$ = cardId$.pipe(
@@ -163,33 +234,18 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
         );
       }),
       tap({
-        next: ({ cards: allCardsInStack, stack, card: card }) => {
-          allCardsInStack.sort((card, nextCard) =>
-            card.title.localeCompare(nextCard.title),
-          );
-          const currentCardIndex: number = allCardsInStack.findIndex(
-            (x) => x.id === card.id,
-          );
-
-          const { previousCard, nextCard } = this.calculateNextAndPreviousCard(
-            allCardsInStack,
-            currentCardIndex,
-          );
-
-          this.setAllCards({
-            status: status.loaded,
-            previousCard: previousCard,
-            currentStackId: card.stackId ?? undefined,
-            currentStack: stack,
-            nextCard: nextCard,
-            currentCard: card,
-            cardsInStack: allCardsInStack,
+        next: ({ cards, stack, card }) => {
+          this.setCardsFromStack({
+            cards,
+            stack,
+            currentCardId: card.id,
           });
         },
         error: (e) => console.error(e),
       }),
     );
   });
+
   readonly setImage = this.updater((state, image: ImageEntity | undefined) => {
     return {
       ...state,
