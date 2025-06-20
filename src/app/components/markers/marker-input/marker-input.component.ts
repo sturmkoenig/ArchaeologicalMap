@@ -136,7 +136,7 @@ export class MarkerInputComponent implements OnChanges {
     this.setRadius(newRadius);
   }
 
-  onExact(checked: MatCheckboxChange) {
+  onExact(_: MatCheckboxChange) {
     if (!this.marker) {
       return;
     }

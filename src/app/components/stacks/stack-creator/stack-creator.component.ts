@@ -2,7 +2,7 @@ import { Component, inject, model, NgZone, OnInit } from "@angular/core";
 import { Event } from "@tauri-apps/api/event";
 import { BehaviorSubject } from "rxjs";
 import { StackStore } from "@app/state/stack.store";
-import { DragDropEvent, getCurrentWebview } from "@tauri-apps/api/webview";
+import { DragDropEvent } from "@tauri-apps/api/webview";
 import { MAT_DIALOG_DATA, MatDialogModule } from "@angular/material/dialog";
 import { CommonModule } from "@angular/common";
 import { MatFormFieldModule } from "@angular/material/form-field";

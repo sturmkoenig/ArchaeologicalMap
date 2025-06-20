@@ -62,10 +62,7 @@ export class StackService {
   async getStackById(id: string): Promise<Stack> {
     return invoke("read_stack_by_id", { id });
   }
-  async deleteStack(
-    stackIdToDelete: number,
-    stackHeaderImage: string,
-  ): Promise<void> {
+  async deleteStack(stackIdToDelete: number): Promise<void> {
     return invoke<void>("delete_stack", { stackId: stackIdToDelete }).catch(
       (error: string) => {
         this.notificationService.createNotification({ text: error });

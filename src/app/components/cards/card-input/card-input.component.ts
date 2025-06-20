@@ -129,7 +129,7 @@ export class CardInputComponent {
   image?: ImageEntity;
 
   constructor(
-    private stackStore: StackStore,
+    stackStore: StackStore,
     public dialog: MatDialog,
     private imageService: ImageService,
   ) {

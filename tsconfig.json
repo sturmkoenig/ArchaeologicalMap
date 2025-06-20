@@ -11,7 +11,10 @@
       "@service/*": ["src/app/services/*"],
       "@component/*": ["src/app/component/*"]
     },
+    "noImplicitAny": true,
     "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,

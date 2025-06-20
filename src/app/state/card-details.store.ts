@@ -59,7 +59,7 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
 
   private readonly setCardsFromStack = this.updater(
     (
-      state,
+      _state,
       {
         cards,
         stack,
@@ -157,7 +157,10 @@ export class CardDetailsStore extends ComponentStore<CardDetailsState> {
     };
   });
   readonly setAllCards = this.updater(
-    (state, newState: Extract<CardDetailsState, { status: status.loaded }>) => {
+    (
+      _state,
+      newState: Extract<CardDetailsState, { status: status.loaded }>,
+    ) => {
       return {
         status: status.loaded,
         cardsInStack: newState.cardsInStack,

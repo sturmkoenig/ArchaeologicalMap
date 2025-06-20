@@ -17,7 +17,7 @@ export class StackStore extends ComponentStore<StackState> {
     stacks: [...state.stacks, stack],
   }));
 
-  readonly setAllStacks = this.updater((state, stacks: Stack[]) => ({
+  readonly setAllStacks = this.updater((_, stacks: Stack[]) => ({
     stacks: stacks,
   }));
 
@@ -51,9 +51,7 @@ export class StackStore extends ComponentStore<StackState> {
         this.deleteStackId(deleteStack.id);
       }),
       switchMap((deleteStack: Stack) => {
-        return from(
-          this.stackService.deleteStack(deleteStack.id, deleteStack.image_name),
-        );
+        return from(this.stackService.deleteStack(deleteStack.id));
       }),
     );
   });

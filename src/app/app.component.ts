@@ -11,7 +11,7 @@ export class AppComponent {
   title = "archaological-map";
 
   constructor(
-    private notificationService: NotificationService,
+    notificationService: NotificationService,
     private snackBar: MatSnackBar,
   ) {
     notificationService.notifications$.subscribe((notification) => {

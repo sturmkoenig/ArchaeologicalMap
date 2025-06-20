@@ -75,8 +75,6 @@ describe("OverviewMapComponent", () => {
     deleteMarker: jest.Mock;
   };
   let listenSpy: jest.SpyInstance;
-  let readFileMock: jest.Mock;
-  let writeTextFileMock: jest.Mock;
   let mapSettings: MapSettings;
   let iconServiceMock: { getIconSizeSettings: jest.Mock };
 
@@ -96,13 +94,13 @@ describe("OverviewMapComponent", () => {
       maxZoomLevel: 11,
     };
 
-    readFileMock = (readFile as jest.Mock).mockImplementation(async (..._) => {
+    (readFile as jest.Mock).mockImplementation(async (..._) => {
       const textEncoder = new TextEncoder();
       return Promise.resolve(textEncoder.encode(JSON.stringify(mapSettings)));
     });
 
-    writeTextFileMock = (writeTextFile as jest.Mock).mockImplementation(
-      async (fileName: string, settings: string, _: unknown) =>
+    (writeTextFile as jest.Mock).mockImplementation(
+      async (_: string, settings: string, __: unknown) =>
         Promise.resolve((mapSettings = JSON.parse(settings))),
     );
     markerServiceMock.getMarkerAMInArea.mockResolvedValue([]);

@@ -83,7 +83,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     });
   }
 
-  imageHandler(dataUrl: string, type: string, imageData: QuillImageData) {
+  imageHandler(_dataUrl: string, _type: string, imageData: QuillImageData) {
     imageData
       .minify({
         maxWidth: 320,

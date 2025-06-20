@@ -151,7 +151,7 @@ export class StackListComponent {
   }
 
   onUpdateStack(stack: Stack) {
-    const dialogRef = this.dialog.open(StackCreatorComponent, {
+    this.dialog.open(StackCreatorComponent, {
       data: {
         stack,
       },

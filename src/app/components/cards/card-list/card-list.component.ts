@@ -15,7 +15,7 @@ import {
   WritableSignal,
 } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
-import { debounceTime, Observable, Subscription } from "rxjs";
+import { debounceTime, Observable } from "rxjs";
 import { InfoCard, isLocationCard, LocationCard } from "@app/model/card";
 import { CardService } from "@service/card.service";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";

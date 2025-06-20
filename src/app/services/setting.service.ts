@@ -43,7 +43,7 @@ export class SettingService {
       .readFile(this.mapSettingsFileName, {
         baseDir: BaseDirectory.AppData,
       })
-      .catch((error) => {
+      .catch((_) => {
         return JSON.stringify({ markerClusterGroupOptions: {} });
       })
       .then((content: any) => {
