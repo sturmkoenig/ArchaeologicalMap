@@ -12,6 +12,16 @@
           >{{ card.title }}
         </span>
       </ng-container>
+      <div
+        class="add-card-list-item"
+        (click)="openAddCardDialog()"
+        (keyup.enter)="openAddCardDialog()"
+        tabindex="0"
+        role="button"
+        data-testid="add-card-button"
+      >
+        <mat-icon>add</mat-icon> Neue Karte
+      </div>
     </div>
   }
   <div class="card-details-container">

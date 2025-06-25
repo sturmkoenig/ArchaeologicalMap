@@ -21,13 +21,12 @@ export class CardService {
   async getAllCardsForStack(
     stack_id: number,
   ): Promise<{ stack: Stack; cards: LocationCard[] }> {
-    const result = await invoke<[Stack, LocationCard[]]>(
-      "read_cards_in_stack",
-      {
-        stackId: stack_id,
-      },
-    );
-    return { stack: result[0], cards: result[1] };
+    return await invoke<[Stack, LocationCard[]]>("read_cards_in_stack", {
+      stackId: stack_id,
+    }).then(([stack, cards]: [Stack, LocationCard[]]) => ({
+      stack,
+      cards: cards.toSorted((a, b) => a.title.localeCompare(b.title)),
+    }));
   }
 
   createCard(card: LocationCard | InfoCard): Promise<LocationCard> {

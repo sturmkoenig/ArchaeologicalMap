@@ -6,10 +6,12 @@ import { MatDialog } from "@angular/material/dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Observable } from "rxjs";
 import { EditorComponent } from "@app/layout/editor/editor.component";
-import { Card, isLocationCard, LocationCard } from "@app/model/card";
+import { Card, InfoCard, isLocationCard, LocationCard } from "@app/model/card";
 import { CardContentService } from "@service/card-content.service";
 import { CardDetailsStore } from "@app/state/card-details.store";
 import { ImageEntity } from "@app/model/image";
+import { AddCardDialogComponent } from "../card-input/add-card-dialog.component";
+import { CardService } from "@service/card.service";
 
 @Component({
   selector: "app-card-details",
@@ -32,6 +34,7 @@ export class CardDetailsComponent implements OnInit {
     public dialog: MatDialog,
     private cardContentService: CardContentService,
     public cardDetailsStore: CardDetailsStore,
+    private cardService: CardService,
   ) {
     this.allCardsInStack$ = this.cardDetailsStore.allCardsInStack$;
     this.currentStackId$ = this.cardDetailsStore.currentStackId$;
@@ -83,6 +86,27 @@ export class CardDetailsComponent implements OnInit {
       lng: card.longitude,
       id: card.id ?? 0,
     });
+  }
+
+  openAddCardDialog() {
+    this.currentStackId$
+      .subscribe((stackId) => {
+        if (!stackId) return;
+        const dialogRef = this.dialog.open(AddCardDialogComponent, {
+          data: { stackId },
+        });
+        dialogRef.afterClosed().subscribe(async (result: InfoCard) => {
+          if (result) {
+            try {
+              await this.cardService.createCard(result);
+              this.cardDetailsStore.loadStack(stackId);
+            } catch (e) {
+              console.error("Failed to create card:", e);
+            }
+          }
+        });
+      })
+      .unsubscribe();
   }
 
   protected readonly isLocationCard = isLocationCard;
