@@ -72,6 +72,14 @@ export const CardDetailsSignalStore = signalStore(
     setCard: async (cardId: number) => {
       const card = await store.cardService.readCard(cardId);
       if (card.stackId) store.setStack(card.stackId, cardId);
+      else
+        patchState(store, (_) => ({
+          isLoading: false,
+          index: 0,
+          imageId: card.regionImageId,
+          stack: undefined,
+          cards: [card],
+        }));
     },
     addCard: async (card: Card) => {
       store.cardService.createCard(card);
