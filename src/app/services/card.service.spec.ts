@@ -33,7 +33,7 @@ describe("CardService", () => {
     (invoke as jest.Mock).mockResolvedValue({});
 
     service.createCard(testCard);
-    expect(invoke).toHaveBeenCalledWith("create_unified_card", {
+    expect(invoke).toHaveBeenCalledWith("create_card", {
       card: {
         title: testCard.title,
         description: testCard.description,
@@ -50,7 +50,7 @@ describe("CardService", () => {
     (invoke as jest.Mock).mockResolvedValue({});
 
     service.updateCard({ id: 1, ...testCard });
-    expect(invoke).toHaveBeenCalledWith("update_card_unified", {
+    expect(invoke).toHaveBeenCalledWith("update_card", {
       card: {
         id: 1,
         title: testCard.title,
@@ -68,7 +68,7 @@ describe("CardService", () => {
     (invoke as jest.Mock).mockResolvedValue({});
 
     service.updateCard({ id: 1, ...testCard });
-    expect(invoke).toHaveBeenCalledWith("update_card_unified", {
+    expect(invoke).toHaveBeenCalledWith("update_card", {
       card: {
         id: 1,
         title: testCard.title,
