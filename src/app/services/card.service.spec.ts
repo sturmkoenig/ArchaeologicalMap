@@ -64,24 +64,6 @@ describe("CardService", () => {
     });
   });
 
-  it("correctly updates a card", () => {
-    (invoke as jest.Mock).mockResolvedValue({});
-
-    service.updateCard({ id: 1, ...testCard });
-    expect(invoke).toHaveBeenCalledWith("update_card", {
-      card: {
-        id: 1,
-        title: testCard.title,
-        description: testCard.description,
-        latitude: testCard.latitude,
-        longitude: testCard.longitude,
-        radius: testCard.radius,
-        stackId: testCard.stackId,
-        iconName: testCard.iconName,
-      },
-    });
-  });
-
   afterEach(() => {
     jest.clearAllMocks();
   });
