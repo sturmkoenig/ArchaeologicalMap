@@ -39,7 +39,6 @@ import { ImageService } from "@service/image.service";
               mat-card-image
               src="{{ stack.imageUrl }}"
             />
-            {{ console.log(stacks$ | async) }}
             <mat-card-content></mat-card-content>
             <mat-card-actions class="card__actions gap-[10px]">
               <button

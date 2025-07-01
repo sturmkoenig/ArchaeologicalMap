@@ -41,12 +41,13 @@
   span, .add-card-list-item {
     padding: 0.6rem;
     cursor: pointer;
+    min-height: 2.5rem;
     align-items: center;
     border-radius: 3px;
     gap: 0.5rem;
   }
-  span:nth-child(odd) {
-    background-color: #fdfefe;
+  span:nth-child(even) {
+    background-color: #ffe7e7;
   }
   .add-card-list-item {
     display: flex;
