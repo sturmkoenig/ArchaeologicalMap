@@ -59,7 +59,21 @@ export const fromCardDTO = (cardDTO: CardDTO): LocationCard | InfoCard => {
 export const isLocationCard = (
   card: LocationCard | InfoCard,
 ): card is LocationCard => {
-  return (card as LocationCard).longitude !== undefined;
+  return hasValidLocationData(card);
+};
+
+export const hasValidLocationData = (
+  card: LocationCard | InfoCard,
+): boolean => {
+  if (!isLocationCard(card)) {
+    return false;
+  }
+  return (
+    card.latitude !== undefined &&
+    card.latitude !== null &&
+    card.longitude !== undefined &&
+    card.longitude !== null
+  );
 };
 
 export const toCardDTO = (card: InfoCard | LocationCard): CardDTO =>

@@ -55,12 +55,12 @@
                 <button
                   mat-mini-fab
                   color="warn"
-                  *ngIf="isLocationCard(card)"
+                  *ngIf="isLocationCard(card); else infoCard"
                   data-testid="show-on-map-button"
                   (click)="panToLatLng(card)"
                   aria-label="Example icon button with a home icon"
                 >
-                  <mat-icon>pin_drop</mat-icon>
+                  <mat-icon data-testid="location-icon"> pin_drop </mat-icon>
                 </button>
               }
             </div>
@@ -101,3 +101,16 @@
 <div class="container">
   <app-editor></app-editor>
 </div>
+
+<ng-template #infoCard>
+  <button
+    mat-mini-fab
+    color="warn"
+    data-testid="show-on-map-button"
+    aria-label="Example icon button with a home icon"
+  >
+    <mat-icon data-testid="location-icon">
+      {{ "location_off" }}
+    </mat-icon>
+  </button>
+</ng-template>

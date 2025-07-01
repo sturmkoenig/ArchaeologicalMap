@@ -8,6 +8,7 @@ import {
   toCardDTO,
   InfoCard,
   isLocationCard,
+  Card,
 } from "@app/model/card";
 import { Stack } from "@app/model/stack";
 import { emit } from "@tauri-apps/api/event";
@@ -20,13 +21,20 @@ export class CardService {
   constructor(private notificationService: NotificationService) {}
   async getAllCardsForStack(
     stack_id: number,
-  ): Promise<{ stack: Stack; cards: LocationCard[] }> {
-    return await invoke<[Stack, LocationCard[]]>("read_cards_in_stack", {
-      stackId: stack_id,
-    }).then(([stack, cards]: [Stack, LocationCard[]]) => ({
+  ): Promise<{ stack: Stack; cards: Card[] }> {
+    const [stack, cards] = await invoke<[Stack, CardDTO[]]>(
+      "read_cards_in_stack",
+      {
+        stackId: stack_id,
+      },
+    );
+    console.log(cards);
+    return {
       stack,
-      cards: cards.toSorted((a, b) => a.title.localeCompare(b.title)),
-    }));
+      cards: cards
+        .map(fromCardDTO)
+        .toSorted((a, b) => a.title.localeCompare(b.title)),
+    };
   }
 
   createCard(card: LocationCard | InfoCard): Promise<LocationCard> {

@@ -272,6 +272,41 @@ it("should pan to a single marker of a card", async () => {
   });
 });
 
+it("should display a pin_drop icon for cards with valid location data", async () => {
+  const givenMarker: LocationData = {
+    iconName: "iconBorderLimesRed",
+    radius: 0,
+    latitude: 10,
+    longitude: 20,
+  };
+  givenACard({
+    ...defaultCard,
+    ...givenMarker,
+  });
+  await renderComponent("cards/details/1");
+
+  const button = screen.getByTestId("show-on-map-button");
+  expect(button).toBeInTheDocument();
+
+  const icon = within(button).getByTestId("location-icon");
+  expect(icon).toHaveTextContent("pin_drop");
+});
+
+it("should display a location_off icon for cards without valid location data", async () => {
+  givenACard({
+    ...defaultCard,
+    latitude: undefined,
+    longitude: undefined,
+  });
+  await renderComponent("cards/details/1");
+
+  const button = screen.getByTestId("show-on-map-button");
+  expect(button).toBeInTheDocument();
+
+  const icon = within(button).getByTestId("location-icon");
+  expect(icon).toHaveTextContent("location_off");
+});
+
 it("should create a new card when add card button is clicked", async () => {
   const stackId = 1;
   givenAStackWithCards(testStack, defaultStack);
