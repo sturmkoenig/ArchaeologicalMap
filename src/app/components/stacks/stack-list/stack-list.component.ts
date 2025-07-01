@@ -3,12 +3,13 @@ import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { StackCreatorComponent } from "@app/components/stacks/stack-creator/stack-creator.component";
 import { Stack, StackPost } from "src/app/model/stack";
 import { Observable } from "rxjs";
-import { StackStore } from "@app/state/stack.store";
+import { DisplayableStack, StackStore } from "@app/state/stack.store";
 import { CommonModule } from "@angular/common";
 import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { createStackDetailWindow } from "@app/util/window-util";
+import { ImageService } from "@service/image.service";
 
 @Component({
   imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule],
@@ -36,8 +37,9 @@ import { createStackDetailWindow } from "@app/util/window-util";
             <img
               class="card__image"
               mat-card-image
-              src="{{ stack.imageName }}"
+              src="{{ stack.imageUrl }}"
             />
+            {{ console.log(stacks$ | async) }}
             <mat-card-content></mat-card-content>
             <mat-card-actions class="card__actions gap-[10px]">
               <button
@@ -126,9 +128,10 @@ import { createStackDetailWindow } from "@app/util/window-util";
 })
 export class StackListComponent {
   public stacks?: StackPost[];
-  public stacks$: Observable<Stack[]>;
+  public stacks$: Observable<DisplayableStack[]>;
 
   constructor(
+    public imageService: ImageService,
     private dialog: MatDialog,
     private stackStore: StackStore,
   ) {
@@ -157,6 +160,8 @@ export class StackListComponent {
       },
     });
   }
+
+  protected readonly console = console;
 }
 
 @Component({

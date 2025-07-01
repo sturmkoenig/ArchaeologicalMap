@@ -5,26 +5,43 @@ import { from, Observable, switchMap, tap } from "rxjs";
 import { StackService } from "@service/stack.service";
 import { ImageService } from "@service/image.service";
 
+export type DisplayableStack = Stack & { imageUrl?: string };
 export interface StackState {
   stacks: Stack[];
 }
 
+const addImageSource = async (
+  imageService: ImageService,
+  stack: Stack,
+): Promise<DisplayableStack> => {
+  return await imageService
+    .getImageUrl(stack.imageName)
+    .then((imageUrl) => ({ ...stack, ...(imageUrl ? { imageUrl } : {}) }));
+};
+
+const sortByName = (stacks: DisplayableStack[]) =>
+  stacks.toSorted((a, b) => a.name.localeCompare(b.name));
+
 @Injectable()
 export class StackStore extends ComponentStore<StackState> {
-  readonly stacks$: Observable<Stack[]> = this.select((state) => state.stacks);
+  readonly stacks$: Observable<DisplayableStack[]> = this.select(
+    (state) => state.stacks,
+  );
 
   readonly addStack = this.updater((state, stack: Stack) => ({
-    stacks: [...state.stacks, stack],
+    stacks: sortByName([...state.stacks, stack]),
   }));
 
   readonly setAllStacks = this.updater((_, stacks: Stack[]) => ({
-    stacks: stacks,
+    stacks: sortByName(stacks),
   }));
 
   readonly setStack = this.updater((state, updateStack: Stack) => ({
-    stacks: state.stacks
-      .filter((stack) => stack.id !== updateStack.id)
-      .concat([updateStack]),
+    stacks: sortByName(
+      state.stacks
+        .filter((stack) => stack.id !== updateStack.id)
+        .concat([updateStack]),
+    ),
   }));
 
   readonly deleteStackId = this.updater((state, stackIdToDelete: number) => ({
@@ -34,17 +51,17 @@ export class StackStore extends ComponentStore<StackState> {
   readonly loadStacks = this.effect<void>(() =>
     from(this.stackService.getAll()).pipe(
       tap((stacks: Stack[]) => {
-        for (const stack of stacks) {
-          this.imageService.getImageUrl(stack.imageName).then((imageUrl) => {
-            if (imageUrl !== undefined) {
-              stack.imageName = imageUrl.toString();
-            }
-          });
-        }
-        this.setAllStacks(stacks);
+        Promise.all(
+          stacks.map(
+            async (stack) => await addImageSource(this.imageService, stack),
+          ),
+        ).then((stacks: DisplayableStack[]) => {
+          this.setAllStacks(stacks);
+        });
       }),
     ),
   );
+
   readonly deleteStack = this.effect((deleteStack$: Observable<Stack>) => {
     return deleteStack$.pipe(
       tap((deleteStack: Stack) => {
@@ -61,9 +78,13 @@ export class StackStore extends ComponentStore<StackState> {
       switchMap((stack) => {
         return from(this.stackService.updateStack(stack));
       }),
-      tap((updatedStack?: Stack) => {
+      tap(async (updatedStack?: Stack) => {
         if (updatedStack) {
-          this.setStack(updatedStack);
+          await addImageSource(this.imageService, updatedStack).then(
+            (stack) => {
+              this.setStack(stack);
+            },
+          );
         }
       }),
     );
@@ -74,14 +95,11 @@ export class StackStore extends ComponentStore<StackState> {
         from(this.stackService.createStack(newStack)),
       ),
       tap({
-        next: (stack?: Stack) => {
+        next: async (stack?: Stack) => {
           if (!stack) {
             return;
           }
-          this.imageService.getImageUrl(stack.imageName).then((imageUrl) => {
-            if (imageUrl !== undefined) {
-              stack.imageName = imageUrl.toString();
-            }
+          await addImageSource(this.imageService, stack).then((stack) => {
             this.addStack(stack);
           });
         },
