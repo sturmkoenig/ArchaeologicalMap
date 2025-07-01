@@ -2,16 +2,28 @@ import { CardDetailsComponent } from "@app/components/cards/card-details/card-de
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ActivatedRoute, convertToParamMap, ParamMap } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
-import { LocationCard, LocationData } from "@app/model/card";
+import { InfoCard, LocationCard, LocationData } from "@app/model/card";
 import { emit } from "@tauri-apps/api/event";
 import { StackService } from "@service/stack.service";
 import { Stack } from "@app/model/stack";
-import { fireEvent, render, screen } from "@testing-library/angular";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/angular";
 import "@testing-library/jest-dom";
 import { MarkerService } from "@service/marker.service";
 import { CardContentService } from "@service/card-content.service";
 import { CardService } from "@service/card.service";
 import { ImageService } from "@service/image.service";
+import { MatDialog, MatDialogModule } from "@angular/material/dialog";
+import { AddCardDialogComponent } from "../card-input/add-card-dialog.component";
+import { NoopAnimationsModule } from "@angular/platform-browser/animations";
+import { CardInputComponent } from "@app/components/cards/card-input/card-input.component";
+import { StackStore } from "@app/state/stack.store";
+import { ComponentFixture } from "@angular/core/testing";
 
 @Component({
   selector: "app-editor",
@@ -24,7 +36,6 @@ class MockEditorComponent {
 }
 
 jest.mock("quill-image-resize-module", () => {
-  // Provide any mock implementation if necessary
   return jest.fn();
 });
 
@@ -34,6 +45,7 @@ jest.mock("@tauri-apps/api/window", () => ({
     onCloseRequested: jest.fn(),
   }),
 }));
+
 jest.mock("@tauri-apps/api/event", () => ({
   emit: jest.fn(),
   listen: jest.fn(),
@@ -83,196 +95,223 @@ const defaultStack: Stack = {
   name: "My testing Stack",
 };
 
-describe("CardDetailsComponent", () => {
-  const markerServiceMock = {
-    getBounds: jest.fn(),
-  };
-  const cardContentServiceMock = {
-    setCardId: jest.fn(),
-    cardContent: jest.fn(),
-    saveCardContent: jest.fn(),
-  };
-  const stackServiceMock = {
-    getStackById: jest.fn(),
-  };
+async function waitComponentRender(fixture: ComponentFixture<unknown>) {
+  await new Promise((resolve) => setTimeout(resolve, 1));
+  fixture.detectChanges();
+  await fixture.whenStable();
+}
 
-  const cardServiceMock = {
-    readCard: jest.fn(),
-    getAllCardsForStack: jest.fn(),
-  };
+const markerServiceMock = {
+  getBounds: jest.fn(),
+};
+const cardContentServiceMock = {
+  setCardId: jest.fn(),
+  cardContent: jest.fn(),
+  saveCardContent: jest.fn(),
+};
+const stackServiceMock = {
+  getStackById: jest.fn(),
+  getAll: jest.fn().mockResolvedValue([]),
+};
 
-  const imageServiceMock = {
-    readImage: jest.fn(),
-  };
+const cardServiceMock = {
+  readCard: jest.fn(),
+  getAllCardsForStack: jest.fn(),
+  createCard: jest.fn(),
+};
 
-  const paramMapSubject = new BehaviorSubject<ParamMap>(
-    convertToParamMap({ cardId: "1" }),
-  );
+const imageServiceMock = {
+  readImage: jest.fn(),
+  getImageUrl: jest.fn(),
+};
 
-  const renderComponent = async (route = "cards/details/1") => {
-    const cardIdMatch = route.match(/\/(\d+)(?:\?|$)/);
-    const cardId = cardIdMatch ? cardIdMatch[1] : "1";
+const paramMapSubject = new BehaviorSubject<ParamMap>(
+  convertToParamMap({ cardId: "1" }),
+);
 
-    const stackIdMatch = route.match(/stackId=(\d+)/);
-    const stackId = stackIdMatch ? stackIdMatch[1] : undefined;
+const renderComponent = async (route = "cards/details/1") => {
+  const cardIdMatch = route.match(/\/(\d+)(?:\?|$)/);
+  const cardId = cardIdMatch ? cardIdMatch[1] : "1";
 
-    const params: any = { cardId };
-    if (stackId) {
-      params.stackId = stackId;
-    }
-    paramMapSubject.next(convertToParamMap(params));
+  const stackIdMatch = route.match(/stackId=(\d+)/);
+  const stackId = stackIdMatch ? stackIdMatch[1] : undefined;
 
-    const activatedRouteMock = {
-      paramMap: paramMapSubject.asObservable(),
-    };
-
-    const result = await render(CardDetailsComponent, {
-      providers: [
-        { provide: ActivatedRoute, useValue: activatedRouteMock },
-        { provide: MarkerService, useValue: markerServiceMock },
-        { provide: StackService, useValue: stackServiceMock },
-        { provide: CardContentService, useValue: cardContentServiceMock },
-        { provide: ImageService, useValue: imageServiceMock },
-        { provide: CardService, useValue: cardServiceMock },
-      ],
-      declarations: [MockEditorComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      excludeComponentDeclaration: false,
-      autoDetectChanges: true,
-    });
-
-    return result;
+  const params = {
+    cardId,
+    ...(stackId ? { stackId } : {}),
   };
 
-  it("should create", async () => {
-    await givenACard(defaultCard);
-    const { fixture } = await renderComponent();
-    expect(fixture.componentInstance).toBeTruthy();
+  paramMapSubject.next(convertToParamMap(params));
+
+  const activatedRouteMock = {
+    paramMap: paramMapSubject.asObservable(),
+  };
+
+  const component = await render(CardDetailsComponent, {
+    imports: [MatDialogModule, NoopAnimationsModule],
+    providers: [
+      { provide: ActivatedRoute, useValue: activatedRouteMock },
+      { provide: MarkerService, useValue: markerServiceMock },
+      { provide: StackService, useValue: stackServiceMock },
+      { provide: CardContentService, useValue: cardContentServiceMock },
+      { provide: ImageService, useValue: imageServiceMock },
+      { provide: CardService, useValue: cardServiceMock },
+      StackStore,
+      MatDialog,
+    ],
+    declarations: [
+      MockEditorComponent,
+      AddCardDialogComponent,
+      CardInputComponent,
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    excludeComponentDeclaration: false,
+    autoDetectChanges: true,
+  });
+  await waitComponentRender(component.fixture);
+  return component;
+};
+
+const givenAStackWithCards = (cards: LocationCard[], stack = defaultStack) => {
+  cardServiceMock.getAllCardsForStack.mockResolvedValue({ stack, cards });
+};
+
+const givenACard = (card: Partial<LocationCard>) => {
+  cardServiceMock.readCard.mockResolvedValue({
+    ...card,
+  });
+};
+
+it("should create", async () => {
+  givenACard(defaultCard);
+  const { fixture } = await renderComponent();
+  expect(fixture.componentInstance).toBeTruthy();
+});
+
+it("should display no side-nav if given card has no stackId", async () => {
+  givenACard(defaultCard);
+  await renderComponent();
+
+  const cardTitle = screen.getByTestId("card-title");
+  expect(cardTitle).toHaveTextContent(defaultCard.title);
+
+  const sideNav = screen.queryByTestId("stack-side-nav");
+  expect(sideNav).not.toBeInTheDocument();
+});
+
+it("should display a side-nav and highlight the current card when the card is in a stack", async () => {
+  givenAStackWithCards(testStack);
+  givenACard(testStack[0]);
+  await renderComponent("cards/details/2");
+
+  const sideNav = screen.getByTestId("stack-side-nav");
+  expect(sideNav).toBeInTheDocument();
+
+  const currentCard = screen.getByTestId("stack-side-nav-card-2");
+  expect(currentCard).toHaveClass("current-card");
+
+  const otherCard = screen.getByTestId("stack-side-nav-card-3");
+  expect(otherCard).not.toHaveClass("current-card");
+});
+
+it("should navigate to next card in stack", async () => {
+  givenAStackWithCards(testStack);
+  givenACard(testStack[0]);
+  await renderComponent("cards/details/2?stackId=1");
+
+  const nextButton = screen.getByTestId("next-card-button");
+  expect(nextButton).toBeInTheDocument();
+
+  const prevButton = screen.queryByTestId("previous-card-button");
+  expect(prevButton).not.toBeInTheDocument();
+});
+
+it("should display the current stack's name", async () => {
+  givenAStackWithCards(testStack, defaultStack);
+  givenACard(testStack[0]);
+  await renderComponent("cards/details/2?stackId=1");
+
+  const stackTitle = screen.getByTestId("stack-title");
+  expect(stackTitle).toHaveTextContent(defaultStack.name);
+});
+
+it("should be able to navigate to the previous card", async () => {
+  givenAStackWithCards(testStack);
+  givenACard(testStack[1]);
+  await renderComponent("cards/details/3?stackId=1");
+
+  const nextButton = screen.queryByTestId("next-card-button");
+  expect(nextButton).not.toBeInTheDocument();
+
+  const prevButton = screen.getByTestId("previous-card-button");
+  expect(prevButton).toBeInTheDocument();
+});
+
+it("should pan to a single marker of a card", async () => {
+  const givenMarker: LocationData = {
+    iconName: "iconBorderLimesRed",
+    radius: 0,
+    latitude: 0,
+    longitude: 0,
+  };
+  givenACard({
+    ...defaultCard,
+    ...givenMarker,
+  });
+  const { fixture } = await renderComponent("cards/details/1");
+
+  fixture.detectChanges();
+  await fixture.whenStable();
+
+  fireEvent.click(screen.getByTestId("show-on-map-button"));
+
+  expect(emit).toHaveBeenCalledWith("panTo", {
+    lat: givenMarker.latitude,
+    lng: givenMarker.longitude,
+    id: 1,
+  });
+});
+
+it("should create a new card when add card button is clicked", async () => {
+  const stackId = 1;
+  givenAStackWithCards(testStack, defaultStack);
+  givenACard(testStack[0]);
+
+  const newCard: InfoCard = {
+    title: "New Test Card",
+    description: "This is a new test card",
+    stackId: stackId,
+  };
+  cardServiceMock.createCard.mockResolvedValue(newCard);
+
+  await renderComponent(`cards/details/2?stackId=${stackId}`);
+
+  const addCardButton = screen.getByTestId("add-card-button");
+  expect(addCardButton).toBeInTheDocument();
+
+  fireEvent.click(addCardButton);
+
+  const dialog = await screen.findByRole("dialog");
+  expect(dialog).toBeInTheDocument();
+
+  const titleInput = within(dialog).getByLabelText("Title:");
+  fireEvent.input(titleInput, { target: { value: newCard.title } });
+
+  const descriptionInput = within(dialog).getByLabelText("Beschreibung:");
+  fireEvent.input(descriptionInput, {
+    target: { value: newCard.description },
   });
 
-  const givenACard = async (card: Partial<LocationCard>) => {
-    cardServiceMock.readCard.mockResolvedValue({
-      ...card,
-    });
-  };
+  const createButton = within(dialog).getByText("Erstellen");
+  fireEvent.click(createButton);
 
-  it("should display no side-nav if given card has no stackId", async () => {
-    await givenACard(defaultCard);
-    const { fixture } = await renderComponent();
-    fixture.detectChanges();
-
-    const cardTitle = getElementByTestId("card-title");
-    expect(cardTitle).toHaveTextContent(defaultCard.title);
-
-    const sideNav = queryElementByTestId("stack-side-nav");
-    expect(sideNav).not.toBeInTheDocument();
+  await waitFor(() => {
+    expect(cardServiceMock.createCard).toHaveBeenCalledWith(
+      expect.objectContaining(newCard),
+    );
   });
 
-  it("should display a side-nav and highlight the current card when the card is in a stack", async () => {
-    givenAStackWithCards(testStack);
-    await givenACard(testStack[0]);
-    const { fixture } = await renderComponent("cards/details/2");
-
-    await new Promise((resolve) => setTimeout(resolve, 1));
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const sideNav = getElementByTestId("stack-side-nav");
-    expect(sideNav).toBeInTheDocument();
-
-    const currentCard = getElementByTestId("stack-side-nav-card-2");
-    expect(currentCard).toHaveClass("current-card");
-
-    const otherCard = getElementByTestId("stack-side-nav-card-3");
-    expect(otherCard).not.toHaveClass("current-card");
+  await waitFor(() => {
+    expect(cardServiceMock.getAllCardsForStack).toHaveBeenCalledWith(stackId);
   });
-
-  it("should navigate to next card in stack", async () => {
-    givenAStackWithCards(testStack);
-    await givenACard(testStack[0]);
-    const { fixture } = await renderComponent("cards/details/2?stackId=1");
-
-    await new Promise((resolve) => setTimeout(resolve, 1));
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const nextButton = getElementByTestId("next-card-button");
-    expect(nextButton).toBeInTheDocument();
-
-    const prevButton = queryElementByTestId("previous-card-button");
-    expect(prevButton).not.toBeInTheDocument();
-  });
-
-  it("should display the current stack's name", async () => {
-    givenAStackWithCards(testStack, defaultStack);
-    await givenACard(testStack[0]);
-    const { fixture } = await renderComponent("cards/details/2?stackId=1");
-
-    await new Promise((resolve) => setTimeout(resolve, 1));
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const stackTitle = getElementByTestId("stack-title");
-    expect(stackTitle).toHaveTextContent(defaultStack.name);
-  });
-
-  it("should be able to navigate to the previous card", async () => {
-    givenAStackWithCards(testStack);
-    await givenACard(testStack[1]);
-    const { fixture } = await renderComponent("cards/details/3?stackId=1");
-
-    await new Promise((resolve) => setTimeout(resolve, 1));
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const nextButton = queryElementByTestId("next-card-button");
-    expect(nextButton).not.toBeInTheDocument();
-
-    const prevButton = getElementByTestId("previous-card-button");
-    expect(prevButton).toBeInTheDocument();
-  });
-
-  it("should pan to a single marker of a card", async () => {
-    const givenMarker: LocationData = {
-      iconName: "iconBorderLimesRed",
-      radius: 0,
-      latitude: 0,
-      longitude: 0,
-    };
-    await givenACard({
-      ...defaultCard,
-      ...givenMarker,
-    });
-    const { fixture } = await renderComponent("cards/details/1");
-
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    await whenIClickAButton("show-on-map-button");
-
-    expect(emit).toHaveBeenCalledWith("panTo", {
-      lat: givenMarker.latitude,
-      lng: givenMarker.longitude,
-      id: 1,
-    });
-  });
-
-  const getElementByTestId = (testId: string) => {
-    return screen.getByTestId(testId);
-  };
-
-  const queryElementByTestId = (testId: string) => {
-    return screen.queryByTestId(testId);
-  };
-
-  const givenAStackWithCards = (
-    cards: LocationCard[],
-    stack = defaultStack,
-  ) => {
-    cardServiceMock.getAllCardsForStack.mockResolvedValue({ stack, cards });
-  };
-
-  const whenIClickAButton = async (testId: string) => {
-    fireEvent.click(screen.getByTestId(testId));
-  };
 });
