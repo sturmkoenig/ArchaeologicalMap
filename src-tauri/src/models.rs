@@ -16,10 +16,10 @@ pub struct CardDTO {
     pub id: Option<i32>,
     pub title: Option<String>,
     pub description: Option<String>,
-    pub longitude: f32,
-    pub latitude: f32,
+    pub longitude: Option<f32>,
+    pub latitude: Option<f32>,
     pub radius: Option<f32>,
-    pub icon_name: String,
+    pub icon_name: Option<String>,
     pub stack_id: Option<i32>,
     pub region_image_id: Option<i32>,
 }
@@ -39,10 +39,10 @@ pub struct ImageDTO {
 pub struct NewCard<'a> {
     pub title: &'a str,
     pub description: &'a str,
-    pub longitude: f32,
-    pub latitude: f32,
-    pub radius: f32,
-    pub icon_name: &'a str,
+    pub longitude: Option<f32>,
+    pub latitude: Option<f32>,
+    pub radius: Option<f32>,
+    pub icon_name: Option<&'a str>,
     pub stack_id: Option<i32>,
     pub region_image_id: Option<i32>
 }
@@ -52,10 +52,10 @@ impl Default for NewCard<'_> {
         NewCard {
             title: "",
             description: "",
-            longitude: 0.0,
-            latitude: 0.0,
-            radius: 0.0,
-            icon_name: "",
+            longitude: None,
+            latitude: None,
+            radius: None,
+            icon_name: None,
             stack_id: None,
             region_image_id: None
         }
@@ -87,10 +87,10 @@ pub struct Card {
     pub title:  String,
     pub description:  String,
     pub stack_id:  Option<i32>,
-    pub latitude:  f32,
-    pub longitude:  f32,
-    pub radius:  f32,
-    pub icon_name:  String,
+    pub latitude:  Option<f32>,
+    pub longitude:  Option<f32>,
+    pub radius:  Option<f32>,
+    pub icon_name:  Option<String>,
     pub region_image_id: Option<i32>,
 }
 
@@ -137,11 +137,10 @@ impl From<Card> for CardDTO {
             description: Some(c.description),
             longitude: c.longitude,
             latitude: c.latitude,
-            radius: Some(c.radius),
+            radius: c.radius,
             icon_name: c.icon_name,
             stack_id: c.stack_id,
             region_image_id: c.region_image_id
         }
     }
 }
-

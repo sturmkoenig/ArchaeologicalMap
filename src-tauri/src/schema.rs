@@ -6,10 +6,10 @@ diesel::table! {
         title -> Text,
         description -> Text,
         stack_id -> Nullable<Integer>,
-        latitude -> Float,
-        longitude -> Float,
-        radius -> Float,
-        icon_name -> Text,
+        latitude -> Nullable<Float>,
+        longitude -> Nullable<Float>,
+        radius -> Nullable<Float>,
+        icon_name -> Nullable<Text>,
         region_image_id -> Nullable<Integer>,
     }
 }

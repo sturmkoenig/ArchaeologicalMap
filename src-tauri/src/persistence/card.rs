@@ -46,8 +46,8 @@ pub fn query_create_card(
         description: &card_unified_dto.description.unwrap_or_default(),
         longitude: card_unified_dto.longitude,
         latitude: card_unified_dto.latitude,
-        radius: card_unified_dto.radius.unwrap_or_default(),
-        icon_name: card_unified_dto.icon_name.as_str(),
+        radius: card_unified_dto.radius,
+        icon_name: card_unified_dto.icon_name.as_deref(),
         stack_id: card_unified_dto.stack_id,
         region_image_id: card_unified_dto.region_image_id,
     };
