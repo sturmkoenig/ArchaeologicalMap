@@ -25,7 +25,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use crate::persistence::images::query_update_image;
 use crate::persistence::stacks::query_stack_by_id;
-use crate::persistence::card::{query_cards_in_geological_area, query_create_unified_card, query_delete_unified_card, query_set_image_to_null, query_unified_card_by_id, query_unified_card_by_title, query_unified_cards_in_stack, query_update_unified_card};
+use crate::persistence::card::{query_cards_in_geological_area, query_create_card, query_delete_card, query_set_image_to_null, query_card_by_id, query_card_by_title, query_cards_in_stack, query_update_card};
 use app::establish_connection;
 use std::env;
 use std::fs;
@@ -53,8 +53,8 @@ fn main() {
             read_cards_in_stack,
             read_cards_by_title,
             read_card_by_id,
-            update_card_unified,
-            create_unified_card,
+            update_card,
+            create_card,
             delete_card,
 
             create_stack,
@@ -124,10 +124,10 @@ fn read_cards_in_area(cardinal_directions: CardinalDirections) -> Result<Vec<Car
 }
 
 #[tauri::command]
-fn update_card_unified(card: CardDTO) -> Result<bool, String> {
+fn update_card(card: CardDTO) -> Result<bool, String> {
     let conn = &mut establish_connection();
     let id = card.id.ok_or("id is missing".to_string())?;
-    query_update_unified_card(
+    query_update_card(
         conn,
         Card {
             id,
@@ -146,13 +146,13 @@ fn update_card_unified(card: CardDTO) -> Result<bool, String> {
 #[tauri::command]
 fn read_card_by_id(id: i32) -> Result<CardDTO, String> {
     let conn = &mut establish_connection();
-    query_unified_card_by_id(conn, id).map_err(|err| err.to_string())
+    query_card_by_id(conn, id).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
-fn create_unified_card(card: CardDTO) -> Result<CardDTO, String> {
+fn create_card(card: CardDTO) -> Result<CardDTO, String> {
     let conn = &mut establish_connection();
-    query_create_unified_card(conn, card).map(CardDTO::from).map_err(|err| err.to_string())
+    query_create_card(conn, card).map(CardDTO::from).map_err(|err| err.to_string())
 }
 
 // TODO may be moved to frontend
@@ -183,7 +183,7 @@ fn write_card_content(app_handle: tauri::AppHandle, id: String, content: String)
 #[tauri::command]
 fn delete_card(app: AppHandle,id: i32) -> Result<(), String> {
     let conn = &mut establish_connection();
-    query_delete_unified_card(conn, id).map_err(|err| err.to_string())?;
+    query_delete_card(conn, id).map_err(|err| err.to_string())?;
     app.emit("card-deleted",id).map_err(|err| err.to_string())?;
     Ok(())
 }
@@ -204,7 +204,7 @@ fn read_all_stacks() -> Vec<StackDTO> {
 fn read_cards_in_stack(stack_id: i32) ->  Result<(StackDTO, Vec<CardDTO>), String>{
     println!("stack_id: {}", stack_id);
     let conn = &mut establish_connection();
-    let cards = query_unified_cards_in_stack(conn, stack_id).map(|cards| cards.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())?;
+    let cards = query_cards_in_stack(conn, stack_id).map(|cards| cards.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())?;
     let stack = query_stack_by_id(conn, stack_id);
     Ok((StackDTO::from(stack), cards))
 }
@@ -212,7 +212,7 @@ fn read_cards_in_stack(stack_id: i32) ->  Result<(StackDTO, Vec<CardDTO>), Strin
 #[tauri::command]
 fn read_cards_by_title(title: String, limit: i64) -> Result<Vec<CardDTO>, String> {
     let conn = &mut establish_connection();
-    query_unified_card_by_title(conn, title, limit).map(|cards| cards.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())
+    query_card_by_title(conn, title, limit).map(|cards| cards.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
@@ -358,7 +358,7 @@ fn update_image_name(image_id: i32, new_name: String) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{create_stack, create_unified_card, read_card_by_id, read_cards_by_title, read_cards_in_area, read_cards_in_stack, update_card_unified, MIGRATIONS};
+    use crate::{create_stack, create_card, read_card_by_id, read_cards_by_title, read_cards_in_area, read_cards_in_stack, update_card, MIGRATIONS};
     use app::establish_connection;
     use app::models::{CardDTO, CardinalDirections, NewStack};
     use assertor::{assert_that, IteratorAssertion};
@@ -392,7 +392,7 @@ mod tests {
        name: String
     }
     impl TestDb {
-        fn initialize() -> Self {
+        unsafe fn initialize() -> Self {
             let db_name = "testing.db".to_string();
             println!("unique name: {}", db_name.clone() );
             env::set_var("DB_PATH", db_name.clone());
@@ -413,7 +413,7 @@ mod tests {
     }
 
     fn given_database_has_card(card: CardDTO) -> CardDTO {
-        create_unified_card(card.clone()).expect(&format!("Error creating card {:?}", card))
+        create_card(card.clone()).expect(&format!("Error creating card {:?}", card))
     }
     fn initialize_test_env() -> TestDb{
         TestDb::initialize()
@@ -442,7 +442,7 @@ mod tests {
             ..CardDTO::default()
         };
 
-        let created_card = create_unified_card(unified_card).expect("failed to create card!");
+        let created_card = create_card(unified_card).expect("failed to create card!");
         assert_ne!(created_card.id, None);
         assert_eq!(created_card.title.unwrap(), titel);
         assert_eq!(created_card.region_image_id.unwrap(), 1);
@@ -499,7 +499,7 @@ mod tests {
             icon_name: "iconLimesSpecial".to_string(),
             ..want_card
         };
-        let update_result =update_card_unified(update_card.clone()).expect("update failed!");
+        let update_result =update_card(update_card.clone()).expect("update failed!");
         assert!(update_result);
         let got_card = read_card_by_id(card_id).expect("card not found");
         assert_eq!(got_card, update_card);

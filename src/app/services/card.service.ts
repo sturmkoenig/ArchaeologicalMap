@@ -30,7 +30,7 @@ export class CardService {
   }
 
   createCard(card: LocationCard | InfoCard): Promise<LocationCard> {
-    return invoke("create_unified_card", {
+    return invoke("create_card", {
       card: toCardDTO(card),
     });
   }
@@ -61,7 +61,7 @@ export class CardService {
   }
 
   async updateCard(card: LocationCard): Promise<boolean> {
-    const success = await invoke<boolean>("update_card_unified", {
+    const success = await invoke<boolean>("update_card", {
       card: toCardDTO(card),
     });
     await emit("card-changed", card);

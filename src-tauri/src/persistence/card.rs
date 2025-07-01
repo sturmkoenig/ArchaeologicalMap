@@ -6,7 +6,7 @@ use diesel::associations::HasTable;
 use diesel::{ExpressionMethods, TextExpressionMethods};
 use diesel::{QueryDsl, QueryResult, RunQueryDsl, SqliteConnection};
 
-pub fn query_unified_card_by_id(
+pub fn query_card_by_id(
     conn: &mut SqliteConnection,
     card_id: i32,
 ) -> QueryResult<CardDTO> {
@@ -14,14 +14,14 @@ pub fn query_unified_card_by_id(
         .first::<Card>(conn)
         .map(CardDTO::from)
 }
-pub fn query_delete_unified_card(
+pub fn query_delete_card(
     conn: &mut SqliteConnection,
     id: i32,
 ) -> QueryResult<()> {
     diesel::delete(card::table().filter(schema::card::id.eq(id))).execute(conn).map(|_| ())
 }
 
-pub fn query_unified_cards_in_stack(
+pub fn query_cards_in_stack(
     conn: &mut SqliteConnection,
     stack_id: i32,
 ) -> QueryResult<Vec<Card>> {
@@ -29,7 +29,7 @@ pub fn query_unified_cards_in_stack(
         .filter(schema::card::stack_id.eq(stack_id))
         .load(conn)
 }
-pub fn query_unified_card_by_title(
+pub fn query_card_by_title(
 conn: &mut SqliteConnection,
 title: String,
 limit: i64
@@ -37,7 +37,7 @@ limit: i64
     card::table().filter(schema::card::title.like(format!("%{}%", title))).order_by(schema::card::title).limit(limit).get_results(conn)
 }
 
-pub fn query_create_unified_card(
+pub fn query_create_card(
     conn: &mut SqliteConnection,
     card_unified_dto: CardDTO,
 ) -> QueryResult<Card> {
@@ -69,7 +69,7 @@ pub fn query_cards_in_geological_area(
         .load::<Card>(conn)
 }
 
-pub fn query_update_unified_card(
+pub fn query_update_card(
     conn: &mut SqliteConnection,
     update_card: Card,
 ) -> QueryResult<bool> {
