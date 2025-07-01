@@ -16,7 +16,7 @@ export class ImageService {
     const imagesDB: ImageDB[] = await invoke("read_images", {});
     const images: ImageEntity[] = [];
     for (const image of imagesDB) {
-      const imagePath = await path.join(await appDataDir(), image.image_source);
+      const imagePath = await path.join(await appDataDir(), image.imageSource);
       images.push({
         id: image.id,
         name: image.name,
@@ -38,7 +38,7 @@ export class ImageService {
     })) as [ImageDB[], number];
     const images: ImageEntity[] = [];
     for (const image of imagesDB) {
-      const imagePath = await path.join(await appDataDir(), image.image_source);
+      const imagePath = await path.join(await appDataDir(), image.imageSource);
       images.push({
         id: image.id,
         name: image.name,
@@ -53,10 +53,7 @@ export class ImageService {
       return new Promise(() => undefined);
     }
     const imageDB: ImageDB = await invoke("read_image", { imageId: imageId });
-    const imageSoure = await path.join(
-      await appDataDir(),
-      imageDB.image_source,
-    );
+    const imageSoure = await path.join(await appDataDir(), imageDB.imageSource);
     return {
       id: imageDB.id,
       name: imageDB.name,
@@ -86,9 +83,9 @@ export class ImageService {
     return convertFileSrc(fileUrl);
   }
 
-  async getImageUrl(image_name: string): Promise<void | string> {
+  async getImageUrl(imageName: string): Promise<void | string> {
     const dataDir = await path.appDataDir();
-    const imagePath = await path.join(dataDir, "content", "images", image_name);
+    const imagePath = await path.join(dataDir, "content", "images", imageName);
     return convertFileSrc(imagePath);
   }
   updateImageName(id: number, newName: string) {

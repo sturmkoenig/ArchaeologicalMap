@@ -40,8 +40,8 @@ describe("CardService", () => {
         latitude: testCard.latitude,
         longitude: testCard.longitude,
         radius: testCard.radius,
-        stack_id: testCard.stackId,
-        icon_name: testCard.iconName,
+        stackId: testCard.stackId,
+        iconName: testCard.iconName,
       },
     });
   });
@@ -58,8 +58,8 @@ describe("CardService", () => {
         latitude: testCard.latitude,
         longitude: testCard.longitude,
         radius: testCard.radius,
-        stack_id: testCard.stackId,
-        icon_name: testCard.iconName,
+        stackId: testCard.stackId,
+        iconName: testCard.iconName,
       },
     });
   });
@@ -76,8 +76,8 @@ describe("CardService", () => {
         latitude: testCard.latitude,
         longitude: testCard.longitude,
         radius: testCard.radius,
-        stack_id: testCard.stackId,
-        icon_name: testCard.iconName,
+        stackId: testCard.stackId,
+        iconName: testCard.iconName,
       },
     });
   });

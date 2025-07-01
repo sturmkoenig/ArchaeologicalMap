@@ -11,6 +11,7 @@ pub struct CardinalDirections {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub struct CardDTO {
     pub id: Option<i32>,
     pub title: Option<String>,
@@ -25,6 +26,7 @@ pub struct CardDTO {
 
 #[derive(Serialize, Debug, AsChangeset)]
 #[table_name = "image"]
+#[serde(rename_all = "camelCase")]
 pub struct ImageDTO {
     pub id: i32,
     pub name: String,
@@ -62,6 +64,7 @@ impl Default for NewCard<'_> {
 
 #[derive(Insertable, Deserialize)]
 #[diesel(table_name = image)]
+#[serde(rename_all = "camelCase")]
 pub struct NewImage<'a> {
     pub name: &'a str,
     pub image_source: Option<&'a str>,
@@ -78,6 +81,7 @@ pub struct Image {
 
 #[derive(Identifiable,Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]
 #[diesel(table_name = card)]
+#[serde(rename_all = "camelCase")]
 pub struct Card {
     pub id:  i32,
     pub title:  String,
@@ -92,6 +96,7 @@ pub struct Card {
 
 #[derive(Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]
 #[diesel(table_name = stack)]
+#[serde(rename_all = "camelCase")]
 pub struct Stack {
     pub id: i32,
     pub name: String,
@@ -100,12 +105,14 @@ pub struct Stack {
 
 #[derive(Insertable, Deserialize)]
 #[diesel(table_name = stack)]
+#[serde(rename_all = "camelCase")]
 pub struct NewStack {
     pub name: String,
     pub image_name: String,
 }
 
 #[derive(Queryable, Serialize, Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct StackDTO {
     pub id: Option<i32>,
     pub name: String,

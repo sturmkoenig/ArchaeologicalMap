@@ -1,10 +1,10 @@
 export interface StackPost {
   name?: string;
-  image_name?: string;
+  imageName?: string;
 }
 
 export interface Stack {
   id: number;
   name: string;
-  image_name: string;
+  imageName: string;
 }

@@ -12,6 +12,7 @@ import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
 import { ImageService } from "@service/image.service";
 import { WindowService } from "@service/window.service";
+import { Stack } from "@app/model/stack";
 
 @Component({
   imports: [
@@ -107,7 +108,7 @@ export class StackCreatorComponent implements OnInit {
   stackName = model<string>("");
   fileName = model<string>("");
   fileUrl$: BehaviorSubject<string> = new BehaviorSubject("");
-  data = inject(MAT_DIALOG_DATA);
+  data: { stack: Stack } = inject(MAT_DIALOG_DATA);
 
   constructor(
     private stackStore: StackStore,
@@ -127,7 +128,7 @@ export class StackCreatorComponent implements OnInit {
     if (this.data?.stack) {
       this.stackId = this.data.stack.id;
       this.stackName.set(this.data.stack.name);
-      this.fileName.set(this.data.stack.image_name);
+      this.fileName.set(this.data.stack.imageName);
     }
   }
 
@@ -147,12 +148,12 @@ export class StackCreatorComponent implements OnInit {
       this.stackStore.updateStack({
         id: this.stackId,
         name: this.stackName(),
-        image_name: this.fileName(),
+        imageName: this.fileName(),
       });
     } else {
       this.stackStore.createStack({
         name: this.stackName(),
-        image_name: this.fileName(),
+        imageName: this.fileName(),
       });
     }
   }

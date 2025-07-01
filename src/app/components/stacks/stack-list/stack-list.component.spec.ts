@@ -10,10 +10,11 @@ import { StackCreatorComponent } from "@app/components/stacks/stack-creator/stac
 import { WindowService } from "@service/window.service";
 import { createAndFocusWebview } from "@app/util/window-util";
 import * as WindowUtil from "@app/util/window-util";
+import { Stack } from "@app/model/stack";
 
-const MockStacks = [
-  { id: 1, name: "MyStack1", image_name: "/path/to/an/image" },
-  { id: 2, name: "MyStack2", image_name: "/path/to/an/image2" },
+const MockStacks: Stack[] = [
+  { id: 1, name: "MyStack1", imageName: "/path/to/an/image" },
+  { id: 2, name: "MyStack2", imageName: "/path/to/an/image2" },
 ];
 
 const mockDeleteStack = jest.fn().mockResolvedValue(undefined);
@@ -145,6 +146,6 @@ it("should open an update dialog with all stack properties when clicking the 'up
   expect(mockUpdateStack).lastCalledWith({
     id: givenStack.id,
     name: givenStack.name + "addedTitle",
-    image_name: givenStack.image_name,
+    imageName: givenStack.imageName,
   });
 });

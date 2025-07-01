@@ -17,17 +17,14 @@ export class StackService {
       });
       return new Promise(() => undefined);
     }
-    if (newStack.image_name === undefined || newStack.image_name === "") {
+    if (newStack.imageName === undefined || newStack.imageName === "") {
       this.notificationService.createNotification({
         text: "Fehler: Bild fehlt",
       });
       return new Promise(() => undefined);
     }
     return invoke<Stack>("create_stack", {
-      stack: {
-        name: newStack.name,
-        image_name: newStack.image_name,
-      },
+      stack: newStack,
     })
       .then((stack) => {
         this.notificationService.createNotification({

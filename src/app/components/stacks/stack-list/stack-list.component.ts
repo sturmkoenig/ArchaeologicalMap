@@ -36,9 +36,9 @@ import { createStackDetailWindow } from "@app/util/window-util";
             <img
               class="card__image"
               mat-card-image
-              src="{{ stack.image_name }}"
+              src="{{ stack.imageName }}"
             />
-            <mat-card-content> </mat-card-content>
+            <mat-card-content></mat-card-content>
             <mat-card-actions class="card__actions gap-[10px]">
               <button
                 [attr.data-testid]="'open-stack-button-' + stack.id"

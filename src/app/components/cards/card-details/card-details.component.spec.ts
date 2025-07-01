@@ -91,7 +91,7 @@ const testStack: LocationCard[] = [
 
 const defaultStack: Stack = {
   id: 1,
-  image_name: "some flag",
+  imageName: "some flag",
   name: "My testing Stack",
 };
 

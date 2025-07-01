@@ -35,9 +35,9 @@ export class StackStore extends ComponentStore<StackState> {
     from(this.stackService.getAll()).pipe(
       tap((stacks: Stack[]) => {
         for (const stack of stacks) {
-          this.imageService.getImageUrl(stack.image_name).then((imageUrl) => {
+          this.imageService.getImageUrl(stack.imageName).then((imageUrl) => {
             if (imageUrl !== undefined) {
-              stack.image_name = imageUrl.toString();
+              stack.imageName = imageUrl.toString();
             }
           });
         }
@@ -78,9 +78,9 @@ export class StackStore extends ComponentStore<StackState> {
           if (!stack) {
             return;
           }
-          this.imageService.getImageUrl(stack.image_name).then((imageUrl) => {
+          this.imageService.getImageUrl(stack.imageName).then((imageUrl) => {
             if (imageUrl !== undefined) {
-              stack.image_name = imageUrl.toString();
+              stack.imageName = imageUrl.toString();
             }
             this.addStack(stack);
           });

@@ -25,10 +25,10 @@ export type CardDTO = {
   description: string;
   latitude?: number;
   longitude?: number;
-  region_image_id?: number;
-  icon_name?: keyof typeof ICONS;
+  regionImageId?: number;
+  iconName?: keyof typeof ICONS;
   radius?: number;
-  stack_id?: number;
+  stackId?: number;
 };
 
 export const fromCardDTO = (cardDTO: CardDTO): LocationCard | InfoCard => {
@@ -37,16 +37,16 @@ export const fromCardDTO = (cardDTO: CardDTO): LocationCard | InfoCard => {
       cardDTO.radius &&
       cardDTO.longitude &&
       cardDTO.latitude &&
-      cardDTO.icon_name
+      cardDTO.iconName
     )
   ) {
     return {
       ...(cardDTO.id ? { id: cardDTO.id } : {}),
       title: cardDTO.title,
       description: cardDTO.description,
-      stackId: cardDTO.stack_id,
-      ...(cardDTO.region_image_id
-        ? { regionImageId: cardDTO.region_image_id }
+      stackId: cardDTO.stackId,
+      ...(cardDTO.regionImageId
+        ? { regionImageId: cardDTO.regionImageId }
         : {}),
     };
   }
@@ -54,12 +54,12 @@ export const fromCardDTO = (cardDTO: CardDTO): LocationCard | InfoCard => {
     ...(cardDTO.id ? { id: cardDTO.id } : {}),
     title: cardDTO.title,
     description: cardDTO.description,
-    stackId: cardDTO.stack_id,
+    stackId: cardDTO.stackId,
     latitude: cardDTO.latitude,
     longitude: cardDTO.longitude,
     radius: cardDTO.radius,
-    iconName: cardDTO.icon_name,
-    regionImageId: cardDTO.region_image_id,
+    iconName: cardDTO.iconName,
+    regionImageId: cardDTO.regionImageId,
   };
 };
 
@@ -75,10 +75,10 @@ export const toCardDTO = (card: InfoCard | LocationCard): CardDTO =>
         ...(card.id ? { id: card.id } : {}),
         title: card.title,
         description: card.description,
-        stack_id: card.stackId,
+        stackId: card.stackId,
         latitude: card.latitude,
         longitude: card.longitude,
-        icon_name: card.iconName,
+        iconName: card.iconName,
         radius: card.radius,
         ...(card.regionImageId ? { region_image_id: card.regionImageId } : {}),
       }
@@ -86,7 +86,7 @@ export const toCardDTO = (card: InfoCard | LocationCard): CardDTO =>
         ...(card.id ? { id: card.id } : {}),
         title: card.title,
         description: card.description,
-        stack_id: card.stackId,
+        stackId: card.stackId,
         ...(card.regionImageId ? { region_image_id: card.regionImageId } : {}),
       };
 

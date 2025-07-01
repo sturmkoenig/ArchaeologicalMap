@@ -66,7 +66,7 @@ describe("StackCreatorComponent", () => {
     component.onSaveStack();
     expect(stackStoreMock.createStack).toBeCalledWith({
       name: stackName,
-      image_name: fileName,
+      imageName: fileName,
     });
   });
 });
