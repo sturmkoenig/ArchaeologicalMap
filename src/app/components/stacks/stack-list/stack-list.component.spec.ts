@@ -40,8 +40,8 @@ jest.spyOn(WindowUtil, "createAndFocusWebview").mockImplementation(jest.fn());
 
 const tearDownStackList = async () => jest.clearAllMocks();
 
-const setupStackList = async () =>
-  await render(StackListComponent, {
+const setupStackList = async () => {
+  const { fixture } = await render(StackListComponent, {
     imports: [StackCreatorComponent],
     providers: [
       { provide: MatDialog },
@@ -72,6 +72,11 @@ const setupStackList = async () =>
       },
     ],
   });
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  fixture.detectChanges();
+  await fixture.whenStable();
+  return fixture;
+};
 
 it("should display all given stacks with their title", async () => {
   await setupStackList();
@@ -85,7 +90,6 @@ it("should display all given stacks with their title", async () => {
 it("should open a new window with the stack when pressing the button", async () => {
   await setupStackList();
   const stackId = MockStacks[0].id;
-  //when I open stack with id
   const openStackWindowButton = screen.getByTestId(
     `open-stack-button-${stackId}`,
   );
