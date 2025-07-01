@@ -32,14 +32,7 @@ export type CardDTO = {
 };
 
 export const fromCardDTO = (cardDTO: CardDTO): LocationCard | InfoCard => {
-  if (
-    !(
-      cardDTO.radius &&
-      cardDTO.longitude &&
-      cardDTO.latitude &&
-      cardDTO.iconName
-    )
-  ) {
+  if (!(cardDTO.longitude && cardDTO.latitude && cardDTO.iconName)) {
     return {
       ...(cardDTO.id ? { id: cardDTO.id } : {}),
       title: cardDTO.title,
