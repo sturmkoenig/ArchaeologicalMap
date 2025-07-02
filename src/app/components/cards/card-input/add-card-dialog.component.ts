@@ -41,4 +41,4 @@ export class AddCardDialogComponent {
       this.dialogRef.close(this.cardInput.card());
     }
   }
-} 
+}

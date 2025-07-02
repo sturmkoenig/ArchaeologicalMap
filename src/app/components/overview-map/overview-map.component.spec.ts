@@ -52,12 +52,13 @@ jest.mock("@tauri-apps/plugin-fs", () => ({
   readFile: jest.fn(),
 }));
 const location: Location = window.location;
-// @ts-ignore
-delete window.location;
-window.location = {
-  ...location,
-  reload: jest.fn(),
-};
+Object.defineProperty(window, "location", {
+  value: {
+    ...location,
+    reload: jest.fn(),
+  },
+  writable: true,
+});
 
 describe("OverviewMapComponent", () => {
   let component: OverviewMapComponent;

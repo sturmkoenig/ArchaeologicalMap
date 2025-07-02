@@ -2,15 +2,19 @@
   <div id="toolbar">
     <!-- Add font size dropdown -->
     <span class="ql-formats">
-      <button class="ql-bold"></button>
-      <button class="ql-italic"></button>
-      <button class="ql-underline"></button>
-      <button class="ql-strike"></button>
+      <button class="ql-bold" aria-label="Bold"></button>
+      <button class="ql-italic" aria-label="Italic"></button>
+      <button class="ql-underline" aria-label="Underline"></button>
+      <button class="ql-strike" aria-label="Strike"></button>
     </span>
 
     <span class="ql-formats">
-      <button class="ql-list" value="ordered"></button>
-      <button class="ql-list" value="bullet"></button>
+      <button
+        class="ql-list"
+        value="ordered"
+        aria-label="Ordered List"
+      ></button>
+      <button class="ql-list" value="bullet" aria-label="Bullet List"></button>
       <select class="ql-size">
         <option value="small"></option>
         <option selected></option>
@@ -26,10 +30,10 @@
     </span>
 
     <span class="ql-formats">
-      <button class="ql-clean"></button>
+      <button class="ql-clean" aria-label="Clean"></button>
     </span>
     <span class="ql-formats">
-      <button class="ql-image" value="super"></button>
+      <button class="ql-image" value="super" aria-label="Image"></button>
       <button
         style="dispay: flex; align-items: center; justify-content: center"
         [matMenuTriggerFor]="menu"

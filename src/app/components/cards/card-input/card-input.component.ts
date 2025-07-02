@@ -17,6 +17,7 @@ import { MatOptionModule } from "@angular/material/core";
 import { AsyncPipe, NgForOf } from "@angular/common";
 
 @Component({
+  standalone: true,
   imports: [
     MatSelectModule,
     MatFormFieldModule,

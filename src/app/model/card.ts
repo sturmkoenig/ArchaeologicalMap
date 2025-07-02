@@ -65,14 +65,11 @@ export const isLocationCard = (
 export const hasValidLocationData = (
   card: LocationCard | InfoCard,
 ): boolean => {
-  if (!isLocationCard(card)) {
-    return false;
-  }
   return (
-    card.latitude !== undefined &&
-    card.latitude !== null &&
-    card.longitude !== undefined &&
-    card.longitude !== null
+    (card as LocationCard).latitude !== undefined &&
+    (card as LocationCard).latitude !== null &&
+    (card as LocationCard).longitude !== undefined &&
+    (card as LocationCard).longitude !== null
   );
 };
 
@@ -87,14 +84,14 @@ export const toCardDTO = (card: InfoCard | LocationCard): CardDTO =>
         longitude: card.longitude,
         iconName: card.iconName,
         radius: card.radius,
-        ...(card.regionImageId ? { region_image_id: card.regionImageId } : {}),
+        ...(card.regionImageId ? { regionImageId: card.regionImageId } : {}),
       }
     : {
         ...(card.id ? { id: card.id } : {}),
         title: card.title,
         description: card.description,
         stackId: card.stackId,
-        ...(card.regionImageId ? { region_image_id: card.regionImageId } : {}),
+        ...(card.regionImageId ? { regionImageId: card.regionImageId } : {}),
       };
 
 export type Card = InfoCard | LocationCard;

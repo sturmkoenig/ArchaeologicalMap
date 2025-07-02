@@ -60,7 +60,11 @@ import { KeyValuePipe, NgForOf } from "@angular/common";
                 *ngFor="let iconOption of iconsSorted | keyvalue"
                 [value]="iconOption.key"
               >
-                <img class="option-icon" src="{{ iconOption.value[1] }}" />
+                <img
+                  class="option-icon"
+                  src="{{ iconOption.value[1] }}"
+                  alt="icon {{ iconOption.value }}"
+                />
               </mat-option>
             </mat-select>
           </mat-form-field>

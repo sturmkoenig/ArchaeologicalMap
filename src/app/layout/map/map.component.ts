@@ -33,7 +33,7 @@ export class MapComponent {
   @Output() map$: EventEmitter<Map> = new EventEmitter();
   @Output() zoom$: EventEmitter<number> = new EventEmitter();
   @Output() click$: EventEmitter<LeafletMouseEvent> = new EventEmitter();
-  @Output() moveEnd$: EventEmitter<any> = new EventEmitter();
+  @Output() moveEnd$: EventEmitter<void> = new EventEmitter();
   @Input() layers: Layer[] = [];
   @Input() options: MapOptions = {
     layers: [
@@ -60,6 +60,6 @@ export class MapComponent {
   }
 
   onMapMoveEnd() {
-    this.moveEnd$.emit(null);
+    this.moveEnd$.emit();
   }
 }

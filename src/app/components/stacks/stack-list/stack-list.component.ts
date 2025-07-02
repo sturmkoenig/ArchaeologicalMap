@@ -38,6 +38,7 @@ import { ImageService } from "@service/image.service";
               class="card__image"
               mat-card-image
               src="{{ stack.imageUrl }}"
+              alt="image of the stack"
             />
             <mat-card-content></mat-card-content>
             <mat-card-actions class="card__actions gap-[10px]">

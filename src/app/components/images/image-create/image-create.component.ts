@@ -19,22 +19,22 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { ImageService } from "@service/image.service";
 
 @Component({
-    selector: "app-image-create",
-    imports: [
-        MatFormFieldModule,
-        MatInputModule,
-        FormsModule,
-        MatButtonModule,
-        MatDialogTitle,
-        MatDialogContent,
-        MatDialogActions,
-        MatDialogClose,
-        MatIconModule,
-        NgIf,
-        NgClass,
-    ],
-    templateUrl: "./image-create.component.html",
-    styleUrl: "./image-create.component.scss"
+  selector: "app-image-create",
+  imports: [
+    MatFormFieldModule,
+    MatInputModule,
+    FormsModule,
+    MatButtonModule,
+    MatDialogTitle,
+    MatDialogContent,
+    MatDialogActions,
+    MatDialogClose,
+    MatIconModule,
+    NgIf,
+    NgClass,
+  ],
+  templateUrl: "./image-create.component.html",
+  styleUrl: "./image-create.component.scss",
 })
 export class ImageCreateComponent {
   image?: string;

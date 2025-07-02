@@ -28,7 +28,6 @@ export class CardService {
         stackId: stack_id,
       },
     );
-    console.log(cards);
     return {
       stack,
       cards: cards
@@ -64,7 +63,6 @@ export class CardService {
       title: titleFilter,
       limit: limit ?? 1000,
     });
-    console.log(cardDTOs);
     return cardDTOs.map(fromCardDTO);
   }
 
