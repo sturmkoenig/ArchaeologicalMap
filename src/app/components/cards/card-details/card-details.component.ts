@@ -5,7 +5,7 @@ import { emit, listen } from "@tauri-apps/api/event";
 import { MatDialog } from "@angular/material/dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { EditorComponent } from "@app/layout/editor/editor.component";
-import { InfoCard, isLocationCard, LocationCard } from "@app/model/card";
+import { Card, InfoCard, isLocationCard } from "@app/model/card";
 import { CardContentService } from "@service/card-content.service";
 import { AddCardDialogComponent } from "../card-input/add-card-dialog.component";
 import { CardService } from "@service/card.service";
@@ -65,12 +65,21 @@ export class CardDetailsComponent implements OnInit {
     });
   }
 
-  async panToLatLng(card: LocationCard) {
-    return emit("panTo", {
-      lat: card.latitude,
-      lng: card.longitude,
-      id: card.id ?? 0,
-    });
+  async onShowOnMap(card: Card) {
+    if (isLocationCard(card)) {
+      return emit("panTo", {
+        lat: card.latitude,
+        lng: card.longitude,
+        id: card.id ?? 0,
+      });
+    } else {
+      return emit("addLocationToCard", {
+        id: card.id,
+        title: card.title,
+        description: card.description,
+        stackId: card.stackId,
+      });
+    }
   }
 
   openAddCardDialog() {

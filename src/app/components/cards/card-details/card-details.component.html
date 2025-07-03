@@ -38,16 +38,16 @@
         <div class="card--content">
           <ng-container *ngIf="card">
             <div class="card--content_navigate-to-position-button">
-              @if (store.image()) {
+              @if (store.image(); as image) {
                 <button
                   *ngIf="isLocationCard(card)"
                   class="region-image-button"
                   data-testid="show-on-map-button"
-                  (click)="panToLatLng(card)"
+                  (click)="onShowOnMap(card)"
                 >
                   <img
                     data-testid="card-region-img"
-                    [src]="store.image()"
+                    [src]="image.imageSource"
                     alt="arrow_forward_ios"
                   />
                 </button>
@@ -55,12 +55,13 @@
                 <button
                   mat-mini-fab
                   color="warn"
-                  *ngIf="isLocationCard(card); else infoCard"
                   data-testid="show-on-map-button"
-                  (click)="panToLatLng(card)"
+                  (click)="onShowOnMap(card)"
                   aria-label="Example icon button with a home icon"
                 >
-                  <mat-icon data-testid="location-icon"> pin_drop </mat-icon>
+                  <mat-icon data-testid="location-icon">
+                    {{ isLocationCard(card) ? "pin_drop" : "location_off" }}
+                  </mat-icon>
                 </button>
               }
             </div>
@@ -101,16 +102,3 @@
 <div class="container">
   <app-editor></app-editor>
 </div>
-
-<ng-template #infoCard>
-  <button
-    mat-mini-fab
-    color="warn"
-    data-testid="show-on-map-button"
-    aria-label="Example icon button with a home icon"
-  >
-    <mat-icon data-testid="location-icon">
-      {{ "location_off" }}
-    </mat-icon>
-  </button>
-</ng-template>

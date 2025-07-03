@@ -11,6 +11,7 @@ import {
 } from "@ngrx/signals";
 import { CardService } from "@service/card.service";
 import { ImageService } from "@service/image.service";
+import { ImageEntity } from "@app/model/image";
 
 type CardDetailsState = {
   isLoading: boolean;
@@ -38,12 +39,15 @@ export const CardDetailsSignalStore = signalStore(
     cardService: inject(CardService),
   })),
   withProps((store) => ({
-    _imageResource: resource({
+    _imageResource: resource<ImageEntity, number | undefined>({
       request: () => store.imageId(),
-      loader: ({ request }) =>
-        request
+      loader: async ({ request }) => {
+        return await (request
           ? store.imageService.readImage(request)
-          : Promise.resolve(undefined),
+          : new Promise(() => {
+              return undefined;
+            }));
+      },
     }),
   })),
   withComputed((store) => ({
@@ -51,18 +55,21 @@ export const CardDetailsSignalStore = signalStore(
     currentCard: computed(() => store.cards()[store.index()]),
     nextCard: computed(() => saveGet(store.cards(), store.index() + 1)),
     previousCard: computed(() => saveGet(store.cards(), store.index() - 1)),
-    image: computed(
-      () => store._imageResource.hasValue() ?? store._imageResource.value(),
+    image: computed(() =>
+      store._imageResource.hasValue()
+        ? store._imageResource.value()
+        : undefined,
     ),
   })),
   withMethods((store) => ({
     setStack: async (stackId: number, cardId?: number) => {
       const { stack, cards } =
         await store.cardService.getAllCardsForStack(stackId);
+      const index = cardId ? cards.findIndex((card) => card.id === cardId) : 0;
       patchState(store, (_) => ({
         isLoading: false,
-        index: cardId ? cards.findIndex((card) => card.id === cardId) : 0,
-        imageId: cards[0].regionImageId,
+        index,
+        imageId: cards[index].regionImageId,
         stack,
         cards,
       }));

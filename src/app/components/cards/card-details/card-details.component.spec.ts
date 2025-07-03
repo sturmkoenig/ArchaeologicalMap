@@ -307,6 +307,27 @@ it("should display a location_off icon for cards without valid location data", a
   expect(icon).toHaveTextContent("location_off");
 });
 
+it("should emit addLocationToCard event when location_off icon is clicked", async () => {
+  const card = {
+    ...defaultCard,
+    id: 1,
+    latitude: undefined,
+    longitude: undefined,
+  };
+  givenACard(card);
+  await renderComponent("cards/details/1");
+
+  const button = screen.getByTestId("show-on-map-button");
+  fireEvent.click(button);
+
+  expect(emit).toHaveBeenCalledWith("addLocationToCard", {
+    id: card.id,
+    title: card.title,
+    description: card.description,
+    stackId: card.stackId,
+  });
+});
+
 it("should create a new card when add card button is clicked", async () => {
   const stackId = 1;
   givenAStackWithCards(testStack, defaultStack);
