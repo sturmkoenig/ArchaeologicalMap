@@ -20,7 +20,7 @@ import {
   tileLayer,
 } from "leaflet";
 import "leaflet.markercluster";
-import { LocationCard, InfoCard, LocationData } from "@app/model/card";
+import { LocationCard, InfoCard, LocationData, Card } from "@app/model/card";
 import { MapSettings, SettingService } from "@service/setting.service";
 import { IconSizeSetting } from "@service/icon.service";
 import { OverviewMapService } from "@service/overview-map.service";
@@ -98,6 +98,37 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.map.flyTo(point, 14);
       },
     );
+
+    listen(
+      "addLocationToCard",
+      async (event: {
+        payload: {
+          id: number;
+          title: string;
+          description: string;
+          stackId?: number;
+        };
+      }) => {
+        await setWindowFocus();
+        this.updateCardVisible = true;
+        console.log(this.map.getCenter());
+        const cardToAdd: Card = {
+          id: event.payload.id,
+          title: event.payload.title,
+          description: event.payload.description,
+          stackId: event.payload.stackId,
+          latitude: this.map.getCenter().lat,
+          longitude: this.map.getCenter().lng,
+          iconName: "iconMiscRed",
+          radius: 0.0,
+        };
+
+        this.overviewMapService.changeSelectedMarker(
+          new MarkerAM(this.map.getCenter(), {}, cardToAdd),
+        );
+        this.overviewMapService.updateEditCard(cardToAdd);
+      },
+    );
     this.cardMetadata = computed(() => ({
       title: this.editCard()?.title ?? "",
       description: this.editCard()?.description ?? "",
@@ -139,7 +170,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async updateSelectedMarker(newMarker: LocationData) {
-    await this.overviewMapService.updateEditCard(newMarker);
+    this.overviewMapService.updateEditCard(newMarker);
   }
 
   onMoveExistingMarker() {

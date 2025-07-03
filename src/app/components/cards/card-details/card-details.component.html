@@ -40,7 +40,6 @@
             <div class="card--content_navigate-to-position-button">
               @if (store.image(); as image) {
                 <button
-                  *ngIf="isLocationCard(card)"
                   class="region-image-button"
                   data-testid="show-on-map-button"
                   (click)="onShowOnMap(card)"
