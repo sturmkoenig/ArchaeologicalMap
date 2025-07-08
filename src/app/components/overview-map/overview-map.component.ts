@@ -34,6 +34,8 @@ import { MatButtonModule } from "@angular/material/button";
 import { MarkerAM } from "@app/model/markerAM";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatDialog } from "@angular/material/dialog";
+import { DeleteCardDialogComponent } from "./delete-card-dialog/delete-card-dialog.component";
 
 @Component({
   imports: [
@@ -83,6 +85,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
     private ngZone: NgZone,
     private settingsService: SettingService,
     public overviewMapService: OverviewMapService,
+    public dialog: MatDialog,
   ) {
     this.unlistenPanTo = listen(
       "panTo",
@@ -159,7 +162,21 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async onDeleteSelectedCard() {
-    await this.overviewMapService.deleteEditCard();
+    const dialogRef = this.dialog.open(DeleteCardDialogComponent);
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result === "deleteCard") {
+        await this.overviewMapService.deleteEditCard();
+      } else if (result === "deleteMarker") {
+        const cardUpdated = {
+          latitude: undefined,
+          longitude: undefined,
+          iconName: undefined,
+          radius: undefined,
+        };
+        this.overviewMapService.updateEditCard(cardUpdated);
+      }
+    });
   }
 
   async onUpdateIconSize(iconSetting: IconSizeSetting) {

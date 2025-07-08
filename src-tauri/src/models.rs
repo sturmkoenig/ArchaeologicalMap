@@ -25,7 +25,7 @@ pub struct CardDTO {
 }
 
 #[derive(Serialize, Debug, AsChangeset)]
-#[table_name = "image"]
+#[diesel(table_name = image)]
 #[serde(rename_all = "camelCase")]
 pub struct ImageDTO {
     pub id: i32,
@@ -34,7 +34,7 @@ pub struct ImageDTO {
 }
 
 
-#[derive(Insertable)]
+#[derive(Insertable, AsChangeset)]
 #[diesel(table_name = card)]
 pub struct NewCard<'a> {
     pub title: &'a str,
@@ -93,6 +93,21 @@ pub struct Card {
     pub icon_name:  Option<String>,
     pub region_image_id: Option<i32>,
 }
+
+#[derive(AsChangeset)]
+#[diesel(table_name = card)]
+pub struct UpdateCard {
+    pub id:  i32,
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub longitude: Option<Option<f32>>, // this double Option is KEY
+    pub latitude: Option<Option<f32>>,
+    pub radius: Option<Option<f32>>,
+    pub icon_name: Option<Option<String>>,
+    pub stack_id: Option<Option<i32>>,
+    pub region_image_id: Option<Option<i32>>,
+}
+
 
 #[derive(Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]
 #[diesel(table_name = stack)]

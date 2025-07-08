@@ -9,7 +9,7 @@ import {
 import { LatLng, LatLngBounds, Layer, LayerGroup } from "leaflet";
 import { MarkerService } from "./marker.service";
 import { isMarkerAM, RadiusVisibility } from "../model/marker";
-import { LocationCard } from "../model/card";
+import { Card, isLocationCard, LocationCard } from "../model/card";
 import { CardService } from "./card.service";
 import { IconKeys, IconService } from "./icon.service";
 import { MarkerAM } from "@app/model/markerAM";
@@ -89,21 +89,22 @@ export class OverviewMapService {
     const updatedCard = this.selectedMarker()?.toCard();
     if (updatedCard) this.cardService.updateCard(updatedCard);
   }
-  updateEditCard(changedCardMetaData: Partial<LocationCard>) {
+  async updateEditCard(cardUpdate: Partial<Card>) {
     const currentCard = this.selectedMarker();
     if (!currentCard) {
       return;
     }
-    const newCard: LocationCard = {
+    const newCard: Card = {
       ...currentCard.toCard(),
-      ...changedCardMetaData,
+      ...cardUpdate,
     };
-    this.selectedMarker.set(
-      new MarkerAM([newCard.latitude, newCard.longitude], {}, newCard, {
-        iconSize: this.iconSizeMap.get(newCard.iconName),
-      }),
-    );
-    this.cardService.updateCard(newCard);
+    const newSelectedMarker = isLocationCard(newCard)
+      ? new MarkerAM([newCard.latitude, newCard.longitude], {}, newCard, {
+          iconSize: this.iconSizeMap.get(newCard.iconName),
+        })
+      : undefined;
+    this.selectedMarker.set(newSelectedMarker);
+    await this.cardService.updateCard(newCard);
   }
 
   async deleteEditCard(): Promise<void> {

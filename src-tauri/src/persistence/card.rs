@@ -1,4 +1,4 @@
-use app::models::{Card, CardDTO, CardinalDirections, NewCard};
+use app::models::{Card, CardDTO, CardinalDirections, NewCard, UpdateCard};
 use app::schema;
 use app::schema::card::dsl::card;
 use app::schema::card::{latitude, longitude};
@@ -71,7 +71,7 @@ pub fn query_cards_in_geological_area(
 
 pub fn query_update_card(
     conn: &mut SqliteConnection,
-    update_card: Card,
+    update_card: UpdateCard,
 ) -> QueryResult<bool> {
     let target = card.find(update_card.id);
 

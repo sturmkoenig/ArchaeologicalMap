@@ -6,7 +6,7 @@ extern crate diesel;
 extern crate diesel_migrations;
 
 pub mod persistence;
-use app::models::Card;
+use app::models::{Card, UpdateCard};
 use app::models::NewImage;
 use app::models::NewStack;
 use app::models::Stack;
@@ -129,16 +129,16 @@ fn update_card(card: CardDTO) -> Result<bool, String> {
     let id = card.id.ok_or("id is missing".to_string())?;
     query_update_card(
         conn,
-        Card {
+        UpdateCard {
             id,
-            title: card.title.unwrap_or("".to_string()),
-            description: card.description.unwrap_or("".to_string()),
-            stack_id: card.stack_id,
-            latitude: card.latitude,
-            longitude: card.longitude,
-            radius: card.radius,
-            icon_name: card.icon_name,
-            region_image_id: card.region_image_id,
+            title: Some(card.title.unwrap_or("".to_string())),
+            description: Some(card.description.unwrap_or("".to_string())),
+            stack_id: Some(card.stack_id),
+            latitude: Some(card.latitude),
+            longitude: Some(card.longitude),
+            radius: Some(card.radius),
+            icon_name: Some(card.icon_name),
+            region_image_id: Some(card.region_image_id),
         },
     ).map_err(|err| err.to_string())
 }
@@ -497,6 +497,28 @@ mod tests {
             latitude: Some(-1.5),
             radius: Some(99.9),
             icon_name: Option::from("iconLimesSpecial".to_string()),
+            ..want_card
+        };
+        let update_result = update_card(updated_card.clone()).expect("update failed!");
+        assert!(update_result);
+        let got_card = read_card_by_id(card_id).expect("card not found");
+        assert_eq!(got_card, updated_card);
+    }
+
+    #[test]
+    #[serial]
+    fn it_should_remove_location_data(){
+        let _test_env = initialize_test_env();
+        let want_card = given_test_card().clone();
+        let card_id = given_database_has_card(want_card.clone()).id.expect("id is empty");
+        let updated_card = CardDTO {
+            id: Some(card_id),
+            title: Some("My new Title".to_string()),
+            description: Some("a updated description, including more depth and details".to_string()),
+            longitude: None,
+            latitude: None,
+            radius: None,
+            icon_name: None,
             ..want_card
         };
         let update_result = update_card(updated_card.clone()).expect("update failed!");
