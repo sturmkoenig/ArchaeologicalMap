@@ -9,7 +9,6 @@ import {
 } from "@angular/material/slider";
 import { FormsModule } from "@angular/forms";
 import { MatCard, MatCardContent } from "@angular/material/card";
-import { MatSlideToggle } from "@angular/material/slide-toggle";
 import { StackCreatorComponent } from "@app/components/stacks/stack-creator/stack-creator.component";
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { MatButton } from "@angular/material/button";

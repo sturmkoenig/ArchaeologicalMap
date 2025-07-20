@@ -6,7 +6,7 @@ extern crate diesel;
 extern crate diesel_migrations;
 
 pub mod persistence;
-use app::models::Card;
+use app::models::{Card, UpdateCard};
 use app::models::NewImage;
 use app::models::NewStack;
 use app::models::Stack;
@@ -25,7 +25,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 use crate::persistence::images::query_update_image;
 use crate::persistence::stacks::query_stack_by_id;
-use crate::persistence::card::{query_cards_in_geological_area, query_create_unified_card, query_delete_unified_card, query_set_image_to_null, query_unified_card_by_id, query_unified_card_by_title, query_unified_cards_in_stack, query_update_unified_card};
+use crate::persistence::card::{query_cards_in_geological_area, query_create_card, query_delete_card, query_set_image_to_null, query_card_by_id, query_card_by_title, query_cards_in_stack, query_update_card};
 use app::establish_connection;
 use std::env;
 use std::fs;
@@ -53,8 +53,8 @@ fn main() {
             read_cards_in_stack,
             read_cards_by_title,
             read_card_by_id,
-            update_card_unified,
-            create_unified_card,
+            update_card,
+            create_card,
             delete_card,
 
             create_stack,
@@ -124,21 +124,21 @@ fn read_cards_in_area(cardinal_directions: CardinalDirections) -> Result<Vec<Car
 }
 
 #[tauri::command]
-fn update_card_unified(card: CardDTO) -> Result<bool, String> {
+fn update_card(card: CardDTO) -> Result<bool, String> {
     let conn = &mut establish_connection();
     let id = card.id.ok_or("id is missing".to_string())?;
-    query_update_unified_card(
+    query_update_card(
         conn,
-        Card {
+        UpdateCard {
             id,
-            title: card.title.unwrap_or("".to_string()),
-            description: card.description.unwrap_or("".to_string()),
-            stack_id: card.stack_id,
-            latitude: card.latitude,
-            longitude: card.longitude,
-            radius: card.radius.unwrap_or(0.0),
-            icon_name: card.icon_name,
-            region_image_id: card.region_image_id,
+            title: Some(card.title.unwrap_or("".to_string())),
+            description: Some(card.description.unwrap_or("".to_string())),
+            stack_id: Some(card.stack_id),
+            latitude: Some(card.latitude),
+            longitude: Some(card.longitude),
+            radius: Some(card.radius),
+            icon_name: Some(card.icon_name),
+            region_image_id: Some(card.region_image_id),
         },
     ).map_err(|err| err.to_string())
 }
@@ -146,13 +146,13 @@ fn update_card_unified(card: CardDTO) -> Result<bool, String> {
 #[tauri::command]
 fn read_card_by_id(id: i32) -> Result<CardDTO, String> {
     let conn = &mut establish_connection();
-    query_unified_card_by_id(conn, id).map_err(|err| err.to_string())
+    query_card_by_id(conn, id).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
-fn create_unified_card(card: CardDTO) -> Result<CardDTO, String> {
+fn create_card(card: CardDTO) -> Result<CardDTO, String> {
     let conn = &mut establish_connection();
-    query_create_unified_card(conn, card).map(CardDTO::from).map_err(|err| err.to_string())
+    query_create_card(conn, card).map(CardDTO::from).map_err(|err| err.to_string())
 }
 
 // TODO may be moved to frontend
@@ -183,7 +183,7 @@ fn write_card_content(app_handle: tauri::AppHandle, id: String, content: String)
 #[tauri::command]
 fn delete_card(app: AppHandle,id: i32) -> Result<(), String> {
     let conn = &mut establish_connection();
-    query_delete_unified_card(conn, id).map_err(|err| err.to_string())?;
+    query_delete_card(conn, id).map_err(|err| err.to_string())?;
     app.emit("card-deleted",id).map_err(|err| err.to_string())?;
     Ok(())
 }
@@ -202,17 +202,16 @@ fn read_all_stacks() -> Vec<StackDTO> {
 
 #[tauri::command]
 fn read_cards_in_stack(stack_id: i32) ->  Result<(StackDTO, Vec<CardDTO>), String>{
-    println!("stack_id: {}", stack_id);
     let conn = &mut establish_connection();
-    let cards = query_unified_cards_in_stack(conn, stack_id).map(|cards| cards.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())?;
+    let cards = query_cards_in_stack(conn, stack_id).map(|cards| cards.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())?;
     let stack = query_stack_by_id(conn, stack_id);
     Ok((StackDTO::from(stack), cards))
 }
 
 #[tauri::command]
-fn read_cards_by_title(title: String) -> Result<Vec<CardDTO>, String> {
+fn read_cards_by_title(title: String, limit: i64) -> Result<Vec<CardDTO>, String> {
     let conn = &mut establish_connection();
-    query_unified_card_by_title(conn, title).map(|cards| cards.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())
+    query_card_by_title(conn, title, limit).map(|cards| cards.into_iter().map(CardDTO::from).collect()).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
@@ -358,7 +357,8 @@ fn update_image_name(image_id: i32, new_name: String) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{create_stack, create_unified_card, read_card_by_id, read_cards_by_title, read_cards_in_area, read_cards_in_stack, update_card_unified, MIGRATIONS};
+    use env::set_var;
+    use crate::{create_stack, create_card, read_card_by_id, read_cards_by_title, read_cards_in_area, read_cards_in_stack, update_card, MIGRATIONS};
     use app::establish_connection;
     use app::models::{CardDTO, CardinalDirections, NewStack};
     use assertor::{assert_that, IteratorAssertion};
@@ -373,10 +373,10 @@ mod tests {
             id: None,
             title: Some("My Title".to_string()),
             description: Some("My Description".to_string()),
-            longitude:  2.690451,
-            latitude: 48.405937,
+            longitude:  Some(2.690451),
+            latitude: Some(48.405937),
             radius: Some(25.0),
-            icon_name: "IconMiscRed".to_string(),
+            icon_name: Option::from("IconMiscRed".to_string()),
             ..Default::default()
         }
     }
@@ -395,7 +395,7 @@ mod tests {
         fn initialize() -> Self {
             let db_name = "testing.db".to_string();
             println!("unique name: {}", db_name.clone() );
-            env::set_var("DB_PATH", db_name.clone());
+            unsafe { set_var("DB_PATH", db_name.clone()); }
             let conn = &mut establish_connection();
             conn.run_pending_migrations(MIGRATIONS).expect("Error running migrations");
             Self {
@@ -413,7 +413,7 @@ mod tests {
     }
 
     fn given_database_has_card(card: CardDTO) -> CardDTO {
-        create_unified_card(card.clone()).expect(&format!("Error creating card {:?}", card))
+        create_card(card.clone()).expect(&format!("Error creating card {:?}", card))
     }
     fn initialize_test_env() -> TestDb{
         TestDb::initialize()
@@ -434,23 +434,23 @@ mod tests {
         let unified_card = CardDTO {
             title: Some(titel.clone()),
             description: Some(description.clone()),
-            longitude: 52.0,
-            latitude: 9.0,
+            longitude: Some(52.0),
+            latitude: Some(9.0),
             stack_id: Some(1),
             region_image_id: Some(1),
-            icon_name: "icon_default".to_string(),
+            icon_name: Option::from("icon_default".to_string()),
             ..CardDTO::default()
         };
 
-        let created_card = create_unified_card(unified_card).expect("failed to create card!");
+        let created_card = create_card(unified_card).expect("failed to create card!");
         assert_ne!(created_card.id, None);
         assert_eq!(created_card.title.unwrap(), titel);
         assert_eq!(created_card.region_image_id.unwrap(), 1);
         assert_eq!(created_card.stack_id.unwrap(), 1);
         assert_eq!(created_card.description.unwrap(), description);
-        assert_eq!(created_card.longitude, 52.0);
-        assert_eq!(created_card.latitude, 9.0);
-        assert_eq!(created_card.icon_name, "icon_default");
+        assert_eq!(created_card.longitude.unwrap(), 52.0);
+        assert_eq!(created_card.latitude.unwrap(), 9.0);
+        assert_eq!(created_card.icon_name.unwrap(), "icon_default");
     }
     #[test]
     #[serial]
@@ -458,7 +458,7 @@ mod tests {
         let _test_env = initialize_test_env();
         let want_title = String::from("My wanted Card");
         given_database_has_card(CardDTO::default());
-        given_database_has_card(CardDTO { title: Some(want_title.clone()), longitude: 10., latitude: 10., ..Default::default()});
+        given_database_has_card(CardDTO { title: Some(want_title.clone()), longitude: Some(10.), latitude: Some(10.), ..Default::default()});
         let result = read_cards_in_area(CardinalDirections{north:11.0, east:11.0, south: 9., west:9.}).expect("could not read cards in area!");
         assert_eq!(result.iter().len(), 1);
         let card = result.get(0).expect("No card found in the result");
@@ -489,20 +489,42 @@ mod tests {
         let _test_env = initialize_test_env();
         let want_card = given_test_card().clone();
         let card_id = given_database_has_card(want_card.clone()).id.expect("id is empty");
-        let update_card = CardDTO {
+        let updated_card = CardDTO {
             id: Some(card_id),
             title: Some("My new Title".to_string()),
             description: Some("a updated description, including more depth and details".to_string()),
-            longitude: 1.337,
-            latitude: -1.5,
+            longitude: Some(1.337),
+            latitude: Some(-1.5),
             radius: Some(99.9),
-            icon_name: "iconLimesSpecial".to_string(),
+            icon_name: Option::from("iconLimesSpecial".to_string()),
             ..want_card
         };
-        let update_result =update_card_unified(update_card.clone()).expect("update failed!");
+        let update_result = update_card(updated_card.clone()).expect("update failed!");
         assert!(update_result);
         let got_card = read_card_by_id(card_id).expect("card not found");
-        assert_eq!(got_card, update_card);
+        assert_eq!(got_card, updated_card);
+    }
+
+    #[test]
+    #[serial]
+    fn it_should_remove_location_data(){
+        let _test_env = initialize_test_env();
+        let want_card = given_test_card().clone();
+        let card_id = given_database_has_card(want_card.clone()).id.expect("id is empty");
+        let updated_card = CardDTO {
+            id: Some(card_id),
+            title: Some("My new Title".to_string()),
+            description: Some("a updated description, including more depth and details".to_string()),
+            longitude: None,
+            latitude: None,
+            radius: None,
+            icon_name: None,
+            ..want_card
+        };
+        let update_result = update_card(updated_card.clone()).expect("update failed!");
+        assert!(update_result);
+        let got_card = read_card_by_id(card_id).expect("card not found");
+        assert_eq!(got_card, updated_card);
     }
 
     #[test]
@@ -530,11 +552,11 @@ mod tests {
         given_database_has_card(CardDTO { title: Some(title_monument_z.clone()), ..given_test_card().clone()});
         given_database_has_card(CardDTO {title: Some(title_monument_a.clone()), ..given_test_card().clone()});
         given_database_has_card(CardDTO { title: Some(title_church_a.clone()), ..given_test_card().clone()});
-        let mut got_titles: Vec<String> = read_cards_by_title("Monument".to_string()).expect("Error could not retrieve cards with title").into_iter().map(|card| card.title.unwrap()).collect();
+        let mut got_titles: Vec<String> = read_cards_by_title("Monument".to_string(), 100).expect("Error could not retrieve cards with title").into_iter().map(|card| card.title.unwrap()).collect();
         let mut want_titles: Vec<String> = vec![ title_monument_a.clone(), title_monument_z.clone()];
         assert_that!(got_titles.into_iter()).contains_exactly_in_order(want_titles.into_iter());
 
-        got_titles = read_cards_by_title("Ahre".to_string()).expect("Error could not retrieve cards with title").into_iter().map(|card| card.title.unwrap()).collect();
+        got_titles = read_cards_by_title("Ahre".to_string(), 100).expect("Error could not retrieve cards with title").into_iter().map(|card| card.title.unwrap()).collect();
         want_titles =  vec![title_church_a, title_monument_a];
         assert_that!(got_titles.into_iter()).contains_exactly_in_order(want_titles.into_iter());
     }

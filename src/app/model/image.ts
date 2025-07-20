@@ -6,7 +6,7 @@ export interface NewImage {
 export interface ImageDB {
   id: number;
   name: string;
-  image_source: string;
+  imageSource: string;
 }
 
 export interface ImageEntity {

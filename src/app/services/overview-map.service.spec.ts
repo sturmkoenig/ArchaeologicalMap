@@ -5,7 +5,7 @@ import { LatLng, LatLngBounds } from "leaflet";
 import { NgZone } from "@angular/core";
 import { isMarkerAM } from "../model/marker";
 import { CardService } from "./card.service";
-import { Card } from "../model/card";
+import { LocationCard } from "../model/card";
 import { OverviewMapComponent } from "@app/components/overview-map/overview-map.component";
 import { MarkerAM } from "@app/model/markerAM";
 
@@ -24,19 +24,19 @@ class MockNgZone extends NgZone {
 }
 
 describe("OverviewMapService", () => {
-  const givenCardsInMapView = (cards: Partial<Card>[]): MarkerAM[] => {
+  const givenCardsInMapView = (cards: Partial<LocationCard>[]): MarkerAM[] => {
     const mockMarkers: MarkerAM[] = cards.map((card) => givenMarker(card));
     markerServiceMock.getMarkerAMInArea.mockResolvedValue(mockMarkers);
     return mockMarkers;
   };
 
-  const givenMarker = (card: Partial<Card>): MarkerAM =>
+  const givenMarker = (card: Partial<LocationCard>): MarkerAM =>
     new MarkerAM(
       [0, 0],
       {},
       {
         id: card.id ?? 0,
-        icon_name: card.icon_name ?? "iconMiscRed",
+        iconName: card.iconName ?? "iconMiscRed",
         radius: card.radius,
       },
     );
@@ -191,14 +191,14 @@ describe("OverviewMapService", () => {
   });
 
   it("should create new marker+card and select it", async () => {
-    const cardMock = {
+    const cardMock: LocationCard = {
       id: 0,
       title: "",
       description: "",
       latitude: 0,
       longitude: 0,
       radius: 0,
-      icon_name: "iconMiscRed",
+      iconName: "iconMiscRed",
     };
     cardServiceMock.createCard.mockResolvedValue(cardMock);
     await service.addNewCard(new LatLng(0, 0));

@@ -3,6 +3,8 @@ import { path } from "@tauri-apps/api";
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { ImageDB, ImageEntity, NewImage } from "../model/image";
 import { appDataDir } from "@tauri-apps/api/path";
+import { v4 as uuid } from "uuid";
+import * as fs from "@tauri-apps/plugin-fs";
 
 @Injectable({
   providedIn: "root",
@@ -14,7 +16,7 @@ export class ImageService {
     const imagesDB: ImageDB[] = await invoke("read_images", {});
     const images: ImageEntity[] = [];
     for (const image of imagesDB) {
-      const imagePath = await path.join(await appDataDir(), image.image_source);
+      const imagePath = await path.join(await appDataDir(), image.imageSource);
       images.push({
         id: image.id,
         name: image.name,
@@ -36,7 +38,7 @@ export class ImageService {
     })) as [ImageDB[], number];
     const images: ImageEntity[] = [];
     for (const image of imagesDB) {
-      const imagePath = await path.join(await appDataDir(), image.image_source);
+      const imagePath = await path.join(await appDataDir(), image.imageSource);
       images.push({
         id: image.id,
         name: image.name,
@@ -51,10 +53,7 @@ export class ImageService {
       return new Promise(() => undefined);
     }
     const imageDB: ImageDB = await invoke("read_image", { imageId: imageId });
-    const imageSoure = await path.join(
-      await appDataDir(),
-      imageDB.image_source,
-    );
+    const imageSoure = await path.join(await appDataDir(), imageDB.imageSource);
     return {
       id: imageDB.id,
       name: imageDB.name,
@@ -69,6 +68,26 @@ export class ImageService {
     });
   }
 
+  async moveImageToAppDir(imagePath: string) {
+    const dataDir = await path.appDataDir();
+    const filePath: string = imagePath;
+    const fileEnding = filePath.substring(filePath.lastIndexOf(".") + 1);
+    const newFileName = uuid() + "." + fileEnding;
+
+    const copyPath = await path.join(dataDir, "content", "images", newFileName);
+    await fs.copyFile(imagePath, copyPath);
+    return { imagePath: copyPath, imageName: newFileName };
+  }
+
+  convertFileSrc(fileUrl: string) {
+    return convertFileSrc(fileUrl);
+  }
+
+  async getImageUrl(imageName: string): Promise<void | string> {
+    const dataDir = await path.appDataDir();
+    const imagePath = await path.join(dataDir, "content", "images", imageName);
+    return convertFileSrc(imagePath);
+  }
   updateImageName(id: number, newName: string) {
     return invoke("update_image_name", { imageId: id, newName: newName });
   }

@@ -1,9 +1,10 @@
 import { Injectable } from "@angular/core";
 import { LatLng, LatLngBounds } from "leaflet";
-import { LocationData, MarkerDB } from "src/app/model/card";
+import { isLocationCard, LocationData } from "@app/model/card";
 import { CardService } from "./card.service";
 import { IconKeys, IconService } from "./icon.service";
 import { MarkerAM } from "@app/model/markerAM";
+import { NotificationService } from "@service/notification.service";
 
 @Injectable({
   providedIn: "root",
@@ -13,6 +14,7 @@ export class MarkerService {
   constructor(
     private cardService: CardService,
     private iconService: IconService,
+    private notificationService: NotificationService,
   ) {
     this.iconService
       .getIconSizeSettings()
@@ -21,12 +23,21 @@ export class MarkerService {
       });
   }
 
-  async getMarker(markerId: number): Promise<MarkerAM> {
-    return this.cardService.readCard(markerId).then((card) => {
-      return new MarkerAM([card.latitude, card.longitude], {}, card, {
-        iconSize: this.iconSizeMap.get(card.icon_name),
+  async getMarker(cardId: number): Promise<MarkerAM | undefined> {
+    return this.cardService
+      .readCard(cardId)
+      .then((card) => {
+        if (!isLocationCard(card)) {
+          throw new Error("Karte hat keinen marker!");
+        }
+        return new MarkerAM([card.latitude, card.longitude], {}, card, {
+          iconSize: this.iconSizeMap.get(card.iconName),
+        });
+      })
+      .catch((error: string) => {
+        this.notificationService.createNotification({ text: error });
+        return undefined;
       });
-    });
   }
 
   async getMarkerAMInArea(bounds: LatLngBounds): Promise<MarkerAM[]> {
@@ -38,7 +49,7 @@ export class MarkerService {
     });
     return markersDB.map((card) => {
       return new MarkerAM([card.latitude, card.longitude], {}, card, {
-        iconSize: this.iconSizeMap.get(card.icon_name),
+        iconSize: this.iconSizeMap.get(card.iconName),
       });
     });
   }

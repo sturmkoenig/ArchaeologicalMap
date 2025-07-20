@@ -40,8 +40,6 @@ describe("IconSizeSettingsComponent", () => {
     const markerButtonToggleDebugEl = fixture.debugElement.queryAll(
       By.directive(MarkerButtonToggleComponent),
     );
-    const markerButtonToggleComponent =
-      markerButtonToggleDebugEl[0].injector.get(MarkerButtonToggleComponent);
 
     expect(markerButtonToggleDebugEl.length).toBe(
       Object.keys(iconsSorted).length,

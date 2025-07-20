@@ -1,5 +1,5 @@
 import { Component, effect, model } from "@angular/core";
-import { CardMetaData } from "@app/model/card";
+import { InfoCard } from "@app/model/card";
 import { StackStore } from "@app/state/stack.store";
 import { Observable } from "rxjs";
 import { Stack } from "@app/model/stack";
@@ -17,6 +17,7 @@ import { MatOptionModule } from "@angular/material/core";
 import { AsyncPipe, NgForOf } from "@angular/common";
 
 @Component({
+  standalone: true,
   imports: [
     MatSelectModule,
     MatFormFieldModule,
@@ -76,7 +77,7 @@ import { AsyncPipe, NgForOf } from "@angular/common";
         <mat-form-field>
           <mat-label>Stapel:</mat-label>
           <mat-select
-            [value]="card().stack_id"
+            [value]="card().stackId"
             (valueChange)="onStackIdChange($event)"
           >
             <mat-option
@@ -124,26 +125,26 @@ import { AsyncPipe, NgForOf } from "@angular/common";
   `,
 })
 export class CardInputComponent {
-  card = model.required<CardMetaData>();
+  card = model.required<InfoCard>();
   stacks$: Observable<Stack[]>;
   image?: ImageEntity;
 
   constructor(
-    private stackStore: StackStore,
+    stackStore: StackStore,
     public dialog: MatDialog,
     private imageService: ImageService,
   ) {
     this.stacks$ = stackStore.stacks$;
     effect(() => {
       this.imageService
-        .readImage(this.card().region_image_id)
+        .readImage(this.card().regionImageId)
         .then((image: ImageEntity) => {
           this.image = image;
         });
     });
   }
 
-  cloneCard(card: CardMetaData, override: Partial<CardMetaData>): CardMetaData {
+  cloneCard(card: InfoCard, override: Partial<InfoCard>): InfoCard {
     return { ...card, ...override };
   }
 
@@ -153,7 +154,7 @@ export class CardInputComponent {
     });
     dialogRef.afterClosed().subscribe((result: ImageEntity) => {
       this.image = result;
-      this.card().region_image_id = result.id;
+      this.card().regionImageId = result.id;
     });
   }
 
@@ -164,13 +165,13 @@ export class CardInputComponent {
     dialogRef.afterClosed().subscribe((image: ImageEntity) => {
       this.image = image;
       this.card.update((card) =>
-        this.cloneCard(card, { region_image_id: image.id }),
+        this.cloneCard(card, { regionImageId: image.id }),
       );
     });
   }
 
   onStackIdChange(newStackId: number) {
-    this.card.update((card) => this.cloneCard(card, { stack_id: newStackId }));
+    this.card.update((card) => this.cloneCard(card, { stackId: newStackId }));
   }
 
   onTitleChange(newTitle: string) {

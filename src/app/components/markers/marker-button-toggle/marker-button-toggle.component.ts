@@ -14,10 +14,10 @@ import { ICONS, IconService, iconsSorted } from "@service/icon.service";
       (change)="onSelectIcon($event.value)"
     >
       <mat-button-toggle
-        *ngFor="let icon of iconsSorted[iconCategory]; index as i"
+        *ngFor="let icon of iconsSorted[iconCategory]"
         [value]="icon"
       >
-        <img class="option-icon" src="{{ icon }}" />
+        <img class="option-icon" src="{{ icon }}" alt="{{ icon }}" />
       </mat-button-toggle>
     </mat-button-toggle-group>
   `,

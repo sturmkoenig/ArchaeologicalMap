@@ -1,13 +1,7 @@
 import { Injectable } from "@angular/core";
 import { invoke } from "@tauri-apps/api/core";
-import {
-  BehaviorSubject,
-  EMPTY,
-  firstValueFrom,
-  of,
-  switchMap,
-  tap,
-} from "rxjs";
+import Delta from "quill-delta";
+import { BehaviorSubject, EMPTY, switchMap, tap } from "rxjs";
 
 @Injectable({
   providedIn: "root",
@@ -15,10 +9,10 @@ import {
 export class CardContentService {
   private currentCardId: BehaviorSubject<number> = new BehaviorSubject(0);
   public cardId: BehaviorSubject<number> = new BehaviorSubject(0);
-  public cardContent: BehaviorSubject<string | undefined>;
+  public cardContent: BehaviorSubject<Delta | undefined>;
 
   constructor() {
-    this.cardContent = new BehaviorSubject<string | undefined>(undefined);
+    this.cardContent = new BehaviorSubject<Delta | undefined>(undefined);
     this.cardId
       .pipe(
         tap(() => {
@@ -48,12 +42,12 @@ export class CardContentService {
     return invoke<string>("read_card_content", { id: cardId.toString() }).then(
       (res: string) => {
         if (!res) {
-          this.cardContent.next("");
+          this.cardContent.next(new Delta([]));
         }
         try {
-          this.cardContent.next(JSON.parse(res));
+          this.cardContent.next(new Delta(JSON.parse(res)));
         } catch (error) {
-          this.cardContent.next("");
+          this.cardContent.next(new Delta([]));
         }
         this.currentCardId.next(cardId);
       },

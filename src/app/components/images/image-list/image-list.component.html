@@ -33,7 +33,10 @@
         <img
           class="centered-image"
           (click)="onSelectImage(image)"
+          (keydown.enter)="onSelectImage(image)"
           [src]="image.imageSource"
+          [alt]="image.name"
+          tabindex="0"
         />
         <button
           mat-icon-button

@@ -11,7 +11,10 @@
       "@service/*": ["src/app/services/*"],
       "@component/*": ["src/app/component/*"]
     },
+    "noImplicitAny": true,
     "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
@@ -20,11 +23,11 @@
     "experimentalDecorators": true,
     "moduleResolution": "node",
     "importHelpers": true,
-    "target": "ES2022",
+    "target": "ES2023",
     "module": "ES2022",
     "useDefineForClassFields": false,
     "typeRoots": ["./types", "./node_modules/@types"],
-    "lib": ["ES2022", "dom"]
+    "lib": ["ES2023", "dom"]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

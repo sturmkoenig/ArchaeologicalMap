@@ -10,3 +10,5 @@ test.db
 /.idea/codeStyles/codeStyleConfig.xml
 /.idea/codeStyles/Project.xml
 /coverage/
+/out
+/.env

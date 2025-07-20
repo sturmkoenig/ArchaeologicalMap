@@ -1,56 +1,106 @@
 import { ICONS } from "@service/icon.service";
 
-export interface CardinalDirection {
+export type CardinalDirection = {
   north: number;
   east: number;
   south: number;
   west: number;
-}
+};
 
-export interface MarkerLatLng {
-  latitude: number;
-  longitude: number;
-  radius: number;
-  icon_name: keyof typeof ICONS;
-}
-
-export interface Card {
+export type LocationCard = {
   id?: number;
   title: string;
   description: string;
   latitude: number;
   longitude: number;
-  region_image_id?: number;
-  icon_name: keyof typeof ICONS;
+  regionImageId?: number;
+  iconName: keyof typeof ICONS;
   radius: number;
-  stack_id?: number;
-}
-/** @deprecated */
-export interface CardDB {
+  stackId?: number;
+};
+
+export type CardDTO = {
   id?: number;
   title: string;
   description: string;
-  markers: MarkerDB[];
-  region_image_id?: number;
-  stack_id?: number | null;
-}
+  latitude?: number;
+  longitude?: number;
+  regionImageId?: number;
+  iconName?: keyof typeof ICONS;
+  radius?: number;
+  stackId?: number;
+};
 
-/** @deprecated */
-export interface MarkerDB {
-  id?: number;
-  card_id?: number;
-  card?: CardDB;
-  longitude: number;
-  latitude: number;
-  radius: number;
-  icon_name: keyof typeof ICONS;
-}
+export const fromCardDTO = (cardDTO: CardDTO): LocationCard | InfoCard => {
+  if (!(cardDTO.longitude && cardDTO.latitude && cardDTO.iconName)) {
+    return {
+      ...(cardDTO.id ? { id: cardDTO.id } : {}),
+      title: cardDTO.title,
+      description: cardDTO.description,
+      stackId: cardDTO.stackId,
+      ...(cardDTO.regionImageId
+        ? { regionImageId: cardDTO.regionImageId }
+        : {}),
+    };
+  }
+  return {
+    ...(cardDTO.id ? { id: cardDTO.id } : {}),
+    title: cardDTO.title,
+    description: cardDTO.description,
+    stackId: cardDTO.stackId,
+    latitude: cardDTO.latitude,
+    longitude: cardDTO.longitude,
+    radius: cardDTO.radius,
+    iconName: cardDTO.iconName,
+    regionImageId: cardDTO.regionImageId,
+  };
+};
 
-export type CardMetaData = Pick<
-  Card,
-  "title" | "description" | "region_image_id" | "stack_id"
+export const isLocationCard = (
+  card: LocationCard | InfoCard,
+): card is LocationCard => {
+  return hasValidLocationData(card);
+};
+
+export const hasValidLocationData = (
+  card: LocationCard | InfoCard,
+): boolean => {
+  return (
+    (card as LocationCard).latitude !== undefined &&
+    (card as LocationCard).latitude !== null &&
+    (card as LocationCard).longitude !== undefined &&
+    (card as LocationCard).longitude !== null
+  );
+};
+
+export const toCardDTO = (card: InfoCard | LocationCard): CardDTO =>
+  isLocationCard(card)
+    ? {
+        ...(card.id ? { id: card.id } : {}),
+        title: card.title,
+        description: card.description,
+        stackId: card.stackId,
+        latitude: card.latitude,
+        longitude: card.longitude,
+        iconName: card.iconName,
+        radius: card.radius,
+        ...(card.regionImageId ? { regionImageId: card.regionImageId } : {}),
+      }
+    : {
+        ...(card.id ? { id: card.id } : {}),
+        title: card.title,
+        description: card.description,
+        stackId: card.stackId,
+        ...(card.regionImageId ? { regionImageId: card.regionImageId } : {}),
+      };
+
+export type Card = InfoCard | LocationCard;
+export type InfoCard = Pick<
+  LocationCard,
+  "id" | "title" | "description" | "regionImageId" | "stackId"
 >;
+
 export type LocationData = Pick<
-  Card,
-  "latitude" | "longitude" | "radius" | "icon_name"
+  LocationCard,
+  "latitude" | "longitude" | "radius" | "iconName"
 >;

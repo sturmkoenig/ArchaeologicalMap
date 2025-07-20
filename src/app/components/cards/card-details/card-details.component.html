@@ -1,28 +1,36 @@
 <div class="card-details-component-container">
-  @if (currentStackId$ | async) {
+  @if (store.stack()) {
     <div class="card-details-side-nav" data-testid="stack-side-nav">
-      <ng-container
-        *ngFor="let card of cardDetailsStore.allCardsInStack$ | async"
-      >
+      <ng-container *ngFor="let card of store.cards()">
         <span
           [attr.data-testid]="'stack-side-nav-card-' + card.id"
           class="card-details-side-nav--container"
           [routerLink]="['/cards/details', card.id]"
-          [ngClass]="{ 'current-card': card.id === this.cardId }"
+          [ngClass]="{ 'current-card': card.id === store.currentCard()?.id }"
           >{{ card.title }}
         </span>
       </ng-container>
+      <div
+        class="add-card-list-item"
+        (click)="openAddCardDialog()"
+        (keyup.enter)="openAddCardDialog()"
+        tabindex="0"
+        role="button"
+        data-testid="add-card-button"
+      >
+        <mat-icon>add</mat-icon> Neue Karte
+      </div>
     </div>
   }
   <div class="card-details-container">
-    <ng-container *ngIf="card$ | async as card">
+    <ng-container *ngIf="store.currentCard() as card">
       <div class="card">
         <span class="card--nav">
           <button
             data-testid="previous-card-button"
             mat-icon-button
-            *ngIf="cardDetailsStore.previousCardId$ | async as previousCardId"
-            [routerLink]="['/cards/details', previousCardId]"
+            *ngIf="store.previousCard() as previousCardId"
+            [routerLink]="['/cards/details', previousCardId.id]"
           >
             <mat-icon>arrow_back_ios</mat-icon>
           </button>
@@ -30,15 +38,15 @@
         <div class="card--content">
           <ng-container *ngIf="card">
             <div class="card--content_navigate-to-position-button">
-              @if (regionImage$ | async) {
+              @if (store.image(); as image) {
                 <button
                   class="region-image-button"
                   data-testid="show-on-map-button"
-                  (click)="panToLatLng(card)"
+                  (click)="onShowOnMap(card)"
                 >
                   <img
                     data-testid="card-region-img"
-                    [src]="(regionImage$ | async)?.imageSource"
+                    [src]="image.imageSource"
                     alt="arrow_forward_ios"
                   />
                 </button>
@@ -47,18 +55,18 @@
                   mat-mini-fab
                   color="warn"
                   data-testid="show-on-map-button"
-                  (click)="panToLatLng(card)"
+                  (click)="onShowOnMap(card)"
                   aria-label="Example icon button with a home icon"
                 >
-                  <mat-icon>pin_drop</mat-icon>
+                  <mat-icon data-testid="location-icon">
+                    {{ isLocationCard(card) ? "pin_drop" : "location_off" }}
+                  </mat-icon>
                 </button>
               }
             </div>
           </ng-container>
           <div class="card--content_stack-title">
-            <ng-container
-              *ngIf="cardDetailsStore.currentStack$ | async as currentStack"
-            >
+            <ng-container *ngIf="store.stack() as currentStack">
               <p
                 class="text-lg font-semibold font-mono"
                 data-testid="stack-title"
@@ -77,14 +85,11 @@
             {{ card.description }}
           </p>
         </div>
-        <span
-          *ngIf="cardDetailsStore.nextCardId$ | async as nextCardId"
-          class="card--nav"
-        >
+        <span *ngIf="store.nextCard() as nextCard" class="card--nav">
           <button
             mat-icon-button
             data-testid="next-card-button"
-            [routerLink]="['/cards/details', nextCardId]"
+            [routerLink]="['/cards/details', nextCard.id]"
           >
             <mat-icon>arrow_forward_ios</mat-icon>
           </button>

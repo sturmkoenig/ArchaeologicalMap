@@ -2,15 +2,19 @@
   <div id="toolbar">
     <!-- Add font size dropdown -->
     <span class="ql-formats">
-      <button class="ql-bold"></button>
-      <button class="ql-italic"></button>
-      <button class="ql-underline"></button>
-      <button class="ql-strike"></button>
+      <button class="ql-bold" aria-label="Bold"></button>
+      <button class="ql-italic" aria-label="Italic"></button>
+      <button class="ql-underline" aria-label="Underline"></button>
+      <button class="ql-strike" aria-label="Strike"></button>
     </span>
 
     <span class="ql-formats">
-      <button class="ql-list" value="ordered"></button>
-      <button class="ql-list" value="bullet"></button>
+      <button
+        class="ql-list"
+        value="ordered"
+        aria-label="Ordered List"
+      ></button>
+      <button class="ql-list" value="bullet" aria-label="Bullet List"></button>
       <select class="ql-size">
         <option value="small"></option>
         <option selected></option>
@@ -26,14 +30,19 @@
     </span>
 
     <span class="ql-formats">
-      <button class="ql-clean"></button>
+      <button class="ql-clean" aria-label="Clean"></button>
     </span>
     <span class="ql-formats">
-      <button class="ql-image" value="super"></button>
-      <button [matMenuTriggerFor]="menu" (click)="saveCarrotPosition()">
+      <button class="ql-image" value="super" aria-label="Image"></button>
+      <button
+        style="dispay: flex; align-items: center; justify-content: center"
+        [matMenuTriggerFor]="menu"
+        data-testid="link-button"
+        (click)="saveCarrotPosition()"
+      >
         <mat-icon
           aria-hidden="false"
-          aria-label="Example home icon"
+          aria-label="link icon"
           fontIcon="link"
         ></mat-icon>
       </button>
@@ -42,11 +51,11 @@
 
   <mat-menu #menu="matMenu">
     <div class="menu-item-container">
-      <!-- do not close menu when menu is clicked-->
       <form (click)="stopPropagation($event)">
         <mat-form-field class="example-form-field">
           <mat-label>Suche</mat-label>
           <input
+            data-testid="card-title-search-input"
             matInput
             type="text"
             [(ngModel)]="searchText"
@@ -54,13 +63,16 @@
           />
         </mat-form-field>
       </form>
-      <!--        TODO i need to find a way of linking docs-->
-      <!--      <ng-container *ngFor="let opt of cardTitleMapping | filter: searchText">-->
-      <!--        <button mat-menu-item (click)="onLink(opt.id, opt.title)">-->
-      <!--          {{ opt.title }}-->
-      <!--        </button>-->
-      <!--      </ng-container>-->
+      <ng-container *ngFor="let card of foundCards() | filterEmptyTitle">
+        <button
+          mat-menu-item
+          (click)="onLink(card.id!, card.title)"
+          [attr.data-testid]="'link-card-' + card.title"
+        >
+          {{ card.title }}
+        </button></ng-container
+      >
     </div>
   </mat-menu>
-  <div id="editor-container"></div>
+  <div id="editor-container" #editorContainer></div>
 </div>

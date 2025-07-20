@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { MarkerService } from "@service/marker.service";
 import { CardService } from "@service/card.service";
-import { Card } from "@app/model/card";
+import { LocationCard } from "@app/model/card";
 import { LatLngBounds } from "leaflet";
 import { MarkerAM } from "@app/model/markerAM";
 
@@ -15,13 +15,13 @@ const MockCardService = {
 describe("MarkerService", () => {
   let service: MarkerService;
 
-  const testCard: Card = {
+  const testCard: LocationCard = {
     id: 1,
     latitude: 1,
     longitude: 1,
     description: "my super helpful description",
     title: "title of a super cool place in europe",
-    icon_name: "iconCaveRed",
+    iconName: "iconCaveRed",
     radius: 1,
   };
 
@@ -56,7 +56,7 @@ describe("MarkerService", () => {
         expect(markers).toBeTruthy();
         expect(markers).toHaveLength(1);
         expect(markers[0].cardId).toEqual(testCard.id!);
-        expect(markers[0].iconType).toEqual(testCard.icon_name);
+        expect(markers[0].iconType).toEqual(testCard.iconName);
         expect(markers[0].radiusLayer).toBeTruthy();
       });
   });

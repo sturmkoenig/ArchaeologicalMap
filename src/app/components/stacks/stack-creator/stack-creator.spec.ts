@@ -2,23 +2,15 @@ import { StackCreatorComponent } from "@app/components/stacks/stack-creator/stac
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { StackStore } from "@app/state/stack.store";
 import { MatCardModule } from "@angular/material/card";
-import { MatDialogModule } from "@angular/material/dialog";
+import { MAT_DIALOG_DATA, MatDialogModule } from "@angular/material/dialog";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
-
-jest.mock("@tauri-apps/api/webview", () => ({
-  getCurrentWebview: () => ({
-    onDragDropEvent: jest.fn(),
-  }),
-}));
-
-jest.mock("@tauri-apps/api", () => ({
-  path: jest.fn(),
-}));
+import { ImageService } from "@service/image.service";
+import { WindowService } from "@service/window.service";
 
 describe("StackCreatorComponent", () => {
   let component: StackCreatorComponent;
@@ -40,7 +32,25 @@ describe("StackCreatorComponent", () => {
         MatButtonModule,
         FormsModule,
       ],
-      providers: [{ provide: StackStore, useValue: stackStoreMock }],
+      providers: [
+        { provide: StackStore, useValue: stackStoreMock },
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {},
+        },
+        {
+          provide: ImageService,
+          useValue: {
+            moveImageToAppDir: jest.fn(),
+          },
+        },
+        {
+          provide: WindowService,
+          useValue: {
+            handleDragDropEvent: jest.fn(),
+          },
+        },
+      ],
     }).compileComponents();
     fixture = TestBed.createComponent(StackCreatorComponent);
     component = fixture.componentInstance;
@@ -50,13 +60,13 @@ describe("StackCreatorComponent", () => {
   it("given all information when i press the save button createStack should be called", () => {
     const fileName = "testPicture";
     const stackName = "testName";
-    component.fileName = fileName;
+    component.fileName.set(fileName);
     component.fileUrl$.next("/path/to/test/image.png");
-    component.stackName = stackName;
+    component.stackName.set(stackName);
     component.onSaveStack();
     expect(stackStoreMock.createStack).toBeCalledWith({
       name: stackName,
-      image_name: fileName,
+      imageName: fileName,
     });
   });
 });

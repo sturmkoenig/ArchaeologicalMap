@@ -7,11 +7,11 @@ import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 describe("ImageListComponent", () => {
   let component: ImageListComponent;
   let fixture: ComponentFixture<ImageListComponent>;
-  let dialogRefSpy: jest.Mocked<MatDialogRef<any>>;
+  let dialogRefSpy: jest.Mocked<MatDialogRef<ImageListComponent>>;
 
   beforeEach(async () => {
     dialogRefSpy = { close: jest.fn() } as unknown as jest.Mocked<
-      MatDialogRef<any>
+      MatDialogRef<ImageListComponent>
     >;
 
     await TestBed.configureTestingModule({

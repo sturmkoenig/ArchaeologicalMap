@@ -7,15 +7,16 @@ import {
 } from "@angular/animations";
 import {
   Component,
-  effect,
+  Input,
   model,
+  OnDestroy,
   OnInit,
   signal,
   WritableSignal,
 } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
-import { debounceTime, Subscription } from "rxjs";
-import { Card } from "@app/model/card";
+import { debounceTime, Observable } from "rxjs";
+import { InfoCard, isLocationCard, LocationCard } from "@app/model/card";
 import { CardService } from "@service/card.service";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatIconModule } from "@angular/material/icon";
@@ -24,7 +25,7 @@ import { MatTableModule } from "@angular/material/table";
 import { MatFormField, MatLabel } from "@angular/material/form-field";
 import { CommonModule } from "@angular/common";
 import { MatInputModule } from "@angular/material/input";
-import { emit, listen } from "@tauri-apps/api/event";
+import { emit, listen, UnlistenFn } from "@tauri-apps/api/event";
 import { MatDivider } from "@angular/material/divider";
 import { MatTooltip } from "@angular/material/tooltip";
 import { toObservable } from "@angular/core/rxjs-interop";
@@ -70,6 +71,7 @@ import { createCardDetailsWindow } from "@app/util/window-util";
         <div data-testid="card-row" class="flex flex-direction items-center">
           <span class="flex-1 pl-5">{{ card.title }}</span>
           <button
+            *ngIf="isLocationCard(card)"
             [attr.data-testid]="'nav-to-card-' + card.id"
             class="flex-none"
             mat-icon-button
@@ -105,45 +107,57 @@ import { createCardDetailsWindow } from "@app/util/window-util";
     ]),
   ],
 })
-export class CardListComponent implements OnInit {
-  allCards: WritableSignal<Card[]> = signal([]);
-  subscription!: Subscription;
-  debounceTime = 300;
+export class CardListComponent implements OnInit, OnDestroy {
+  allCards: WritableSignal<(LocationCard | InfoCard)[]> = signal([]);
+  subscription!: UnlistenFn;
+  @Input()
+  debounceTime?: number;
   filter = model<string>("");
+  filter$: Observable<string>;
 
   constructor(
     private cardService: CardService,
     public dialog: MatDialog,
   ) {
-    listen("card-deleted", (event: { payload: number }) => {
-      this.allCards.update((allCards) =>
-        allCards.reduce<Card[]>(
-          (acc, card) =>
-            card.id !== event.payload ? [...acc, ...[card]] : acc,
-          [],
-        ),
-      );
-    });
-    this.subscription = toObservable(this.filter)
-      .pipe(debounceTime(this.debounceTime))
-      .subscribe(async (filter) => {
-        this.allCards.set(await this.cardService.readCardByTitle(filter));
-      });
+    this.filter$ = toObservable(this.filter);
+  }
+
+  ngOnDestroy(): void {
+    this.subscription();
   }
 
   async ngOnInit() {
     this.allCards.set(await this.cardService.readCardByTitle(""));
+    this.filter$
+      .pipe(debounceTime(this.debounceTime ?? 200))
+      .subscribe(async (filter) =>
+        this.allCards.set(await this.cardService.readCardByTitle(filter)),
+      );
+    this.subscription = await listen(
+      "card-deleted",
+      (event: { payload: number }) => {
+        this.allCards.update((allCards) =>
+          allCards.reduce<(LocationCard | InfoCard)[]>(
+            (acc, card) =>
+              card.id !== event.payload ? [...acc, ...[card]] : acc,
+            [],
+          ),
+        );
+      },
+    );
   }
 
   async goToDetailsPage(cardId: number) {
     await createCardDetailsWindow(cardId);
   }
 
-  showCardOnMap(card: Card) {
+  showCardOnMap(card: LocationCard) {
     return emit("panTo", {
       lat: card.latitude,
       lng: card.longitude,
       id: card.id,
     });
   }
+
+  protected readonly isLocationCard = isLocationCard;
 }

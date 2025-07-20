@@ -1,19 +1,18 @@
-import { Component, NgZone } from "@angular/core";
-import { path } from "@tauri-apps/api";
-import { convertFileSrc } from "@tauri-apps/api/core";
+import { Component, inject, model, NgZone, OnInit } from "@angular/core";
 import { Event } from "@tauri-apps/api/event";
-import { v4 as uuid } from "uuid";
 import { BehaviorSubject } from "rxjs";
 import { StackStore } from "@app/state/stack.store";
-import * as fs from "@tauri-apps/plugin-fs";
-import { DragDropEvent, getCurrentWebview } from "@tauri-apps/api/webview";
-import { MatDialogModule } from "@angular/material/dialog";
+import { DragDropEvent } from "@tauri-apps/api/webview";
+import { MAT_DIALOG_DATA, MatDialogModule } from "@angular/material/dialog";
 import { CommonModule } from "@angular/common";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { FormsModule } from "@angular/forms";
 import { MatCardModule } from "@angular/material/card";
 import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
+import { ImageService } from "@service/image.service";
+import { WindowService } from "@service/window.service";
+import { Stack } from "@app/model/stack";
 
 @Component({
   imports: [
@@ -34,7 +33,12 @@ import { MatButtonModule } from "@angular/material/button";
           <div mat-dialog-content>
             <mat-form-field class="example-full-width">
               <mat-label>Stack Name</mat-label>
-              <input matInput placeholder="" [(ngModel)]="stackName" />
+              <input
+                matInput
+                data-testid="name-input"
+                placeholder=""
+                [(ngModel)]="stackName"
+              />
             </mat-form-field>
           </div>
         </div>
@@ -43,13 +47,13 @@ import { MatButtonModule } from "@angular/material/button";
           <mat-card class="card">
             <mat-card-header>
               <div mat-card-avatar class="example-header-image"></div>
-              <mat-card-title>{{ stackName }}</mat-card-title>
+              <mat-card-title>{{ stackName() }}</mat-card-title>
             </mat-card-header>
             <img
               *ngIf="fileUrl$ | async as fileUrl"
               class="card__image"
               mat-card-image
-              src="{{ convertFileSrc(fileUrl) }}"
+              src="{{ this.imageService.convertFileSrc(fileUrl) }}"
               alt="stack header image"
             />
             <mat-card-content></mat-card-content>
@@ -99,52 +103,58 @@ import { MatButtonModule } from "@angular/material/button";
     `,
   ],
 })
-export class StackCreatorComponent {
-  stackName: string = "";
-  fileName: string = "";
+export class StackCreatorComponent implements OnInit {
+  stackId?: number;
+  stackName = model<string>("");
+  fileName = model<string>("");
   fileUrl$: BehaviorSubject<string> = new BehaviorSubject("");
+  data: { stack: Stack } = inject(MAT_DIALOG_DATA);
 
   constructor(
     private stackStore: StackStore,
     private ngZone: NgZone,
-  ) {
-    getCurrentWebview().onDragDropEvent((event) => {
-      this.ngZone.run(async () => {
+    public imageService: ImageService,
+    private windowService: WindowService,
+  ) {}
+
+  async ngOnInit() {
+    await this.windowService.handleDragDropEvent(async (event) => {
+      await this.ngZone.run(async () => {
         if (event.payload.type === "drop") {
           await this.fileBrowseHandler(event);
         }
       });
     });
+    if (this.data?.stack) {
+      this.stackId = this.data.stack.id;
+      this.stackName.set(this.data.stack.name);
+      this.fileName.set(this.data.stack.imageName);
+    }
   }
 
   async fileBrowseHandler(event: Event<DragDropEvent>) {
     if (event.payload !== null && event.payload.type === "drop") {
-      const dataDir = await path.appDataDir();
-      const filePath: string = event.payload.paths[0];
-      const fileEnding = filePath.substring(filePath.lastIndexOf(".") + 1);
-      const newFileName = uuid() + "." + fileEnding;
-
-      const copyPath = await path.join(
-        dataDir,
-        "content",
-        "images",
-        newFileName,
+      const imageMetaData = await this.imageService.moveImageToAppDir(
+        event.payload.paths[0],
       );
-      await fs.copyFile(event.payload.paths[0], copyPath);
-      this.fileUrl$.next(copyPath);
-      this.fileName = newFileName;
+
+      this.fileUrl$.next(imageMetaData.imagePath);
+      this.fileName.set(imageMetaData.imageName);
     }
   }
 
   onSaveStack() {
-    if (this.stackName === "" || this.fileName === "") {
-      return;
+    if (this.stackId) {
+      this.stackStore.updateStack({
+        id: this.stackId,
+        name: this.stackName(),
+        imageName: this.fileName(),
+      });
+    } else {
+      this.stackStore.createStack({
+        name: this.stackName(),
+        imageName: this.fileName(),
+      });
     }
-    this.stackStore.createStack({
-      name: this.stackName,
-      image_name: this.fileName,
-    });
   }
-
-  protected readonly convertFileSrc = convertFileSrc;
 }

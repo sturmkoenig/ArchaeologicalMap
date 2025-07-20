@@ -43,15 +43,15 @@ export class SettingService {
       .readFile(this.mapSettingsFileName, {
         baseDir: BaseDirectory.AppData,
       })
-      .catch((error) => {
-        return JSON.stringify({ markerClusterGroupOptions: {} });
+      .catch((_) => {
+        throw new Error(JSON.stringify({ markerClusterGroupOptions: {} }));
       })
-      .then((content: any) => {
+      .then((content: Uint8Array) => {
         const decoder = new TextDecoder("utf-8");
         const settings: MapSettingsWritten = JSON.parse(
           decoder.decode(content),
         );
-        const returnVal = {
+        return {
           ...settings,
           initialMapBounds: settings.initialMapBounds
             ? new LatLngBounds(
@@ -60,7 +60,6 @@ export class SettingService {
               )
             : undefined,
         };
-        return returnVal;
       });
   }
 }

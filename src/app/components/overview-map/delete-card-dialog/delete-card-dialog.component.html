@@ -1,0 +1,19 @@
+<h1 mat-dialog-title>Delete Card</h1>
+<div mat-dialog-content>
+  <p>Soll die Karte oder nur der Marker gelöscht werden?</p>
+</div>
+<div mat-dialog-actions>
+  <button mat-button data-testid="button-cancel" (click)="onCancel()">
+    Abbrechen
+  </button>
+  <button
+    mat-button
+    data-testid="button-delete-marker"
+    (click)="deleteMarker()"
+  >
+    Nur den Marker
+  </button>
+  <button mat-button data-testid="button-delete-card" (click)="deleteCard()">
+    Karte Löschen
+  </button>
+</div>

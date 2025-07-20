@@ -16,18 +16,18 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatCard, MatCardContent } from "@angular/material/card";
 
 @Component({
-    selector: "app-icon-size-settings",
-    imports: [
-        CommonModule,
-        MarkerButtonToggleComponent,
-        MatFormFieldModule,
-        MatIconModule,
-        MatButtonModule,
-        MatInputModule,
-        MatCard,
-        MatCardContent,
-    ],
-    template: `
+  selector: "app-icon-size-settings",
+  imports: [
+    CommonModule,
+    MarkerButtonToggleComponent,
+    MatFormFieldModule,
+    MatIconModule,
+    MatButtonModule,
+    MatInputModule,
+    MatCard,
+    MatCardContent,
+  ],
+  template: `
     <div class="icons-settings">
       @for (iconCategory of iconsSorted | keyvalue; track iconCategory) {
         <mat-card class="icon-settings">
@@ -35,7 +35,8 @@ import { MatCard, MatCardContent } from "@angular/material/card";
             <div class="selected-icon-configurator">
               <img
                 class="selected-icon-configurator__img"
-                [src]="getIconPath(getSelectedIcon(iconCategory.key))"
+                [src]="getIconPath(getSelectedIcon(iconCategory.key) ?? '')"
+                alt="icon {{ iconCategory.key }}"
               />
               <div class="selected-icon-configurator__form">
                 <mat-form-field appearance="outline">
@@ -71,7 +72,7 @@ import { MatCard, MatCardContent } from "@angular/material/card";
       }
     </div>
   `,
-    styles: `
+  styles: `
     .selected-icon-configurator {
       display: flex;
       justify-content: center;
@@ -91,7 +92,7 @@ import { MatCard, MatCardContent } from "@angular/material/card";
       justify-content: center;
       gap: 20px;
     }
-  `
+  `,
 })
 export class IconSizeSettingsComponent {
   icons = ICONS;
@@ -141,9 +142,11 @@ export class IconSizeSettingsComponent {
     return iconKey as IconKeys;
   }
 
-  getSelectedIcon(iconCategory: any) {
-    const selectedIcon = this.selectedIconsMap.get(iconCategory);
-    return selectedIcon ?? ICONS.iconMiscBlack;
+  getSelectedIcon(iconCategory: string): string {
+    return (
+      this.selectedIconsMap.get(iconCategory as IconCategoriesKeys) ??
+      ICONS.iconMiscBlack
+    );
   }
 
   getIconPath(iconName: string) {

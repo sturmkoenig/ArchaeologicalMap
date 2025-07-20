@@ -37,8 +37,8 @@ import { KeyValuePipe, NgForOf } from "@angular/common";
           <mat-checkbox
             [checked]="this.marker.radius === 0.0"
             (change)="onExact($event)"
-            >Exakt</mat-checkbox
-          >
+            >Exakt
+          </mat-checkbox>
           <mat-slider
             [disabled]="this.marker.radius === 0.0"
             [max]="1000"
@@ -53,14 +53,18 @@ import { KeyValuePipe, NgForOf } from "@angular/common";
           <mat-form-field>
             <mat-label>Icons</mat-label>
             <mat-select
-              [(value)]="this.marker.icon_name"
+              [(value)]="this.marker.iconName"
               (selectionChange)="setIcon($event)"
             >
               <mat-option
                 *ngFor="let iconOption of iconsSorted | keyvalue"
                 [value]="iconOption.key"
               >
-                <img class="option-icon" src="{{ iconOption.value[1] }}" />
+                <img
+                  class="option-icon"
+                  src="{{ iconOption.value[1] }}"
+                  alt="icon {{ iconOption.value }}"
+                />
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -107,7 +111,7 @@ export class MarkerInputComponent implements OnChanges {
     if (!changes["marker"]) {
       return;
     }
-    const currentIconCategory = changes["marker"].currentValue.icon_name;
+    const currentIconCategory = changes["marker"].currentValue.iconName;
     if (currentIconCategory.match("Red")) {
       this.selectedIconCategory = currentIconCategory.replace("Red", "");
     } else if (currentIconCategory.match("Black")) {
@@ -117,13 +121,13 @@ export class MarkerInputComponent implements OnChanges {
 
   setIcon(newIcon: MatSelectChange) {
     this.selectedIconCategory = newIcon.value;
-    this.marker!.icon_name = IconService.getIconNameByPath(
+    this.marker!.iconName = IconService.getIconNameByPath(
       iconsSorted[this.selectedIconCategory][0],
     );
     this.markerChange.emit(this.marker);
   }
   setIconVariant(iconName: keyof typeof ICONS) {
-    this.marker!.icon_name = iconName;
+    this.marker!.iconName = iconName;
     this.markerChange.emit(this.marker);
   }
 
@@ -136,7 +140,7 @@ export class MarkerInputComponent implements OnChanges {
     this.setRadius(newRadius);
   }
 
-  onExact(checked: MatCheckboxChange) {
+  onExact(_: MatCheckboxChange) {
     if (!this.marker) {
       return;
     }

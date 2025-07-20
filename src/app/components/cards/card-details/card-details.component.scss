@@ -30,7 +30,7 @@
   border-color: #cccccc;
   border-width: 0;
   border-radius: 5px;
-  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
   margin-left: 5px;
   margin-right: 5px;
   flex-direction: column;
@@ -38,12 +38,28 @@
   height: 100%;
   overflow: auto;
 
-  span {
-    border-radius: 3px;
+  span, .add-card-list-item {
     padding: 0.6rem;
+    cursor: pointer;
+    min-height: 2.5rem;
+    align-items: center;
+    border-radius: 3px;
+    gap: 0.5rem;
   }
-  span:nth-child(odd) {
-    background-color: #fdfefe;
+  span:nth-child(even) {
+    background-color: #ffe7e7;
+  }
+  .add-card-list-item {
+    display: flex;
+    cursor: pointer;
+    margin-top: auto;
+  }
+  .add-card-list-item mat-icon {
+    font-size: 1.3em;
+  }
+  .add-card-list-item:hover {
+    background: #eaeaea;
+    border: 1px solid #888;
   }
 }
 .current-card {
@@ -60,7 +76,7 @@
   border-color: #cccccc;
   border-width: 0;
   background-color: #fdfefe;
-  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
   display: grid;
   grid-template-columns: auto 1fr auto;
   grid-template-rows: auto;

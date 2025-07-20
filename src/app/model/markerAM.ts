@@ -5,7 +5,7 @@ import {
   Marker,
   MarkerOptions,
 } from "leaflet";
-import { Card, MarkerDB } from "@app/model/card";
+import { LocationCard, LocationData } from "@app/model/card";
 import { ICONS } from "@service/icon.service";
 import { RadiusVisibility } from "@app/model/marker";
 import { createCardDetailsWindow } from "@app/util/window-util";
@@ -34,7 +34,7 @@ export class MarkerAM extends Marker {
   constructor(
     latlng: LatLngExpression,
     options?: MarkerOptions,
-    card?: Partial<Card>,
+    card?: Partial<LocationCard>,
     amOptions?: {
       iconType?: keyof typeof ICONS;
       iconSize?: number;
@@ -44,10 +44,10 @@ export class MarkerAM extends Marker {
     this._description = card?.description ?? "";
     this._title = card?.title ?? "";
     this._cardId = card?.id ?? 0;
-    this._iconType = card?.icon_name ?? "iconBorderLimesBlack";
-    this._regionImageId = card?.region_image_id;
+    this._iconType = card?.iconName ?? "iconBorderLimesBlack";
+    this._regionImageId = card?.regionImageId;
     this._iconSize = amOptions?.iconSize ?? 20;
-    this._stackId = card?.stack_id;
+    this._stackId = card?.stackId;
     if (card?.radius) {
       this._radiusLayer = new Circle(latlng, {
         radius: card.radius ?? 0,
@@ -121,23 +121,23 @@ export class MarkerAM extends Marker {
   /**
    * @deprecated
    */
-  toMarkerDB(): MarkerDB {
+  toMarkerDB(): LocationData {
     return {
       latitude: this.getLatLng().lat,
       longitude: this.getLatLng().lng,
-      icon_name: this._iconType,
+      iconName: this._iconType,
       radius: this._radiusLayer?.getRadius() ?? 0,
     };
   }
 
-  toCard(): Card {
+  toCard(): LocationCard {
     return {
       latitude: this.getLatLng().lat,
       longitude: this.getLatLng().lng,
-      icon_name: this._iconType,
+      iconName: this._iconType,
       radius: this._radiusLayer?.getRadius() ?? 0,
-      region_image_id: this._regionImageId,
-      stack_id: this._stackId,
+      regionImageId: this._regionImageId,
+      stackId: this._stackId,
       title: this._title,
       description: this._description,
       id: this._cardId,

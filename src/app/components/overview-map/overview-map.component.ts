@@ -10,7 +10,7 @@ import {
 } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
-import { createCardDetailsWindow } from "@app/util/window-util";
+import { createCardDetailsWindow, setWindowFocus } from "@app/util/window-util";
 import {
   LatLng,
   latLng,
@@ -20,7 +20,7 @@ import {
   tileLayer,
 } from "leaflet";
 import "leaflet.markercluster";
-import { Card, CardMetaData, LocationData } from "@app/model/card";
+import { LocationCard, InfoCard, LocationData, Card } from "@app/model/card";
 import { MapSettings, SettingService } from "@service/setting.service";
 import { IconSizeSetting } from "@service/icon.service";
 import { OverviewMapService } from "@service/overview-map.service";
@@ -34,6 +34,8 @@ import { MatButtonModule } from "@angular/material/button";
 import { MarkerAM } from "@app/model/markerAM";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatDialog } from "@angular/material/dialog";
+import { DeleteCardDialogComponent } from "./delete-card-dialog/delete-card-dialog.component";
 
 @Component({
   imports: [
@@ -75,32 +77,66 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   mapSettings?: MapSettings;
   unlistenPanTo: Promise<UnlistenFn>;
   selectedMarker: WritableSignal<MarkerAM | undefined>;
-  cardMetadata: Signal<CardMetaData | undefined>;
-  editCard: Signal<Card | undefined>;
+  cardMetadata: Signal<InfoCard | undefined>;
+  editCard: Signal<LocationCard | undefined>;
   private panToMarkerId?: number;
-
   constructor(
     private route: ActivatedRoute,
     private ngZone: NgZone,
     private settingsService: SettingService,
     public overviewMapService: OverviewMapService,
+    public dialog: MatDialog,
   ) {
     this.unlistenPanTo = listen(
       "panTo",
-      (panToEvent: { payload: { lat: number; lng: number; id: number } }) => {
+      async (panToEvent: {
+        payload: { lat: number; lng: number; id: number };
+      }) => {
         const point: LatLng = new LatLng(
           panToEvent.payload.lat,
           panToEvent.payload.lng,
         );
         this.panToMarkerId = panToEvent.payload.id;
+        await setWindowFocus();
         this.map.flyTo(point, 14);
+      },
+    );
+
+    listen(
+      "addLocationToCard",
+      async (event: {
+        payload: {
+          id: number;
+          title: string;
+          description: string;
+          stackId?: number;
+        };
+      }) => {
+        await setWindowFocus();
+        this.updateCardVisible = true;
+        console.log(this.map.getCenter());
+        const cardToAdd: Card = {
+          id: event.payload.id,
+          title: event.payload.title,
+          description: event.payload.description,
+          stackId: event.payload.stackId,
+          latitude: this.map.getCenter().lat,
+          longitude: this.map.getCenter().lng,
+          iconName: "iconMiscRed",
+          radius: 0.0,
+        };
+
+        this.overviewMapService.changeSelectedMarker(
+          new MarkerAM(this.map.getCenter(), {}, cardToAdd),
+        );
+        this.overviewMapService.updateEditCard(cardToAdd);
       },
     );
     this.cardMetadata = computed(() => ({
       title: this.editCard()?.title ?? "",
       description: this.editCard()?.description ?? "",
-      stack_id: this.editCard()?.stack_id,
-      region_image_id: this.editCard()?.region_image_id,
+      stackId: this.editCard()?.stackId,
+      regionImageId: this.editCard()?.regionImageId,
     }));
     this.mainLayerGroup = this.overviewMapService.mainLayerGroup;
     this.selectedLayerGroup = this.overviewMapService.selectedLayerGroup;
@@ -126,7 +162,21 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async onDeleteSelectedCard() {
-    await this.overviewMapService.deleteEditCard();
+    const dialogRef = this.dialog.open(DeleteCardDialogComponent);
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result === "deleteCard") {
+        await this.overviewMapService.deleteEditCard();
+      } else if (result === "deleteMarker") {
+        const cardUpdated = {
+          latitude: undefined,
+          longitude: undefined,
+          iconName: undefined,
+          radius: undefined,
+        };
+        this.overviewMapService.updateEditCard(cardUpdated);
+      }
+    });
   }
 
   async onUpdateIconSize(iconSetting: IconSizeSetting) {
@@ -137,7 +187,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async updateSelectedMarker(newMarker: LocationData) {
-    await this.overviewMapService.updateEditCard(newMarker);
+    this.overviewMapService.updateEditCard(newMarker);
   }
 
   onMoveExistingMarker() {
@@ -153,7 +203,7 @@ export class OverviewMapComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  updateSelectedCard(newCard: CardMetaData) {
+  updateSelectedCard(newCard: InfoCard) {
     this.overviewMapService.updateEditCard(newCard);
   }
 
