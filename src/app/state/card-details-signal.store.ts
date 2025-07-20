@@ -15,7 +15,7 @@ import { ImageEntity } from "@app/model/image";
 
 type CardDetailsState = {
   isLoading: boolean;
-  index: number;
+  index: number | undefined;
   imageId: number | undefined;
   stack: Stack | undefined;
   cards: Card[];
@@ -23,14 +23,22 @@ type CardDetailsState = {
 
 const initialState: CardDetailsState = {
   isLoading: false,
-  index: 0,
+  index: undefined,
   stack: undefined,
   imageId: undefined,
   cards: [],
 };
 
-const saveGet = <T>(array: T[], index: number): T | undefined =>
-  index < array.length && index >= 0 ? array[index] : undefined;
+const saveGet = <T>(
+  array: T[],
+  index: number | undefined,
+  offset: number,
+): T | undefined => {
+  if (index === undefined) return undefined;
+  return index + offset < array.length && index + offset >= 0
+    ? array[index + offset]
+    : undefined;
+};
 
 export const CardDetailsSignalStore = signalStore(
   withState<CardDetailsState>(initialState),
@@ -52,9 +60,9 @@ export const CardDetailsSignalStore = signalStore(
   })),
   withComputed((store) => ({
     cardsLength: computed(() => store.cards().length),
-    currentCard: computed(() => store.cards()[store.index()]),
-    nextCard: computed(() => saveGet(store.cards(), store.index() + 1)),
-    previousCard: computed(() => saveGet(store.cards(), store.index() - 1)),
+    currentCard: computed(() => saveGet(store.cards(), store.index(), 0)),
+    nextCard: computed(() => saveGet(store.cards(), store.index(), 1)),
+    previousCard: computed(() => saveGet(store.cards(), store.index(), -1)),
     image: computed(() =>
       store._imageResource.hasValue()
         ? store._imageResource.value()
@@ -65,11 +73,13 @@ export const CardDetailsSignalStore = signalStore(
     setStack: async (stackId: number, cardId?: number) => {
       const { stack, cards } =
         await store.cardService.getAllCardsForStack(stackId);
-      const index = cardId ? cards.findIndex((card) => card.id === cardId) : 0;
+      const index = cardId
+        ? cards.findIndex((card) => card.id === cardId)
+        : undefined;
       patchState(store, (_) => ({
         isLoading: false,
         index,
-        imageId: cards[index].regionImageId,
+        imageId: index ? cards[index].regionImageId : undefined,
         stack,
         cards,
       }));
