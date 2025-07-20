@@ -66,7 +66,7 @@ export class CardService {
     return cardDTOs.map(fromCardDTO);
   }
 
-  async updateCard(card: LocationCard): Promise<boolean> {
+  async updateCard(card: Card): Promise<boolean> {
     const success = await invoke<boolean>("update_card", {
       card: toCardDTO(card),
     });
