@@ -106,6 +106,11 @@ const markerServiceMock = {
 };
 const cardContentServiceMock = {
   setCardId: jest.fn(),
+  cardId: {
+    next: {
+      value: undefined,
+    },
+  },
   cardContent: jest.fn(),
   saveCardContent: jest.fn(),
 };

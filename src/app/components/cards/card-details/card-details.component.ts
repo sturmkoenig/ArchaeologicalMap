@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ViewChild } from "@angular/core";
+import { Component, effect, inject, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { emit, listen } from "@tauri-apps/api/event";
 
@@ -32,6 +32,11 @@ export class CardDetailsComponent implements OnInit {
     listen("tauri://focus", async () => {
       this.cardContentService.cardContent.next(this.editor.getContents());
       await this.cardContentService.saveCardContent();
+    });
+    effect(() => {
+      const newCardId = this.store.currentCard()?.id;
+      if (newCardId && newCardId !== this.cardContentService.cardId.value)
+        this.cardContentService.setCardId(newCardId);
     });
   }
 
