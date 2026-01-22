@@ -75,11 +75,16 @@ export const CardDetailsSignalStore = signalStore(
         await store.cardService.getAllCardsForStack(stackId);
       const index = cardId
         ? cards.findIndex((card) => card.id === cardId)
-        : undefined;
+        : cards.length > 0
+          ? 0
+          : undefined;
       patchState(store, (_) => ({
         isLoading: false,
         index,
-        imageId: index ? cards[index].regionImageId : undefined,
+        imageId:
+          index !== undefined && index >= 0
+            ? cards[index].regionImageId
+            : undefined,
         stack,
         cards,
       }));
