@@ -8,6 +8,7 @@ import { EditorComponent } from "@app/layout/editor/editor.component";
 import { Card, InfoCard, isLocationCard } from "@app/model/card";
 import { CardContentService } from "@service/card-content.service";
 import { AddCardDialogComponent } from "../card-input/add-card-dialog.component";
+import { EditCardDialogComponent } from "../card-input/edit-card-dialog.component";
 import { CardService } from "@service/card.service";
 import { CardDetailsSignalStore } from "@app/state/card-details-signal.store";
 
@@ -59,9 +60,29 @@ export class CardDetailsComponent implements OnInit {
         console.error("cardId not provided!");
       }
     });
-    listen("card-changed", (_) => {
-      // TODO only reload if changed card is in stack!
-      this.store.setCard(this.store.currentCard()?.id ?? 0);
+    listen("card-changed", async (event: { payload: Card }) => {
+      const changedCard = event.payload;
+      const currentStack = this.store.stack();
+      const currentCard = this.store.currentCard();
+
+      if (!changedCard?.id || !currentCard?.id) return;
+
+      const isViewingStack = currentStack !== undefined;
+      const changedCardIsInCurrentStack =
+        changedCard.stackId === currentStack?.id;
+      const changedCardIsCurrentCard = changedCard.id === currentCard.id;
+
+      if (isViewingStack) {
+        if (changedCardIsInCurrentStack) {
+          this.store.setStack(currentStack.id, changedCard.id);
+        } else if (changedCardIsCurrentCard) {
+          this.store.setStack(currentStack.id);
+        }
+      } else {
+        if (changedCardIsCurrentCard) {
+          this.store.setCard(changedCard.id);
+        }
+      }
     });
 
     await appWindow.onCloseRequested(async () => {
@@ -78,13 +99,24 @@ export class CardDetailsComponent implements OnInit {
         id: card.id ?? 0,
       });
     } else {
-      return emit("addLocationToCard", {
-        id: card.id,
-        title: card.title,
-        description: card.description,
-        stackId: card.stackId,
-      });
+      this.openEditCardDialog(card);
     }
+  }
+
+  openEditCardDialog(card: Card) {
+    const dialogRef = this.dialog.open(EditCardDialogComponent, {
+      data: { card },
+    });
+
+    dialogRef.afterClosed().subscribe(async (result: Card) => {
+      if (result) {
+        try {
+          await this.cardService.updateCard(result);
+        } catch (e) {
+          console.error("Failed to update card:", e);
+        }
+      }
+    });
   }
 
   openAddCardDialog() {
@@ -98,8 +130,8 @@ export class CardDetailsComponent implements OnInit {
     dialogRef.afterClosed().subscribe(async (result: InfoCard) => {
       if (result) {
         try {
-          await this.cardService.createCard(result);
-          this.store.setStack(stackId!);
+          const createdCard = await this.cardService.createCard(result);
+          this.store.setStack(stackId!, createdCard.id);
         } catch (e) {
           console.error("Failed to create card:", e);
         }

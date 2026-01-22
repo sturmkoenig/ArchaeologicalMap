@@ -20,6 +20,7 @@ import { CardService } from "@service/card.service";
 import { ImageService } from "@service/image.service";
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { AddCardDialogComponent } from "../card-input/add-card-dialog.component";
+import { EditCardDialogComponent } from "../card-input/edit-card-dialog.component";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { CardInputComponent } from "@app/components/cards/card-input/card-input.component";
 import { StackStore } from "@app/state/stack.store";
@@ -46,9 +47,14 @@ jest.mock("@tauri-apps/api/window", () => ({
   }),
 }));
 
+const mockListeners = new Map<string, Function>();
+
 jest.mock("@tauri-apps/api/event", () => ({
   emit: jest.fn(),
-  listen: jest.fn(),
+  listen: jest.fn((eventName: string, callback: Function) => {
+    mockListeners.set(eventName, callback);
+    return Promise.resolve();
+  }),
 }));
 
 jest.mock("@tauri-apps/api/webviewWindow", () => ({
@@ -123,6 +129,7 @@ const cardServiceMock = {
   readCard: jest.fn(),
   getAllCardsForStack: jest.fn(),
   createCard: jest.fn(),
+  updateCard: jest.fn(),
 };
 
 const imageServiceMock = {
@@ -167,6 +174,7 @@ const renderComponent = async (route = "cards/details/1") => {
     declarations: [
       MockEditorComponent,
       AddCardDialogComponent,
+      EditCardDialogComponent,
       CardInputComponent,
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -297,7 +305,7 @@ it("should display a pin_drop icon for cards with valid location data", async ()
   expect(icon).toHaveTextContent("pin_drop");
 });
 
-it("should display a location_off icon for cards without valid location data", async () => {
+it("should display an edit icon for cards without valid location data", async () => {
   givenACard({
     ...defaultCard,
     latitude: undefined,
@@ -309,10 +317,10 @@ it("should display a location_off icon for cards without valid location data", a
   expect(button).toBeInTheDocument();
 
   const icon = within(button).getByTestId("location-icon");
-  expect(icon).toHaveTextContent("location_off");
+  expect(icon).toHaveTextContent("edit");
 });
 
-it("should emit addLocationToCard event when location_off icon is clicked", async () => {
+it("should open edit dialog when edit icon is clicked", async () => {
   const card = {
     ...defaultCard,
     id: 1,
@@ -325,20 +333,22 @@ it("should emit addLocationToCard event when location_off icon is clicked", asyn
   const button = screen.getByTestId("show-on-map-button");
   fireEvent.click(button);
 
-  expect(emit).toHaveBeenCalledWith("addLocationToCard", {
-    id: card.id,
-    title: card.title,
-    description: card.description,
-    stackId: card.stackId,
-  });
+  const dialog = await screen.findByRole("dialog");
+  expect(dialog).toBeInTheDocument();
+
+  const dialogTitle = within(dialog).getByText("Karte bearbeiten");
+  expect(dialogTitle).toBeInTheDocument();
 });
 
 it("should create a new card when add card button is clicked", async () => {
   const stackId = 1;
+  const newCardId = 999;
+
   givenAStackWithCards(testStack, defaultStack);
   givenACard(testStack[0]);
 
   const newCard: InfoCard = {
+    id: newCardId,
     title: "New Test Card",
     description: "This is a new test card",
     stackId: stackId,
@@ -368,11 +378,110 @@ it("should create a new card when add card button is clicked", async () => {
 
   await waitFor(() => {
     expect(cardServiceMock.createCard).toHaveBeenCalledWith(
-      expect.objectContaining(newCard),
+      expect.objectContaining({
+        title: newCard.title,
+        description: newCard.description,
+        stackId: newCard.stackId,
+      }),
     );
   });
 
   await waitFor(() => {
     expect(cardServiceMock.getAllCardsForStack).toHaveBeenCalledWith(stackId);
+  });
+});
+
+describe("edit card dialog stack handling", () => {
+  const createInfoCard = (stackId: number, id = 2): InfoCard => ({
+    id,
+    title: "Info card without location",
+    description: "A card that can be edited",
+    stackId,
+  });
+
+  const givenCardInStack = (card: InfoCard) => {
+    const stackWithCard = [card, testStack[1]];
+    givenAStackWithCards(stackWithCard as LocationCard[], defaultStack);
+    givenACard(card);
+    cardServiceMock.updateCard.mockResolvedValue(undefined);
+  };
+
+  const whenEditDialogClosesWithCard = async (
+    component: CardDetailsComponent,
+    originalCard: InfoCard,
+    resultCard: InfoCard,
+  ) => {
+    cardServiceMock.getAllCardsForStack.mockClear();
+    component.openEditCardDialog(originalCard);
+    const dialogRef = (component.dialog as MatDialog).openDialogs[0];
+    dialogRef.close(resultCard);
+
+    await waitFor(() => {
+      expect(cardServiceMock.updateCard).toHaveBeenCalledWith(resultCard);
+    });
+
+    const cardChangedListener = mockListeners.get("card-changed");
+    if (cardChangedListener) {
+      await cardChangedListener({ payload: resultCard });
+    }
+  };
+
+  const thenStackShouldBeRefreshed = async (expectedStackId: number) => {
+    await waitFor(() => {
+      const calls = cardServiceMock.getAllCardsForStack.mock.calls;
+      expect(calls.length).toBeGreaterThan(0);
+      expect(calls[calls.length - 1][0]).toBe(expectedStackId);
+    });
+  };
+
+  const thenCurrentCardShouldBe = async (
+    component: CardDetailsComponent,
+    expectedCardId: number,
+  ) => {
+    await waitFor(() => {
+      expect(component.store.currentCard()?.id).toBe(expectedCardId);
+    });
+  };
+
+  it("should refresh current stack without selecting moved card when card is moved to different stack", async () => {
+    const originalStackId = 1;
+    const targetStackId = 2;
+    const originalCard = createInfoCard(originalStackId);
+    const movedCard: InfoCard = { ...originalCard, stackId: targetStackId };
+
+    givenCardInStack(originalCard);
+
+    const { fixture } = await renderComponent(
+      `cards/details/2?stackId=${originalStackId}`,
+    );
+
+    await whenEditDialogClosesWithCard(
+      fixture.componentInstance,
+      originalCard,
+      movedCard,
+    );
+
+    await thenStackShouldBeRefreshed(originalStackId);
+  });
+
+  it("should select updated card when card stays in same stack after edit", async () => {
+    const stackId = 1;
+    const originalCard = createInfoCard(stackId);
+    const updatedCard: InfoCard = { ...originalCard, title: "Updated title" };
+
+    givenCardInStack(originalCard);
+
+    const { fixture } = await renderComponent(
+      `cards/details/2?stackId=${stackId}`,
+    );
+
+    await whenEditDialogClosesWithCard(
+      fixture.componentInstance,
+      originalCard,
+      updatedCard,
+    );
+
+    await thenStackShouldBeRefreshed(stackId);
+    await thenCurrentCardShouldBe(fixture.componentInstance, updatedCard.id!);
   });
 });
