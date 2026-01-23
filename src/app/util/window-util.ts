@@ -2,11 +2,28 @@ import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { emit } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
-export const createAndFocusWebview = (
+export const createOrFocusWebview = async (
   windowName: string,
   url: string,
   eventName: string,
 ) => {
+  try {
+    const existingWindow = await WebviewWindow.getByLabel(windowName);
+
+    if (existingWindow) {
+      try {
+        await existingWindow.setFocus();
+        return existingWindow;
+      } catch (focusError) {
+        console.error(`Failed to focus window ${windowName}:`, focusError);
+        return existingWindow;
+      }
+    }
+  } catch (labelError) {
+    console.error(`Error checking for window ${windowName}:`, labelError);
+    // Fall through to creation
+  }
+
   const webview = new WebviewWindow(windowName, {
     url,
     height: 800,
@@ -19,16 +36,17 @@ export const createAndFocusWebview = (
     console.log("created");
     webview.emit(eventName);
   });
+  return webview;
 };
 export const createCardDetailsWindow = async (cardId: number) => {
-  createAndFocusWebview(
+  return await createOrFocusWebview(
     `cardId-${cardId}`,
     `/cards/details/${cardId}`,
     `focus-card-${cardId}`,
   );
 };
 export const createStackDetailWindow = async (stackId: number) => {
-  createAndFocusWebview(
+  return await createOrFocusWebview(
     `stackId-${stackId}`,
     `/stacks/details/${stackId}`,
     `focus-stack-${stackId}`,
