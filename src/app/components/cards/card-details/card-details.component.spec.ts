@@ -4,6 +4,7 @@ import { ActivatedRoute, convertToParamMap, ParamMap } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
 import { InfoCard, LocationCard, LocationData } from "@app/model/card";
 import { emit } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
 import { StackService } from "@service/stack.service";
 import { Stack } from "@app/model/stack";
 import {
@@ -44,7 +45,13 @@ jest.mock("@tauri-apps/api/window", () => ({
   getCurrentWindow: () => ({
     setFocus: jest.fn(),
     onCloseRequested: jest.fn(),
+    label: "test-window",
   }),
+}));
+
+jest.mock("@tauri-apps/api/core", () => ({
+  invoke: jest.fn().mockResolvedValue(null),
+  convertFileSrc: jest.fn((src: string) => src),
 }));
 
 const mockListeners = new Map<string, Function>();
@@ -194,6 +201,11 @@ const givenACard = (card: Partial<LocationCard>) => {
     ...card,
   });
 };
+
+beforeEach(() => {
+  (invoke as jest.Mock).mockClear();
+  (invoke as jest.Mock).mockResolvedValue(null);
+});
 
 it("should create", async () => {
   givenACard(defaultCard);

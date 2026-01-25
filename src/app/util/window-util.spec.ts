@@ -1,5 +1,6 @@
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { emit } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
 import {
   createOrFocusWebview,
   createCardDetailsWindow,
@@ -8,6 +9,10 @@ import {
 
 jest.mock("@tauri-apps/api/webviewWindow");
 jest.mock("@tauri-apps/api/event");
+jest.mock("@tauri-apps/api/core");
+
+const mockDateNow = jest.fn();
+Date.now = mockDateNow;
 
 describe("window-util", () => {
   let mockWebview: jest.Mocked<WebviewWindow>;
@@ -26,7 +31,9 @@ describe("window-util", () => {
       setFocus: jest.fn().mockResolvedValue(undefined),
     };
 
-    (WebviewWindow as unknown as jest.Mock).mockImplementation(() => mockWebview);
+    (WebviewWindow as unknown as jest.Mock).mockImplementation(
+      () => mockWebview,
+    );
   });
 
   describe("createOrFocusWebview", () => {
@@ -202,28 +209,98 @@ describe("window-util", () => {
     });
   });
 
-  describe("wrapper functions", () => {
+  describe("createStackDetailWindow", () => {
     beforeEach(() => {
+      (invoke as jest.Mock).mockResolvedValue(null);
       (WebviewWindow.getByLabel as jest.Mock).mockResolvedValue(null);
     });
 
-    it("should call createOrFocusWebview with correct parameters for stack", async () => {
-      await createStackDetailWindow(123);
+    it("should create new window when no firstCardId is provided", async () => {
+      mockDateNow.mockReturnValueOnce(1674567920123);
 
-      expect(WebviewWindow.getByLabel).toHaveBeenCalledWith("stackId-123");
-      expect(WebviewWindow).toHaveBeenCalledWith("stackId-123", {
-        url: "/stacks/details/123",
+      await createStackDetailWindow(789);
+
+      expect(WebviewWindow).toHaveBeenCalledWith("card-window-1674567920123", {
+        url: "/stacks/details/789",
         height: 800,
       });
+      expect(invoke).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("wrapper functions", () => {
+    beforeEach(() => {
+      (WebviewWindow.getByLabel as jest.Mock).mockResolvedValue(null);
+      (invoke as jest.Mock).mockResolvedValue(null);
     });
 
-    it("should call createOrFocusWebview with correct parameters for card", async () => {
-      await createCardDetailsWindow(456);
+    describe("createCardDetailsWindow", () => {
+      const givenNoWindowExistsForCard = () => {
+        (invoke as jest.Mock).mockResolvedValue(null);
+      };
 
-      expect(WebviewWindow.getByLabel).toHaveBeenCalledWith("cardId-456");
-      expect(WebviewWindow).toHaveBeenCalledWith("cardId-456", {
-        url: "/cards/details/456",
-        height: 800,
+      const givenWindowExistsForCard = (windowLabel: string) => {
+        (invoke as jest.Mock).mockResolvedValue(windowLabel);
+        (WebviewWindow.getByLabel as jest.Mock).mockResolvedValue(
+          mockExistingWindow,
+        );
+      };
+
+      const whenCreateCardDetailsWindowIsCalled = async (cardId: number) => {
+        return await createCardDetailsWindow(cardId);
+      };
+
+      const thenGetWindowForCardShouldBeCalledWith = (cardId: number) => {
+        expect(invoke).toHaveBeenCalledWith("get_window_for_card", { cardId });
+      };
+
+      it("should create new window when no window exists for card", async () => {
+        givenNoWindowExistsForCard();
+        mockDateNow.mockReturnValueOnce(1674567890123);
+
+        await whenCreateCardDetailsWindowIsCalled(456);
+
+        thenGetWindowForCardShouldBeCalledWith(456);
+        expect(WebviewWindow).toHaveBeenCalledWith(
+          "card-window-1674567890123",
+          {
+            url: "/cards/details/456",
+            height: 800,
+          },
+        );
+      });
+
+      it("should focus existing window when window exists for card", async () => {
+        givenWindowExistsForCard("card-window-1674567890000");
+
+        const result = await whenCreateCardDetailsWindowIsCalled(456);
+
+        thenGetWindowForCardShouldBeCalledWith(456);
+        expect(WebviewWindow.getByLabel).toHaveBeenCalledWith(
+          "card-window-1674567890000",
+        );
+        expect(mockExistingWindow.setFocus).toHaveBeenCalled();
+        expect(result).toBe(mockExistingWindow);
+        expect(WebviewWindow).not.toHaveBeenCalled();
+      });
+
+      it("should create new window when existing window cannot be found by label", async () => {
+        (invoke as jest.Mock).mockResolvedValue("card-window-1674567890000");
+        (WebviewWindow.getByLabel as jest.Mock).mockResolvedValue(null);
+        mockDateNow.mockReturnValueOnce(1674567890123);
+
+        await whenCreateCardDetailsWindowIsCalled(456);
+
+        expect(WebviewWindow.getByLabel).toHaveBeenCalledWith(
+          "card-window-1674567890000",
+        );
+        expect(WebviewWindow).toHaveBeenCalledWith(
+          "card-window-1674567890123",
+          {
+            url: "/cards/details/456",
+            height: 800,
+          },
+        );
       });
     });
   });

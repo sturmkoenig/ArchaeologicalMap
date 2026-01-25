@@ -21,6 +21,9 @@ import userEvent from "@testing-library/user-event";
 
 let cardDeletedCallback: (event: { payload: number }) => void;
 
+const mockDateNow = jest.fn();
+Date.now = mockDateNow;
+
 jest.mock("@tauri-apps/api/event", () => ({
   listen: jest.fn((eventName, callback) => {
     if (eventName === "card-deleted") {
@@ -32,8 +35,29 @@ jest.mock("@tauri-apps/api/event", () => ({
 }));
 
 jest.mock("@tauri-apps/api/webviewWindow", () => ({
-  WebviewWindow: jest.fn().mockImplementation(() => ({ once: jest.fn() })),
+  WebviewWindow: Object.assign(
+    jest.fn().mockImplementation(() => ({
+      once: jest.fn(),
+      emit: jest.fn(),
+    })),
+    {
+      getByLabel: jest.fn().mockResolvedValue(null),
+    },
+  ),
 }));
+
+jest.mock("@tauri-apps/api/core", () => ({
+  invoke: jest.fn().mockResolvedValue(null),
+}));
+
+jest.mock("@tauri-apps/api/window", () => ({
+  getCurrentWindow: jest.fn().mockReturnValue({
+    setFocus: jest.fn(),
+    onCloseRequested: jest.fn(),
+    label: "test-window",
+  }),
+}));
+
 const testCards: LocationCard[] = [
   {
     id: 0,
@@ -182,6 +206,7 @@ describe("CardListComponent", () => {
   });
 
   beforeEach(async () => {
+    mockDateNow.mockReturnValue(1674567890123);
     fixture = TestBed.createComponent(CardListComponent);
     component = fixture.componentInstance;
     loader = TestbedHarnessEnvironment.loader(fixture);
@@ -223,13 +248,18 @@ describe("CardListComponent", () => {
   });
   it("should open a card's detail page when pressing the open details page button", async () => {
     cardServiceMock.readCardByTitle.mockResolvedValue([testCards[0]]);
+    mockDateNow.mockReturnValueOnce(1674567890123);
     await whenISearchForTitle("Monument");
     thenISeeCardsWithTitle([testCards[0].title]);
     whenIClickTheButton(`open-details-for-card-${testCards[0].id}`);
-    expect(WebviewWindow).toBeCalledWith(`cardId-${testCards[0].id}`, {
-      url: `/cards/details/${testCards[0].id}`,
-      height: 800,
-    });
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(WebviewWindow).toBeCalledWith(
+      expect.stringMatching(/^card-window-\d+$/),
+      {
+        url: `/cards/details/${testCards[0].id}`,
+        height: 800,
+      },
+    );
   });
 
   it("should work with loader", async () => {

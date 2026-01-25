@@ -27,10 +27,14 @@ use crate::persistence::images::query_update_image;
 use crate::persistence::stacks::query_stack_by_id;
 use crate::persistence::card::{query_cards_in_geological_area, query_create_card, query_delete_card, query_set_image_to_null, query_card_by_id, query_card_by_title, query_cards_in_stack, query_update_card};
 use app::establish_connection;
+use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::path::Path;
-use tauri::{AppHandle, Emitter, Manager};
+use std::sync::{Arc, Mutex};
+use tauri::{AppHandle, Emitter, Manager, State};
+
+struct WindowCardMappings(Arc<Mutex<HashMap<String, i32>>>);
 
 // main.rs
 fn main() {
@@ -45,6 +49,7 @@ fn main() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_store::Builder::default().build())
+        .manage(WindowCardMappings(Arc::new(Mutex::new(HashMap::new()))))
         .invoke_handler(tauri::generate_handler![
             write_card_content,
             read_card_content,
@@ -68,6 +73,11 @@ fn main() {
             read_images_paginated,
             update_image_name,
             delete_image,
+
+            update_window_card_mapping,
+            get_window_for_card,
+            remove_window_card_mapping,
+            get_card_for_window,
         ])
         .setup(|_app| {
             let data_path = app_dir().unwrap();
@@ -353,6 +363,48 @@ fn read_images_paginated(
 fn update_image_name(image_id: i32, new_name: String) {
     let conn = &mut establish_connection();
     persistence::images::query_update_image_name(conn, image_id, new_name);
+}
+
+#[tauri::command]
+fn update_window_card_mapping(
+    window_label: String,
+    card_id: i32,
+    state: State<WindowCardMappings>,
+) -> Result<(), String> {
+    let mut mappings = state.0.lock().map_err(|e| e.to_string())?;
+    mappings.insert(window_label, card_id);
+    Ok(())
+}
+
+#[tauri::command]
+fn get_window_for_card(
+    card_id: i32,
+    state: State<WindowCardMappings>,
+) -> Result<Option<String>, String> {
+    let mappings = state.0.lock().map_err(|e| e.to_string())?;
+    Ok(mappings
+        .iter()
+        .find(|(_, &id)| id == card_id)
+        .map(|(label, _)| label.clone()))
+}
+
+#[tauri::command]
+fn remove_window_card_mapping(
+    window_label: String,
+    state: State<WindowCardMappings>,
+) -> Result<(), String> {
+    let mut mappings = state.0.lock().map_err(|e| e.to_string())?;
+    mappings.remove(&window_label);
+    Ok(())
+}
+
+#[tauri::command]
+fn get_card_for_window(
+    window_label: String,
+    state: State<WindowCardMappings>,
+) -> Result<Option<i32>, String> {
+    let mappings = state.0.lock().map_err(|e| e.to_string())?;
+    Ok(mappings.get(&window_label).copied())
 }
 
 #[cfg(test)]

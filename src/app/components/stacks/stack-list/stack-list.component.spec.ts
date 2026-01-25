@@ -8,8 +8,6 @@ import userEvent from "@testing-library/user-event";
 import { ImageService } from "@service/image.service";
 import { StackCreatorComponent } from "@app/components/stacks/stack-creator/stack-creator.component";
 import { WindowService } from "@service/window.service";
-import { createOrFocusWebview } from "@app/util/window-util";
-import * as WindowUtil from "@app/util/window-util";
 import { Stack } from "@app/model/stack";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
@@ -23,6 +21,9 @@ const mockMoveImageToAppDir = jest.fn();
 const mockUpdateStack = jest
   .fn()
   .mockImplementation((stack) => new Promise(() => stack));
+
+const mockDateNow = jest.fn();
+Date.now = mockDateNow;
 jest.mock("@tauri-apps/api/window", () => ({
   getCurrentWindow: () => ({
     setTitle: jest.fn(),
@@ -32,21 +33,26 @@ jest.mock("@tauri-apps/api/window", () => ({
 }));
 
 jest.mock("@tauri-apps/api/webviewWindow", () => ({
-  WebviewWindow: jest.fn().mockImplementation((_x: string, _y: unknown) => ({
-    once: jest.fn(),
-    emit: jest.fn(),
-    setFocus: jest.fn().mockResolvedValue(undefined),
-  })),
+  WebviewWindow: Object.assign(
+    jest.fn().mockImplementation((_x: string, _y: unknown) => ({
+      once: jest.fn(),
+      emit: jest.fn(),
+      setFocus: jest.fn().mockResolvedValue(undefined),
+    })),
+    {
+      getByLabel: jest.fn().mockResolvedValue(null),
+    },
+  ),
 }));
 
-// Mock getByLabel to return null by default (no existing window)
-(WebviewWindow.getByLabel as jest.Mock) = jest.fn().mockResolvedValue(null);
-
-jest.spyOn(WindowUtil, "createOrFocusWebview").mockImplementation(jest.fn());
+jest.mock("@tauri-apps/api/core", () => ({
+  invoke: jest.fn().mockResolvedValue(null),
+}));
 
 const tearDownStackList = async () => jest.clearAllMocks();
 
 const setupStackList = async () => {
+  mockDateNow.mockReturnValue(1674567890123);
   const { fixture } = await render(StackListComponent, {
     imports: [StackCreatorComponent],
     providers: [
@@ -99,30 +105,29 @@ it("should open a new window with the stack when pressing the button", async () 
   const openStackWindowButton = screen.getByTestId(
     `open-stack-button-${stackId}`,
   );
+  mockDateNow.mockReturnValueOnce(1674567890456);
   await userEvent.click(openStackWindowButton);
 
-  //then
-  expect(createOrFocusWebview).toHaveBeenCalledWith(
-    `stackId-${stackId}`,
-    `/stacks/details/${stackId}`,
-    `focus-stack-${stackId}`,
+  expect(WebviewWindow).toHaveBeenCalledWith(
+    expect.stringMatching(/^card-window-\d+$/),
+    {
+      url: `/stacks/details/${stackId}`,
+      height: 800,
+    },
   );
 });
 
 it("should delete a stack and remove it from the list after confirming in the dialog", async () => {
-  //given
   const givenStack = MockStacks[0];
   await setupStackList();
   let stacks = screen.getAllByTestId(/stack-card/i);
   expect(stacks.length).toBe(2);
 
-  //when
   const deleteButton = screen.getByTestId(`delete-stack-${givenStack.id}`);
   await userEvent.click(deleteButton);
   const confirmDeleteButton = screen.getByText("Löschen");
   await userEvent.click(confirmDeleteButton);
 
-  //then
   expect(mockDeleteStack).toHaveBeenCalled();
   stacks = screen.getAllByTestId(/stack-card/i);
   expect(stacks.length).toBe(1);
@@ -160,26 +165,22 @@ it("should open an update dialog with all stack properties when clicking the 'up
   });
 });
 
-it("should focus existing window when opening same stack twice", async () => {
-  const mockExistingWindow = {
-    setFocus: jest.fn().mockResolvedValue(undefined),
-  };
-
+it("should create new window each time stack is opened (no window reuse)", async () => {
   await setupStackList();
   const stackId = MockStacks[0].id;
   const openStackWindowButton = screen.getByTestId(
     `open-stack-button-${stackId}`,
   );
 
-  // First click - window doesn't exist yet
-  (WebviewWindow.getByLabel as jest.Mock).mockResolvedValue(null);
+  // First click - create first window
+  mockDateNow.mockReturnValueOnce(1674567890456);
   await userEvent.click(openStackWindowButton);
-  expect(createOrFocusWebview).toHaveBeenCalledTimes(1);
+  expect(WebviewWindow).toHaveBeenCalledTimes(1);
 
-  // Second click - window now exists
-  (WebviewWindow.getByLabel as jest.Mock).mockResolvedValue(mockExistingWindow);
+  // Second click - should create a new window
+  mockDateNow.mockReturnValueOnce(1674567890789);
   await userEvent.click(openStackWindowButton);
-  expect(createOrFocusWebview).toHaveBeenCalledTimes(2);
+  expect(WebviewWindow).toHaveBeenCalledTimes(2);
 
   await tearDownStackList();
 });

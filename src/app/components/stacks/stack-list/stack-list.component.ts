@@ -9,7 +9,6 @@ import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { createStackDetailWindow } from "@app/util/window-util";
-import { ImageService } from "@service/image.service";
 
 @Component({
   imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule],
@@ -131,7 +130,6 @@ export class StackListComponent {
   public stacks$: Observable<DisplayableStack[]>;
 
   constructor(
-    public imageService: ImageService,
     private dialog: MatDialog,
     private stackStore: StackStore,
   ) {

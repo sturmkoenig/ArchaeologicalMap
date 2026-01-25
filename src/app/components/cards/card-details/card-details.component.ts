@@ -1,6 +1,7 @@
 import { Component, effect, inject, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { emit, listen } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
 
 import { MatDialog } from "@angular/material/dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -41,21 +42,37 @@ export class CardDetailsComponent implements OnInit {
     });
   }
 
+  private async registerWindowForCard(
+    appWindow: ReturnType<typeof getCurrentWindow>,
+    cardId: number,
+  ) {
+    const windowLabel = appWindow.label;
+    await invoke("update_window_card_mapping", {
+      windowLabel,
+      cardId,
+    });
+  }
+
   async ngOnInit() {
     const appWindow = getCurrentWindow();
-    this.route.paramMap.subscribe((params) => {
+    this.route.paramMap.subscribe(async (params) => {
       if (this.editor) {
         this.cardContentService.cardContent.next(this.editor.getContents());
       }
       const cardId = Number(params.get("cardId"));
       const stackId = Number(params.get("stackId"));
       if (cardId) {
-        this.store.setCard(cardId);
+        await this.store.setCard(cardId);
         listen(`set-focus-to-${cardId}`, async () => {
           await appWindow.setFocus();
         });
+        await this.registerWindowForCard(appWindow, cardId);
       } else if (stackId) {
-        this.store.setStack(stackId);
+        await this.store.setStack(stackId);
+        const currentCardId = this.store.currentCard()?.id;
+        if (currentCardId) {
+          await this.registerWindowForCard(appWindow, currentCardId);
+        }
       } else {
         console.error("cardId not provided!");
       }
@@ -86,6 +103,8 @@ export class CardDetailsComponent implements OnInit {
     });
 
     await appWindow.onCloseRequested(async () => {
+      const windowLabel = appWindow.label;
+      await invoke("remove_window_card_mapping", { windowLabel });
       this.cardContentService.cardContent.next(this.editor.getContents());
       await this.cardContentService.saveCardContent();
     });
