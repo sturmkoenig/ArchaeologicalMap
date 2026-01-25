@@ -246,3 +246,8 @@ it("should set index to 0 and select first card when stack has cards and no card
 - Simpler to maintain and extend
 
 **Important Note**: The Given/When/Then structure should be expressed through helper function names, not inline comments. While the examples above show `// Given`, `// When`, `// Then` comments for clarity, avoid using these in actual test code. Let descriptive helper function names convey the test structure instead. Use comments only when they add essential context that cannot be expressed through better naming.
+
+## Code Style
+
+- NEVER use comments to explain the basic flow of a block of code ONLY use comments when they explain important details that can't be expressed in another way.
+  add option to edit cards directly in card-details view when no marker is available.
