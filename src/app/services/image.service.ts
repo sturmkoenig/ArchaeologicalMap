@@ -26,6 +26,22 @@ export class ImageService {
     return images;
   }
 
+  async readRecentImages(titleFilter?: string): Promise<ImageEntity[]> {
+    const imagesDB: ImageDB[] = await invoke("read_recent_images", {
+      titleFilter: titleFilter,
+    });
+    const images: ImageEntity[] = [];
+    for (const image of imagesDB) {
+      const imagePath = await path.join(await appDataDir(), image.imageSource);
+      images.push({
+        id: image.id,
+        name: image.name,
+        imageSource: convertFileSrc(imagePath),
+      });
+    }
+    return images;
+  }
+
   async readImagesPaginated(
     pageIndex: number,
     pageSize: number,

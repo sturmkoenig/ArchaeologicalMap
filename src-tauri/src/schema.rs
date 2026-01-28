@@ -29,22 +29,12 @@ diesel::table! {
         id -> Integer,
         name -> Text,
         image_source -> Text,
+        last_used -> Nullable<Integer>,
     }
 }
 
 diesel::table! {
     marker (id) {
-        id -> Integer,
-        card_id -> Integer,
-        latitude -> Float,
-        longitude -> Float,
-        radius -> Float,
-        icon_name -> Text,
-    }
-}
-
-diesel::table! {
-    marker_old (id) {
         id -> Integer,
         card_id -> Integer,
         latitude -> Float,
@@ -72,6 +62,5 @@ diesel::allow_tables_to_appear_in_same_query!(
     card_old,
     image,
     marker,
-    marker_old,
     stack,
 );

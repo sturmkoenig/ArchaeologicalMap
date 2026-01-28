@@ -6,7 +6,8 @@ extern crate diesel;
 extern crate diesel_migrations;
 
 pub mod persistence;
-use app::models::{Card, UpdateCard};
+use app::models::UpdateCard;
+use app::models::UpdateImage;
 use app::models::NewImage;
 use app::models::NewStack;
 use app::models::Stack;
@@ -23,7 +24,7 @@ use tauri_api::path::app_dir;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
-use crate::persistence::images::query_update_image;
+use crate::persistence::images::{query_update_image, query_update_image_last_used, query_read_recent_images};
 use crate::persistence::stacks::query_stack_by_id;
 use crate::persistence::card::{query_cards_in_geological_area, query_create_card, query_delete_card, query_set_image_to_null, query_card_by_id, query_card_by_title, query_cards_in_stack, query_update_card};
 use app::establish_connection;
@@ -71,6 +72,7 @@ fn main() {
             read_image,
             read_images,
             read_images_paginated,
+            read_recent_images,
             update_image_name,
             delete_image,
 
@@ -137,6 +139,12 @@ fn read_cards_in_area(cardinal_directions: CardinalDirections) -> Result<Vec<Car
 fn update_card(card: CardDTO) -> Result<bool, String> {
     let conn = &mut establish_connection();
     let id = card.id.ok_or("id is missing".to_string())?;
+
+    if let Some(image_id) = card.region_image_id {
+        query_update_image_last_used(conn, image_id)
+            .map_err(|e| format!("Failed to update image timestamp: {}", e))?;
+    }
+
     query_update_card(
         conn,
         UpdateCard {
@@ -162,6 +170,12 @@ fn read_card_by_id(id: i32) -> Result<CardDTO, String> {
 #[tauri::command]
 fn create_card(card: CardDTO) -> Result<CardDTO, String> {
     let conn = &mut establish_connection();
+
+    if let Some(image_id) = card.region_image_id {
+        query_update_image_last_used(conn, image_id)
+            .map_err(|e| format!("Failed to update image timestamp: {}", e))?;
+    }
+
     query_create_card(conn, card).map(CardDTO::from).map_err(|err| err.to_string())
 }
 
@@ -275,12 +289,12 @@ fn create_image(
         return Err(e);
     }).expect("couldn't copy image");
     let image_source = Some(format!("{}{}", app_image_dir, new_image_name));
-    let image_dto = ImageDTO {
+    let update_image = UpdateImage {
         id: image_id,
         name: image_name,
         image_source,
     };
-    query_update_image(conn, &image_dto);
+    query_update_image(conn, &update_image);
     Ok(image_id)
 }
 
@@ -349,6 +363,7 @@ fn read_images_paginated(
         title_filter.clone(),
     );
     let mut image_dtos: Vec<ImageDTO> = Vec::new();
+
     for image in images.iter() {
         image_dtos.push(ImageDTO {
             id: image.id,
@@ -359,6 +374,23 @@ fn read_images_paginated(
     let number_of_images = persistence::images::query_count_images(conn, title_filter.clone());
     (image_dtos, number_of_images)
 }
+
+#[tauri::command]
+fn read_recent_images(title_filter: Option<String>) -> Vec<ImageDTO> {
+    let conn = &mut establish_connection();
+    let images = query_read_recent_images(conn, title_filter);
+    let mut image_dtos: Vec<ImageDTO> = Vec::new();
+
+    for image in images.iter() {
+        image_dtos.push(ImageDTO {
+            id: image.id,
+            name: image.name.clone(),
+            image_source: Some(image.image_source.clone()),
+        });
+    }
+    image_dtos
+}
+
 #[tauri::command]
 fn update_image_name(image_id: i32, new_name: String) {
     let conn = &mut establish_connection();
@@ -410,15 +442,18 @@ fn get_card_for_window(
 #[cfg(test)]
 mod tests {
     use env::set_var;
-    use crate::{create_stack, create_card, read_card_by_id, read_cards_by_title, read_cards_in_area, read_cards_in_stack, update_card, MIGRATIONS};
+    use crate::{create_stack, create_card, read_card_by_id, read_cards_by_title, read_cards_in_area, read_cards_in_stack, update_card, read_images_paginated, read_recent_images, MIGRATIONS};
     use app::establish_connection;
-    use app::models::{CardDTO, CardinalDirections, NewStack};
+    use app::models::{CardDTO, CardinalDirections, NewStack, NewImage};
     use assertor::{assert_that, IteratorAssertion};
     use diesel_migrations::MigrationHarness;
     use serial_test::serial;
     use std::default::Default;
     use std::env;
     use std::fs;
+    use std::thread;
+    use std::time::{Duration, SystemTime, UNIX_EPOCH};
+    use crate::persistence::images::{query_create_image, query_read_image};
 
     fn given_test_card() -> CardDTO {
         CardDTO {
@@ -588,7 +623,7 @@ mod tests {
         given_database_has_card(CardDTO { stack_id: Some(stack_id), ..given_test_card().clone()});
         given_database_has_card(CardDTO { stack_id: Some(stack_id), ..given_test_card().clone()});
         given_database_has_card(CardDTO { stack_id: Some(stack_id+1), ..given_test_card().clone()});
-        let (stack, got_cards_in_stack) = read_cards_in_stack(stack_id).expect("Error reading cards in stack");
+        let (_stack, got_cards_in_stack) = read_cards_in_stack(stack_id).expect("Error reading cards in stack");
         assert_eq!(got_cards_in_stack.iter().len(), number_of_cards_in_stack);
     }
 
@@ -596,8 +631,6 @@ mod tests {
     #[serial]
     fn it_should_retrieve_a_list_of_cards_with_matching_title_sorted_by_title(){
         let _test_env = initialize_test_env();
-        let stack_id = given_a_stack(None);
-        let number_of_cards_in_stack = 2;
         let title_monument_z = "Monument in Zentral Afrika".to_string();
         let title_monument_a = "Monument in Ahrenshausen".to_string();
         let title_church_a = "Kirche in Ahrenshausen".to_string();
@@ -611,6 +644,136 @@ mod tests {
         got_titles = read_cards_by_title("Ahre".to_string(), 100).expect("Error could not retrieve cards with title").into_iter().map(|card| card.title.unwrap()).collect();
         want_titles =  vec![title_church_a, title_monument_a];
         assert_that!(got_titles.into_iter()).contains_exactly_in_order(want_titles.into_iter());
+    }
+
+    fn given_an_image_with_name(name: &str) -> i32 {
+        let conn = &mut establish_connection();
+        let new_image = NewImage {
+            name,
+            image_source: Some("test/path.jpg"),
+        };
+        query_create_image(conn, &new_image)
+    }
+
+    fn when_card_is_created_with_image(image_id: i32) -> CardDTO {
+        let card = CardDTO {
+            title: Some("Test Card".to_string()),
+            description: Some("Test".to_string()),
+            region_image_id: Some(image_id),
+            ..Default::default()
+        };
+        create_card(card).expect("Failed to create card")
+    }
+
+    fn when_card_is_updated_with_image(card_id: i32, image_id: i32) {
+        let card = CardDTO {
+            id: Some(card_id),
+            title: Some("Updated Card".to_string()),
+            description: Some("Updated".to_string()),
+            region_image_id: Some(image_id),
+            ..Default::default()
+        };
+        update_card(card).expect("Failed to update card");
+    }
+
+    fn then_image_should_have_recent_timestamp(image_id: i32) {
+        let conn = &mut establish_connection();
+        let image = query_read_image(conn, image_id);
+        assert!(image.last_used.is_some(), "last_used should not be null");
+
+        let timestamp = image.last_used.unwrap();
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i32;
+
+        assert!(timestamp <= now, "Timestamp should not be in future");
+        assert!(timestamp > now - 10, "Timestamp should be within last 10 seconds");
+    }
+
+    #[test]
+    #[serial]
+    fn it_should_update_last_used_when_card_is_created_with_image() {
+        let _test_env = initialize_test_env();
+
+        let image_id = given_an_image_with_name("TestImage");
+
+        when_card_is_created_with_image(image_id);
+
+        then_image_should_have_recent_timestamp(image_id);
+    }
+
+    #[test]
+    #[serial]
+    fn it_should_update_last_used_when_card_is_updated_with_image() {
+        let _test_env = initialize_test_env();
+
+        let image_id = given_an_image_with_name("TestImage");
+        let card = given_database_has_card(CardDTO::default());
+        let card_id = card.id.unwrap();
+
+        when_card_is_updated_with_image(card_id, image_id);
+
+        then_image_should_have_recent_timestamp(image_id);
+    }
+
+    #[test]
+    #[serial]
+    fn it_should_return_recent_images_separately_from_paginated() {
+        let _test_env = initialize_test_env();
+
+        let img_alpha = given_an_image_with_name("Alpha");
+        let img_beta = given_an_image_with_name("Beta");
+        let img_gamma = given_an_image_with_name("Gamma");
+
+        when_card_is_created_with_image(img_beta);
+        thread::sleep(Duration::from_secs(1));
+
+        when_card_is_created_with_image(img_alpha);
+
+        let recent_images = read_recent_images(None);
+        let (paginated_images, _count) = read_images_paginated(10, 0, None);
+
+        assert_eq!(recent_images.len(), 2, "Should have 2 recent images");
+        assert_eq!(recent_images[0].id, img_alpha, "First recent should be Alpha (most recent)");
+        assert_eq!(recent_images[1].id, img_beta, "Second recent should be Beta (2nd recent)");
+
+        assert_eq!(paginated_images[0].id, img_gamma, "First paginated should be Gamma (alphabetical, not used)");
+
+        let recent_ids: Vec<i32> = recent_images.iter().map(|img| img.id).collect();
+        for img in paginated_images.iter() {
+            assert!(!recent_ids.contains(&img.id), "Paginated images should not include recent images");
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn it_should_not_update_last_used_when_image_is_removed() {
+        let _test_env = initialize_test_env();
+
+        let image_id = given_an_image_with_name("TestImage");
+        let card = when_card_is_created_with_image(image_id);
+        let card_id = card.id.unwrap();
+
+        let original_timestamp = {
+            let conn = &mut establish_connection();
+            query_read_image(conn, image_id).last_used.unwrap()
+        };
+
+        thread::sleep(Duration::from_secs(2));
+
+        let card = CardDTO {
+            id: Some(card_id),
+            title: Some("Updated Card".to_string()),
+            description: Some("Updated".to_string()),
+            region_image_id: None,
+            ..Default::default()
+        };
+        update_card(card).expect("Failed to update card");
+
+        let conn = &mut establish_connection();
+        let image = query_read_image(conn, image_id);
+        assert_eq!(image.last_used.unwrap(), original_timestamp, "Timestamp should not change when image is removed");
     }
 
 }

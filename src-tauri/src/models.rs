@@ -24,8 +24,7 @@ pub struct CardDTO {
     pub region_image_id: Option<i32>,
 }
 
-#[derive(Serialize, Debug, AsChangeset)]
-#[diesel(table_name = image)]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ImageDTO {
     pub id: i32,
@@ -33,6 +32,13 @@ pub struct ImageDTO {
     pub image_source: Option<String>,
 }
 
+#[derive(Debug, AsChangeset)]
+#[diesel(table_name = image)]
+pub struct UpdateImage {
+    pub id: i32,
+    pub name: String,
+    pub image_source: Option<String>,
+}
 
 #[derive(Insertable, AsChangeset)]
 #[diesel(table_name = card)]
@@ -77,6 +83,7 @@ pub struct Image {
     pub id: i32,
     pub name: String,
     pub image_source: String,
+    pub last_used: Option<i32>,
 }
 
 #[derive(Identifiable,Queryable, Serialize, Clone, Debug, AsChangeset, Deserialize)]

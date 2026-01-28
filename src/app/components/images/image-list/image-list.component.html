@@ -18,26 +18,13 @@
       </button>
     }
   </mat-form-field>
-  <div class="gridbox">
-    <mat-card *ngFor="let image of images" class="gridbox_item">
-      <div class="content-grid">
-        <mat-form-field class="name-input-field">
-          <mat-label>Bild Name</mat-label>
-          <input
-            matInput
-            type="text"
-            [ngModel]="image.name"
-            (ngModelChange)="changeImageName(image, $event)"
-          />
-        </mat-form-field>
-        <img
-          class="centered-image"
-          (click)="onSelectImage(image)"
-          (keydown.enter)="onSelectImage(image)"
-          [src]="image.imageSource"
-          [alt]="image.name"
-          tabindex="0"
-        />
+
+  @if (recentImages.length > 0) {
+    <div class="section-header">
+      <h3>Zuletzt verwendet</h3>
+    </div>
+    <div class="gridbox">
+      <div *ngFor="let image of recentImages" class="image-item">
         <button
           mat-icon-button
           (click)="onDeleteImage(image)"
@@ -45,13 +32,73 @@
         >
           <mat-icon>delete</mat-icon>
         </button>
+        <img
+          class="image-thumbnail"
+          (click)="onSelectImage(image)"
+          (keydown.enter)="onSelectImage(image)"
+          [src]="image.imageSource"
+          [alt]="image.name"
+          tabindex="0"
+        />
+        <mat-form-field
+          class="name-input"
+          appearance="outline"
+          subscriptSizing="dynamic"
+        >
+          <input
+            matInput
+            type="text"
+            placeholder="Bild Name"
+            [ngModel]="image.name"
+            (ngModelChange)="changeImageName(image, $event)"
+          />
+        </mat-form-field>
       </div>
-    </mat-card>
-  </div>
+    </div>
+  }
+
+  @if (otherImages.length > 0) {
+    <div class="section-header">
+      <h3>Weitere Bilder (alphabetisch)</h3>
+    </div>
+    <div class="gridbox">
+      <div *ngFor="let image of otherImages" class="image-item">
+        <button
+          mat-icon-button
+          (click)="onDeleteImage(image)"
+          class="delete-button"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+        <img
+          class="image-thumbnail"
+          (click)="onSelectImage(image)"
+          (keydown.enter)="onSelectImage(image)"
+          [src]="image.imageSource"
+          [alt]="image.name"
+          tabindex="0"
+        />
+        <mat-form-field
+          class="name-input"
+          appearance="outline"
+          subscriptSizing="dynamic"
+        >
+          <input
+            matInput
+            type="text"
+            placeholder="Bild Name"
+            [ngModel]="image.name"
+            (ngModelChange)="changeImageName(image, $event)"
+          />
+        </mat-form-field>
+      </div>
+    </div>
+  }
+
   <mat-paginator
     [length]="numberOfImages"
     [pageSize]="itemsPerPage"
-    [pageSizeOptions]="[5, 10, 25, 100]"
+    [pageSizeOptions]="[50, 100, 150, 200]"
     [pageIndex]="pageIndex"
     (page)="changePage($event)"
     aria-label="Select page"

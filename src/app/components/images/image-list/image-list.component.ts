@@ -31,9 +31,10 @@ import { ImageService } from "@service/image.service";
   styleUrl: "./image-list.component.scss",
 })
 export class ImageListComponent implements OnInit {
-  images: ImageEntity[] = [];
+  recentImages: ImageEntity[] = [];
+  otherImages: ImageEntity[] = [];
   numberOfImages: number = 0;
-  itemsPerPage: number = 100;
+  itemsPerPage: number = 150;
   pageIndex: number = 0;
   titleFilter: Subject<string> = new Subject<string>();
   filter: string = "";
@@ -45,25 +46,31 @@ export class ImageListComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.imageService
-      .readImagesPaginated(this.pageIndex, this.itemsPerPage)
-      .then((result) => {
-        this.images = result[0];
-        this.numberOfImages = result[1];
-      });
+    this.loadImages();
     this.titleFilter.pipe(debounceTime(200)).subscribe((filter) => {
       this.filter = filter;
       this.pageIndex = 0;
-      this.updatePage();
+      this.loadImages();
     });
   }
+
+  loadImages() {
+    Promise.all([
+      this.imageService.readRecentImages(this.filter),
+      this.imageService.readImagesPaginated(
+        this.pageIndex,
+        this.itemsPerPage,
+        this.filter,
+      ),
+    ]).then(([recentImages, [paginatedImages, numberOfImages]]) => {
+      this.recentImages = recentImages;
+      this.otherImages = paginatedImages;
+      this.numberOfImages = numberOfImages;
+    });
+  }
+
   updatePage() {
-    this.imageService
-      .readImagesPaginated(this.pageIndex, this.itemsPerPage, this.filter)
-      .then((result) => {
-        this.images = result[0];
-        this.numberOfImages = result[1];
-      });
+    this.loadImages();
   }
 
   onSelectImage(image: ImageEntity) {
@@ -80,12 +87,7 @@ export class ImageListComponent implements OnInit {
     this.imageService
       .deleteImage(image)
       .then(() => {
-        this.imageService
-          .readImagesPaginated(this.pageIndex, this.itemsPerPage)
-          .then((result) => {
-            this.images = result[0];
-            this.numberOfImages = result[1];
-          });
+        this.loadImages();
       })
       .catch((error) => {
         console.error(error);

@@ -160,7 +160,9 @@ export class CardInputComponent {
 
   openExistingImageDialog() {
     const dialogRef = this.dialog.open(ImageListComponent, {
-      width: "80%",
+      width: "95%",
+      maxWidth: "1600px",
+      height: "90vh",
     });
     dialogRef.afterClosed().subscribe((image: ImageEntity) => {
       this.image = image;
