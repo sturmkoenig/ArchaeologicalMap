@@ -42,7 +42,7 @@
   },
   "productName": "archaological-map",
   "mainBinaryName": "archaological-map",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "identifier": "de.lla.am",
   "plugins": {},
   "app": {
