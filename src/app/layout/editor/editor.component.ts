@@ -118,17 +118,28 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     $event.stopPropagation();
   }
 
+  undo() {
+    (this.quill.getModule("history") as any).undo();
+  }
+
+  redo() {
+    (this.quill.getModule("history") as any).redo();
+  }
+
   public setContents(delta: Delta): void {
     const imageResizeModule = this.quill.getModule("imageResize") as any;
     if (imageResizeModule) {
       imageResizeModule.hide();
     }
     this.quill.setContents(delta);
+    (this.quill.getModule("history") as any).clear();
   }
 
   public getContents(): Delta {
     if (!this.quill) {
-      console.warn("EditorComponent: getContents() called before Quill initialization");
+      console.warn(
+        "EditorComponent: getContents() called before Quill initialization",
+      );
       return new Delta();
     }
     return this.quill.getContents();

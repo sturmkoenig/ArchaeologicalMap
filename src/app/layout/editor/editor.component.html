@@ -30,6 +30,14 @@
     </span>
 
     <span class="ql-formats">
+      <button (click)="undo()" data-testid="undo-button" aria-label="Undo">
+        <mat-icon fontIcon="undo"></mat-icon>
+      </button>
+      <button (click)="redo()" data-testid="redo-button" aria-label="Redo">
+        <mat-icon fontIcon="redo"></mat-icon>
+      </button>
+    </span>
+    <span class="ql-formats">
       <button class="ql-clean" aria-label="Clean"></button>
     </span>
     <span class="ql-formats">
