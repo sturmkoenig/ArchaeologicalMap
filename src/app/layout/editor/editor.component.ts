@@ -3,11 +3,13 @@ import {
   Component,
   effect,
   ElementRef,
+  OnDestroy,
   OnInit,
   signal,
   ViewChild,
   WritableSignal,
 } from "@angular/core";
+import { Subscription } from "rxjs";
 import Quill, { RangeStatic } from "quill";
 import Delta from "quill-delta";
 import {
@@ -27,7 +29,7 @@ import { createCardDetailsWindow } from "@app/util/window-util";
   styleUrls: ["./editor.component.scss"],
   standalone: false,
 })
-export class EditorComponent implements OnInit, AfterViewInit {
+export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   image: IImageMeta = {
     type: "",
     dataUrl: "",
@@ -39,16 +41,12 @@ export class EditorComponent implements OnInit, AfterViewInit {
   foundCards: WritableSignal<(InfoCard | LocationCard)[]> = signal([]);
   carrotPosition?: RangeStatic | null;
   @ViewChild("editorContainer") editorContainer!: ElementRef;
+  private cardContentSubscription?: Subscription;
 
   constructor(
-    cardContentService: CardContentService,
+    private cardContentService: CardContentService,
     cardService: CardService,
   ) {
-    cardContentService.cardContent.subscribe((content) => {
-      if (content !== undefined) {
-        this.setContents(content);
-      }
-    });
     effect(async () => {
       if (this.searchText() !== "")
         this.foundCards.set(
@@ -81,6 +79,17 @@ export class EditorComponent implements OnInit, AfterViewInit {
         }
       }
     });
+
+    this.cardContentSubscription =
+      this.cardContentService.cardContent.subscribe((content) => {
+        if (content !== undefined) {
+          this.setContents(content);
+        }
+      });
+  }
+
+  ngOnDestroy() {
+    this.cardContentSubscription?.unsubscribe();
   }
 
   imageHandler(_dataUrl: string, _type: string, imageData: QuillImageData) {
@@ -114,6 +123,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   public getContents(): Delta {
+    if (!this.quill) {
+      console.warn("EditorComponent: getContents() called before Quill initialization");
+      return new Delta();
+    }
     return this.quill.getContents();
   }
 

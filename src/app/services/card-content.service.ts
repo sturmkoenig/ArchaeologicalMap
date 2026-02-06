@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { invoke } from "@tauri-apps/api/core";
 import Delta from "quill-delta";
-import { BehaviorSubject, EMPTY, switchMap, tap } from "rxjs";
+import { BehaviorSubject, debounceTime, EMPTY, exhaustMap, tap } from "rxjs";
 
 @Injectable({
   providedIn: "root",
@@ -15,10 +15,11 @@ export class CardContentService {
     this.cardContent = new BehaviorSubject<Delta | undefined>(undefined);
     this.cardId
       .pipe(
+        debounceTime(150),
         tap(() => {
           return this.saveCardContent();
         }),
-        switchMap((cardId) => {
+        exhaustMap((cardId) => {
           return this.loadCardContent(cardId);
         }),
       )

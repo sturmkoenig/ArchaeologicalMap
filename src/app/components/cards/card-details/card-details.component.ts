@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnInit, ViewChild } from "@angular/core";
+import { Component, effect, inject, OnInit, ViewChild, AfterViewInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { emit, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
@@ -20,7 +20,7 @@ import { CardDetailsSignalStore } from "@app/state/card-details-signal.store";
   providers: [CardDetailsSignalStore],
   standalone: false,
 })
-export class CardDetailsComponent implements OnInit {
+export class CardDetailsComponent implements OnInit, AfterViewInit {
   @ViewChild(EditorComponent)
   editor!: EditorComponent;
   readonly store = inject(CardDetailsSignalStore);
@@ -31,14 +31,21 @@ export class CardDetailsComponent implements OnInit {
     private cardContentService: CardContentService,
     private cardService: CardService,
   ) {
-    listen("tauri://focus", async () => {
-      this.cardContentService.cardContent.next(this.editor.getContents());
-      await this.cardContentService.saveCardContent();
-    });
     effect(() => {
       const newCardId = this.store.currentCard()?.id;
       if (newCardId && newCardId !== this.cardContentService.cardId.value)
         this.cardContentService.setCardId(newCardId);
+    });
+  }
+
+  ngAfterViewInit() {
+    listen("tauri://focus", async () => {
+      if (!this.editor) {
+        console.warn("CardDetailsComponent: Focus handler called before editor initialization");
+        return;
+      }
+      this.cardContentService.cardContent.next(this.editor.getContents());
+      await this.cardContentService.saveCardContent();
     });
   }
 
@@ -105,8 +112,10 @@ export class CardDetailsComponent implements OnInit {
     await appWindow.onCloseRequested(async () => {
       const windowLabel = appWindow.label;
       await invoke("remove_window_card_mapping", { windowLabel });
-      this.cardContentService.cardContent.next(this.editor.getContents());
-      await this.cardContentService.saveCardContent();
+      if (this.editor) {
+        this.cardContentService.cardContent.next(this.editor.getContents());
+        await this.cardContentService.saveCardContent();
+      }
     });
   }
 
