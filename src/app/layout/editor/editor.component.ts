@@ -119,6 +119,10 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public setContents(delta: Delta): void {
+    const imageResizeModule = this.quill.getModule("imageResize") as any;
+    if (imageResizeModule) {
+      imageResizeModule.hide();
+    }
     this.quill.setContents(delta);
   }
 
