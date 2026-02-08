@@ -24,6 +24,7 @@ export class CardDetailsComponent implements OnInit, AfterViewInit {
   @ViewChild(EditorComponent)
   editor!: EditorComponent;
   readonly store = inject(CardDetailsSignalStore);
+  private appWindow = getCurrentWindow();
 
   constructor(
     private route: ActivatedRoute,
@@ -33,8 +34,10 @@ export class CardDetailsComponent implements OnInit, AfterViewInit {
   ) {
     effect(() => {
       const newCardId = this.store.currentCard()?.id;
-      if (newCardId && newCardId !== this.cardContentService.cardId.value)
+      if (newCardId && newCardId !== this.cardContentService.cardId.value) {
         this.cardContentService.setCardId(newCardId);
+        this.registerWindowForCard(this.appWindow, newCardId);
+      }
     });
   }
 
@@ -61,7 +64,6 @@ export class CardDetailsComponent implements OnInit, AfterViewInit {
   }
 
   async ngOnInit() {
-    const appWindow = getCurrentWindow();
     this.route.paramMap.subscribe(async (params) => {
       if (this.editor) {
         this.cardContentService.cardContent.next(this.editor.getContents());
@@ -71,15 +73,10 @@ export class CardDetailsComponent implements OnInit, AfterViewInit {
       if (cardId) {
         await this.store.setCard(cardId);
         listen(`set-focus-to-${cardId}`, async () => {
-          await appWindow.setFocus();
+          await this.appWindow.setFocus();
         });
-        await this.registerWindowForCard(appWindow, cardId);
       } else if (stackId) {
         await this.store.setStack(stackId);
-        const currentCardId = this.store.currentCard()?.id;
-        if (currentCardId) {
-          await this.registerWindowForCard(appWindow, currentCardId);
-        }
       } else {
         console.error("cardId not provided!");
       }
@@ -98,7 +95,8 @@ export class CardDetailsComponent implements OnInit, AfterViewInit {
 
       if (isViewingStack) {
         if (changedCardIsInCurrentStack) {
-          this.store.setStack(currentStack.id, changedCard.id);
+          const stayOnCard = changedCardIsCurrentCard ? changedCard.id : currentCard.id;
+          this.store.setStack(currentStack.id, stayOnCard);
         } else if (changedCardIsCurrentCard) {
           this.store.setStack(currentStack.id);
         }
@@ -109,8 +107,8 @@ export class CardDetailsComponent implements OnInit, AfterViewInit {
       }
     });
 
-    await appWindow.onCloseRequested(async () => {
-      const windowLabel = appWindow.label;
+    await this.appWindow.onCloseRequested(async () => {
+      const windowLabel = this.appWindow.label;
       await invoke("remove_window_card_mapping", { windowLabel });
       if (this.editor) {
         this.cardContentService.cardContent.next(this.editor.getContents());

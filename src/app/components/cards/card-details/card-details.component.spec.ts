@@ -497,3 +497,126 @@ describe("edit card dialog stack handling", () => {
     await thenCurrentCardShouldBe(fixture.componentInstance, updatedCard.id!);
   });
 });
+
+describe("card navigation and window mapping", () => {
+  const whenCardChangedEventFires = async (card: LocationCard | InfoCard) => {
+    const listener = mockListeners.get("card-changed");
+    if (listener) await listener({ payload: card });
+  };
+
+  const thenWindowMappingShouldBeUpdatedFor = (expectedCardId: number) => {
+    expect(invoke).toHaveBeenCalledWith("update_window_card_mapping", {
+      windowLabel: "test-window",
+      cardId: expectedCardId,
+    });
+  };
+
+  const thenCurrentCardShouldBe = async (
+    component: CardDetailsComponent,
+    expectedCardId: number,
+  ) => {
+    await waitFor(() => {
+      expect(component.store.currentCard()?.id).toBe(expectedCardId);
+    });
+  };
+
+  it("should stay on current card when a different card in the same stack changes via card-changed event", async () => {
+    givenAStackWithCards(testStack);
+    givenACard(testStack[0]);
+    const { fixture } = await renderComponent("cards/details/2?stackId=1");
+
+    const newExternalCard: LocationCard = {
+      id: 4,
+      stackId: 1,
+      title: "Card created from map",
+      description: "",
+      radius: 0,
+      latitude: 10,
+      longitude: 20,
+      iconName: "iconBorderLimesRed",
+    };
+
+    const updatedStack = [...testStack, newExternalCard];
+    givenAStackWithCards(updatedStack);
+
+    await whenCardChangedEventFires(newExternalCard);
+
+    await thenCurrentCardShouldBe(fixture.componentInstance, 2);
+    await waitFor(() => {
+      expect(cardServiceMock.getAllCardsForStack).toHaveBeenCalledWith(1);
+    });
+  });
+
+  it("should stay on current card when current card is edited via card-changed event", async () => {
+    givenAStackWithCards(testStack);
+    givenACard(testStack[0]);
+    const { fixture } = await renderComponent("cards/details/2?stackId=1");
+
+    const updatedCard: LocationCard = {
+      ...testStack[0],
+      title: "Updated title",
+    };
+
+    givenAStackWithCards([updatedCard, testStack[1]]);
+
+    await whenCardChangedEventFires(updatedCard);
+
+    await thenCurrentCardShouldBe(fixture.componentInstance, 2);
+    await waitFor(() => {
+      expect(cardServiceMock.getAllCardsForStack).toHaveBeenCalledWith(1);
+    });
+  });
+
+  it("should navigate to new card and update window mapping when card is created from within the stack window", async () => {
+    const newCardId = 999;
+    givenAStackWithCards(testStack, defaultStack);
+    givenACard(testStack[0]);
+
+    const newCard: InfoCard = {
+      id: newCardId,
+      title: "New Card From Dialog",
+      description: "Created via add button",
+      stackId: 1,
+    };
+    cardServiceMock.createCard.mockResolvedValue(newCard);
+
+    const { fixture } = await renderComponent("cards/details/2?stackId=1");
+
+    const updatedStack = [...testStack, newCard as unknown as LocationCard];
+    givenAStackWithCards(updatedStack);
+
+    fixture.componentInstance.openAddCardDialog();
+    const dialogRef = (fixture.componentInstance.dialog as MatDialog).openDialogs[0];
+    dialogRef.close(newCard);
+
+    await waitFor(() => {
+      expect(fixture.componentInstance.store.currentCard()?.id).toBe(newCardId);
+    });
+
+    thenWindowMappingShouldBeUpdatedFor(newCardId);
+  });
+
+  it("should update window mapping when navigating to next card in stack", async () => {
+    givenAStackWithCards(testStack);
+    givenACard(testStack[0]);
+    const { fixture } = await renderComponent("cards/details/2?stackId=1");
+
+    (invoke as jest.Mock).mockClear();
+
+    await fixture.componentInstance.store.setStack(1, testStack[1].id);
+    fixture.detectChanges();
+
+    await waitFor(() => {
+      thenWindowMappingShouldBeUpdatedFor(3);
+    });
+  });
+
+  it("should register window mapping on initial load", async () => {
+    givenACard(defaultCard);
+    await renderComponent("cards/details/1");
+
+    await waitFor(() => {
+      thenWindowMappingShouldBeUpdatedFor(1);
+    });
+  });
+});
