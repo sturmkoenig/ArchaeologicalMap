@@ -1,6 +1,14 @@
-import { Component, effect, inject, OnInit, ViewChild, AfterViewInit } from "@angular/core";
+import {
+  Component,
+  effect,
+  inject,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  AfterViewInit,
+} from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
-import { emit, listen } from "@tauri-apps/api/event";
+import { emit, listen, UnlistenFn } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 
 import { MatDialog } from "@angular/material/dialog";
@@ -20,7 +28,11 @@ import { CardDetailsSignalStore } from "@app/state/card-details-signal.store";
   providers: [CardDetailsSignalStore],
   standalone: false,
 })
-export class CardDetailsComponent implements OnInit, AfterViewInit {
+export class CardDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
+  private unlistenFocus?: Promise<UnlistenFn>;
+  private unlistenCardChanged?: Promise<UnlistenFn>;
+  private unlistenSetFocus?: Promise<UnlistenFn>;
+  private unlistenCloseRequested?: UnlistenFn;
   @ViewChild(EditorComponent)
   editor!: EditorComponent;
   readonly store = inject(CardDetailsSignalStore);
@@ -42,9 +54,11 @@ export class CardDetailsComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    listen("tauri://focus", async () => {
+    this.unlistenFocus = listen("tauri://focus", async () => {
       if (!this.editor) {
-        console.warn("CardDetailsComponent: Focus handler called before editor initialization");
+        console.warn(
+          "CardDetailsComponent: Focus handler called before editor initialization",
+        );
         return;
       }
       this.cardContentService.cardContent.next(this.editor.getContents());
@@ -72,7 +86,10 @@ export class CardDetailsComponent implements OnInit, AfterViewInit {
       const stackId = Number(params.get("stackId"));
       if (cardId) {
         await this.store.setCard(cardId);
-        listen(`set-focus-to-${cardId}`, async () => {
+        if (this.unlistenSetFocus) {
+          (await this.unlistenSetFocus)();
+        }
+        this.unlistenSetFocus = listen(`set-focus-to-${cardId}`, async () => {
           await this.appWindow.setFocus();
         });
       } else if (stackId) {
@@ -81,40 +98,62 @@ export class CardDetailsComponent implements OnInit, AfterViewInit {
         console.error("cardId not provided!");
       }
     });
-    listen("card-changed", async (event: { payload: Card }) => {
-      const changedCard = event.payload;
-      const currentStack = this.store.stack();
-      const currentCard = this.store.currentCard();
+    this.unlistenCardChanged = listen(
+      "card-changed",
+      async (event: { payload: Card }) => {
+        const changedCard = event.payload;
+        const currentStack = this.store.stack();
+        const currentCard = this.store.currentCard();
 
-      if (!changedCard?.id || !currentCard?.id) return;
+        if (!changedCard?.id || !currentCard?.id) return;
 
-      const isViewingStack = currentStack !== undefined;
-      const changedCardIsInCurrentStack =
-        changedCard.stackId === currentStack?.id;
-      const changedCardIsCurrentCard = changedCard.id === currentCard.id;
+        const isViewingStack = currentStack !== undefined;
+        const changedCardIsInCurrentStack =
+          changedCard.stackId === currentStack?.id;
+        const changedCardIsCurrentCard = changedCard.id === currentCard.id;
 
-      if (isViewingStack) {
-        if (changedCardIsInCurrentStack) {
-          const stayOnCard = changedCardIsCurrentCard ? changedCard.id : currentCard.id;
-          this.store.setStack(currentStack.id, stayOnCard);
-        } else if (changedCardIsCurrentCard) {
-          this.store.setStack(currentStack.id);
+        if (isViewingStack) {
+          if (changedCardIsInCurrentStack) {
+            const stayOnCard = changedCardIsCurrentCard
+              ? changedCard.id
+              : currentCard.id;
+            this.store.setStack(currentStack.id, stayOnCard);
+          } else if (changedCardIsCurrentCard) {
+            this.store.setStack(currentStack.id);
+          }
+        } else {
+          if (changedCardIsCurrentCard) {
+            this.store.setCard(changedCard.id);
+          }
         }
-      } else {
-        if (changedCardIsCurrentCard) {
-          this.store.setCard(changedCard.id);
-        }
-      }
-    });
+      },
+    );
 
-    await this.appWindow.onCloseRequested(async () => {
-      const windowLabel = this.appWindow.label;
-      await invoke("remove_window_card_mapping", { windowLabel });
-      if (this.editor) {
-        this.cardContentService.cardContent.next(this.editor.getContents());
-        await this.cardContentService.saveCardContent();
-      }
-    });
+    this.unlistenCloseRequested = await this.appWindow.onCloseRequested(
+      async () => {
+        const windowLabel = this.appWindow.label;
+        await invoke("remove_window_card_mapping", { windowLabel });
+        if (this.editor) {
+          this.cardContentService.cardContent.next(this.editor.getContents());
+          await this.cardContentService.saveCardContent();
+        }
+      },
+    );
+  }
+
+  async ngOnDestroy() {
+    if (this.unlistenFocus) {
+      (await this.unlistenFocus)();
+    }
+    if (this.unlistenCardChanged) {
+      (await this.unlistenCardChanged)();
+    }
+    if (this.unlistenSetFocus) {
+      (await this.unlistenSetFocus)();
+    }
+    if (this.unlistenCloseRequested) {
+      this.unlistenCloseRequested();
+    }
   }
 
   async onShowOnMap(card: Card) {

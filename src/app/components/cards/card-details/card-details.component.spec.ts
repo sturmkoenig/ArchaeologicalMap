@@ -41,10 +41,12 @@ jest.mock("quill-image-resize-module", () => {
   return jest.fn();
 });
 
+const mockUnlistenCloseRequested = jest.fn();
+
 jest.mock("@tauri-apps/api/window", () => ({
   getCurrentWindow: () => ({
     setFocus: jest.fn(),
-    onCloseRequested: jest.fn(),
+    onCloseRequested: jest.fn().mockResolvedValue(mockUnlistenCloseRequested),
     label: "test-window",
   }),
 }));
@@ -54,14 +56,19 @@ jest.mock("@tauri-apps/api/core", () => ({
   convertFileSrc: jest.fn((src: string) => src),
 }));
 
-const mockListeners = new Map<string, Function>();
+const mockListeners = new Map<string, (...args: unknown[]) => unknown>();
+const mockUnlistenFns = new Map<string, jest.Mock>();
 
 jest.mock("@tauri-apps/api/event", () => ({
   emit: jest.fn(),
-  listen: jest.fn((eventName: string, callback: Function) => {
-    mockListeners.set(eventName, callback);
-    return Promise.resolve();
-  }),
+  listen: jest.fn(
+    (eventName: string, callback: (...args: unknown[]) => unknown) => {
+      mockListeners.set(eventName, callback);
+      const unlisten = jest.fn();
+      mockUnlistenFns.set(eventName, unlisten);
+      return Promise.resolve(unlisten);
+    },
+  ),
 }));
 
 jest.mock("@tauri-apps/api/webviewWindow", () => ({
@@ -205,6 +212,9 @@ const givenACard = (card: Partial<LocationCard>) => {
 beforeEach(() => {
   (invoke as jest.Mock).mockClear();
   (invoke as jest.Mock).mockResolvedValue(null);
+  mockListeners.clear();
+  mockUnlistenFns.clear();
+  mockUnlistenCloseRequested.mockClear();
 });
 
 it("should create", async () => {
@@ -618,5 +628,46 @@ describe("card navigation and window mapping", () => {
     await waitFor(() => {
       thenWindowMappingShouldBeUpdatedFor(1);
     });
+  });
+});
+
+describe("listener cleanup", () => {
+  it("should clean up all listeners on destroy", async () => {
+    givenACard(defaultCard);
+    const { fixture } = await renderComponent("cards/details/1");
+
+    const component = fixture.componentInstance as CardDetailsComponent;
+    const componentPrivate = component as unknown as Record<string, unknown>;
+    const focusUnlisten = await (componentPrivate[
+      "unlistenFocus"
+    ] as Promise<jest.Mock>);
+    const cardChangedUnlisten = await (componentPrivate[
+      "unlistenCardChanged"
+    ] as Promise<jest.Mock>);
+    const setFocusUnlisten = await (componentPrivate[
+      "unlistenSetFocus"
+    ] as Promise<jest.Mock>);
+
+    await component.ngOnDestroy();
+
+    expect(focusUnlisten).toHaveBeenCalled();
+    expect(cardChangedUnlisten).toHaveBeenCalled();
+    expect(setFocusUnlisten).toHaveBeenCalled();
+    expect(mockUnlistenCloseRequested).toHaveBeenCalled();
+  });
+
+  it("should clean up previous set-focus-to listener on param change", async () => {
+    givenACard(defaultCard);
+    const { fixture } = await renderComponent("cards/details/1");
+
+    const previousUnlisten = mockUnlistenFns.get("set-focus-to-1");
+    expect(previousUnlisten).toBeDefined();
+
+    givenACard({ ...defaultCard, id: 5 });
+    paramMapSubject.next(convertToParamMap({ cardId: "5" }));
+    await waitComponentRender(fixture);
+
+    expect(previousUnlisten).toHaveBeenCalled();
+    expect(mockUnlistenFns.get("set-focus-to-5")).toBeDefined();
   });
 });
